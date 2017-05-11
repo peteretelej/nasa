@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -41,6 +42,15 @@ HD Image: %s
 About:
 %s
 `, ni.Title, ni.Date, ni.URL, ni.HDURL, ni.Explanation)
+}
+
+// RandomAPOD returns an Astronomy Picture of the Day based on a random date
+// Picks any image shared between the last 2 years
+func RandomAPOD() (*Image, error) {
+	days := 2 * 365 // Any day in last 2 years
+	randDaysOld := time.Duration(rand.Intn(days))
+	t := time.Now().Add(-(time.Hour * 24 * randDaysOld))
+	return ApodImage(t)
 }
 
 // ApodImage returns the NASA Astronomy Picture of the Day
