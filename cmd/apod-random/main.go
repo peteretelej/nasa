@@ -135,6 +135,9 @@ body{background-color:#000;color:#fff}
 }
 {{end -}}
 #apod{ display:block; position:fixed; bottom:0; left:30px; right:30px;}
+@media screen and (max-width:600px){
+	#explanation{display:none;}
+}
 </style>
 <body>
 {{if not .Apod}}
@@ -144,8 +147,8 @@ body{background-color:#000;color:#fff}
 <img src="{{.Apod.HDURL}}" id="bg" alt="{{.Apod.Title}}" />
 <div id="apod">
 <h4>{{.Apod.Title}}</h4>
-<p>{{.Apod.Explanation}}<br/>
-NASA Astronomy Picture of the Day {{.Apod.Date}} <a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>View in HD</i></a> </p>
+<p id="explanation">{{.Apod.Explanation}}</a>
+<p>NASA Astronomy Picture of the Day {{.Apod.Date}} <a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>View in HD</i></a> </p>
 <p style="text-align:right">
 View in fullscreen (F11) for best experience &#9786;.
 <a href="?auto=1&interval=60" style="color:#fff">Click here to Auto-reload.</a>
