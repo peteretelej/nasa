@@ -148,10 +148,11 @@ html {
 <h4>{{.Apod.Title}}</h4>
 <p>{{.Apod.Explanation}}<br/>
 NASA Astronomy Picture of the Day {{.Apod.Date}} <a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>View in HD</i></a> </p>
-<p style="font-style:italic;text-align:right">
+<p style="text-align:right">
 View in fullscreen (F11) for best experience &#9786;.
-Random NASA Astronomy Picture of the Day.
-This project is on Github 
+<a href="?auto=1&interval=60" style="color:#fff">Click here to Auto-reload.</a>
+<b>Random NASA Astronomy Picture of the Day.</b>
+<i>This project is on Github.</i>
 <a class="github-button" href="https://github.com/peteretelej/nasa" data-icon="octicon-star" data-show-count="true" aria-label="Star peteretelej/nasa on GitHub">Star</a>
 </p>
 </div>
