@@ -44,6 +44,10 @@ About:
 `, ni.Title, ni.Date, ni.URL, ni.HDURL, ni.Explanation)
 }
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 // RandomAPOD returns an Astronomy Picture of the Day based on a random date
 // Picks any image shared between the last 2 years
 func RandomAPOD() (*Image, error) {
