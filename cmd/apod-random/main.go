@@ -129,12 +129,9 @@ const tmpl = `<!DOCTYPE html>
 <style>html,body{ margin:0; padding:0}
 body{background-color:#000;color:#fff}
 {{if .Apod -}}
-html {
-	background: url({{if .HD}}{{.Apod.HDURL}}{{else}}{{.Apod.URL}}{{end}}) no-repeat center center fixed;
-	webkit-background-size: cover;
-	-moz-background-size: cover;
-	-o-background-size: cover;
-	background-size: cover;
+#bg{
+	position:fixed; top:0; left:0;
+	min-width:100%;min-height:100%;
 }
 {{end -}}
 #apod{ display:block; position:fixed; bottom:0; left:30px; right:30px;}
@@ -144,6 +141,7 @@ html {
 <p>Unable to generate random APOD :(.</p>
 {{end}}
 {{if .Apod}}
+<img src="{{.Apod.HDURL}}" id="bg" alt="{{.Apod.Title}}" />
 <div id="apod">
 <h4>{{.Apod.Title}}</h4>
 <p>{{.Apod.Explanation}}<br/>
