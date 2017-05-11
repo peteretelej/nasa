@@ -1,2 +1,3 @@
 .env
 apod-random
+docker-launch.sh
