@@ -19,6 +19,7 @@ var (
 )
 
 func main() {
+	flag.Parse()
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	if err := serve(*listen); err != nil {
 		log.Fatalf("server crashed: %v", err)
