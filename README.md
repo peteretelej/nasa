@@ -1,6 +1,9 @@
 # nasa - Go library and CLI for NASA API
 
-### Basic Library Usage
+- Library for accessing and using the NASA API (APOD, NEO)
+- Command line interface (CLI) for accessing NASA API's services
+
+## nasa Library Usage
 ``` go
 package main
 
@@ -29,8 +32,8 @@ func handle(err error){
 
 
 ## nasa CLI
-
 ``` sh
+# installation
 go get -u github.com/peteretelej/nasa/cmd/nasa
 
 nasa apod 
