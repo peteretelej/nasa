@@ -2,7 +2,6 @@ package nasa
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -78,7 +77,7 @@ func ApodImage(t time.Time) (*Image, error) {
 	client := &http.Client{Timeout: time.Second * 15}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, errors.New("unable to connect to NASA API, check your internet connection")
+		return nil, fmt.Errorf("unable to connect to NASA API, %v", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 	dat, err := ioutil.ReadAll(resp.Body)
