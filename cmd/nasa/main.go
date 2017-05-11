@@ -4,7 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -45,7 +44,6 @@ func main() {
 			t, err = time.Parse("2006-01-02", *apodDate)
 			if err != nil {
 				errors.New("invalid -date; should use format YYYY-MM-DD")
-				log.Print(err)
 				os.Exit(1)
 			}
 		}

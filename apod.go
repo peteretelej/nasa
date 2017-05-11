@@ -2,6 +2,7 @@ package nasa
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -18,6 +19,7 @@ func init() {
 	}
 }
 
+// APODEndpoint is the NASA API APOD endpoint
 const APODEndpoint = "https://api.nasa.gov/planetary/apod"
 
 // Image defines the structure of NASA images
@@ -43,7 +45,6 @@ About:
 
 // ApodImage returns the NASA Astronomy Picture of the Day
 func ApodImage(t time.Time) (*Image, error) {
-	fmt.Println(t)
 	if t.After(time.Now()) {
 		t = time.Now()
 	}
@@ -56,7 +57,6 @@ func ApodImage(t time.Time) (*Image, error) {
 	q.Set("date", date)
 	q.Add("api_key", nasaKey)
 	u.RawQuery = q.Encode()
-	fmt.Println(u.String())
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func ApodImage(t time.Time) (*Image, error) {
 	client := &http.Client{Timeout: time.Second * 15}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("unable to connect to NASA API, check your internet connection")
 	}
 	defer func() { _ = resp.Body.Close() }()
 	dat, err := ioutil.ReadAll(resp.Body)
