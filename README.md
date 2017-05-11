@@ -64,12 +64,12 @@ apod-random -listen localhost:8000
 # launch on a custom port (default :8080)
 
 apod-random -interval 10m
-# update images every 10 minutes (default 5s)
+# update images on request every 10 minutes (default 1s)
 ```
 __DEMO__
-- [nasa.etelej.com/random-apod](https://nasa.etelej.com/random-apod): Random images (updated every 5secs)
-- [nasa.etelej.com/random-apod?hd=1](https://nasa.etelej.com/random-apod?hd=1): Gets High Definition images.
-- [nasa.etelej.com/random-apod?auto=1](https://nasa.etelej.com/random-apod?auto=1): Automatically reloads page (default interval: 15 seconds)
-- [nasa.etelej.com/random-apod?auto=1&interval=60](https://nasa.etelej.com/random-apod?auto=1&interval=60): Automatically reloads every 300 seconds (5 mins)
-- [nasa.etelej.com/random-apod?hd=1&auto=1](https://nasa.etelej.com/random-apod?hd=1&auto=1): Automatically reloads HD images
+- [nasa.etelej.com/random-apod](https://nasa.etelej.com/random-apod): Random images (HD images, updated every second, no autoreload)
+- [nasa.etelej.com/random-apod?sd=1](https://nasa.etelej.com/random-apod?sd=1): Gets Standard Definition images (lower quality,faster load, saves bandwidth).
+- [nasa.etelej.com/random-apod?auto=1](https://nasa.etelej.com/random-apod?auto=1): Automatically reload page (default reload interval: 5 minutes)
+- [nasa.etelej.com/random-apod?auto=1&interval=60](https://nasa.etelej.com/random-apod?auto=1&interval=60): Automatically reloads every 1800 seconds (1 hr)
+- [nasa.etelej.com/random-apod?sd=1&auto=1&interval=5](https://nasa.etelej.com/random-apod?sd=1&auto=1&interval=5): Automatically reloads SD images every 5 seconds
 

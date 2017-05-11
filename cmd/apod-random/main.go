@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	interval = flag.Duration("interval", 5*time.Second, "interval to change the random image")
+	interval = flag.Duration("interval", time.Second, "interval to change the random image")
 	listen   = flag.String("listen", ":8080", "http server listening address")
 )
 
@@ -99,7 +99,7 @@ func (h *handler) render(w http.ResponseWriter, r *http.Request) {
 		AutoReloadInterval int // reload interval in seconds
 	}{
 		Apod:       h.apod(),
-		HD:         r.URL.Query().Get("hd") != "",
+		HD:         r.URL.Query().Get("sd") == "",
 		AutoReload: r.URL.Query().Get("auto") != "",
 	}
 	if d.AutoReload {
@@ -146,8 +146,16 @@ html {
 {{if .Apod}}
 <div id="apod">
 <h4>{{.Apod.Title}}</h4>
-<p>{{.Apod.Explanation}} <a href="{{.Apod.HDURL}}">View in HD</a></p>
+<p>{{.Apod.Explanation}}<br/>
+NASA Astronomy Picture of the Day {{.Apod.Date}} <a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>View in HD</i></a> </p>
+<p style="font-style:italic;text-align:right">
+View in fullscreen (F11) for best experience &#9786;.
+Random NASA Astronomy Picture of the Day.
+This project is on Github 
+<a class="github-button" href="https://github.com/peteretelej/nasa" data-icon="octicon-star" data-show-count="true" aria-label="Star peteretelej/nasa on GitHub">Star</a>
+</p>
 </div>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
 {{end}}
 </body>
 </html>`
