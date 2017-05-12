@@ -28,8 +28,7 @@ func main() {
 	nasaKey := os.Getenv("NASAKEY")
 	if nasaKey == "" {
 		nasaKey = "DEMO_KEY"
-		fmt.Println("Currently using the demo API Key DEMO_KEY." +
-			" Apply for an API key at https://api.nasa.gov/index.html#apply-for-an-api-key")
+		fmt.Println(nasa.APIKEYMissing)
 	}
 
 	if len(os.Args) == 1 {

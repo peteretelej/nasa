@@ -4,6 +4,16 @@
 - Command line interface (CLI) for accessing NASA API's services
 - Applications using the library (e.g. web server)
 
+## NASA API KEY
+
+Kindly grab a NASA API key from [here](https://api.nasa.gov/index.html#apply-for-an-api-key), and set it to the environment variable __NASAKEY__.
+```
+export NASAKEY=YOUR-API_KEY
+```
+The API Key will increase the rate limits for your API to access the NASA API. This package & its apps default to the demo key `NASAKEY=DEMO_KEY` if you haven't set one. 
+The DEMO_KEY has very low limits (30reqs/hr, 50req/day), only sufficient for demoing.
+
+
 ## nasa Library Usage
 ``` go
 package main

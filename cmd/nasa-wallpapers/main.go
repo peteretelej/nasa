@@ -25,8 +25,7 @@ func main() {
 	nasaKey := os.Getenv("NASAKEY")
 	if nasaKey == "" {
 		nasaKey = "DEMO_KEY"
-		fmt.Println("Currently using the demo API Key DEMO_KEY." +
-			" Apply for an API key at https://api.nasa.gov/index.html#apply-for-an-api-key")
+		fmt.Println(nasa.APIKEYMissing)
 	}
 
 	if !*random {
@@ -54,7 +53,7 @@ func randomAPOD(interval time.Duration) error {
 		return errors.New("interval set is too low")
 	}
 
-	fmt.Printf("nasa-wallpapers: resetting wallpaper to a random APOD every %s\n", interval)
+	fmt.Printf("nasa-wallpapers: resetting wallpaper to a random NASA APOD picture every %s\n", interval)
 	if err := updateRandom(); err != nil {
 		log.Printf("unable to update wallpaper: %v", err)
 	}
