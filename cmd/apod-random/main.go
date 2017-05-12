@@ -48,8 +48,8 @@ func serve(listenAddr string) error {
 	http.Handle("/", h)
 	svr := &http.Server{
 		Addr:           listenAddr,
-		ReadTimeout:    15 * time.Second,
-		WriteTimeout:   30 * time.Second,
+		ReadTimeout:    30 * time.Second,
+		WriteTimeout:   60 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 	fmt.Printf("launching http server at %s\n", listenAddr)
