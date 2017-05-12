@@ -54,16 +54,21 @@ func randomAPOD(interval time.Duration) error {
 	}
 
 	fmt.Printf("nasa-wallpapers: resetting wallpaper to a random NASA APOD picture every %s\n", interval)
-	if err := updateRandom(); err != nil {
-		log.Printf("unable to update wallpaper: %v", err)
-	}
 	for {
-		time.Sleep(interval)
+		fails := 0
+		var err error
 		for i := 0; i < 3; i++ {
-			if err := updateRandom(); err == nil {
+			err = updateRandom()
+			if err == nil {
+				fails = 0
 				break
 			}
+			fails++
 		}
+		if fails != 0 {
+			log.Printf("nasa-wallpapers: unable to fetch wallpapers: %v", err)
+		}
+		time.Sleep(interval)
 	}
 }
 
