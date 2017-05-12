@@ -47,6 +47,12 @@ nasa apod
 
 nasa apod -date 2016-01-17 
 # returns the NASA APOD for the date specified
+
+nasa neo
+# returns Near Earth Objects for today
+
+nasa neo -start 2017-05-10 -end 2017-05-12
+# returns Near Earth Objects for the range of dates specified
 ```
 
 ## Serve website for NASA APOD

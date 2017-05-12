@@ -16,8 +16,8 @@ var (
 	apodDate    = apodCommand.String("date", "", "APOD on a particular date YYYY-MM-DD")
 
 	neoCommand = flag.NewFlagSet("neo", flag.ExitOnError)
-	neoStart   = flag.String("start", "", "NEO start date YYYY-MM-DD")
-	neoEnd     = flag.String("end", "", "NEO end date YYYY-MM-DD")
+	neoStart   = neoCommand.String("start", "", "NEO start date YYYY-MM-DD")
+	neoEnd     = neoCommand.String("end", "", "NEO end date YYYY-MM-DD")
 
 	webCommand = flag.NewFlagSet("web", flag.ExitOnError)
 	webListen  = webCommand.String("listen", ":8080", "http web server address")
@@ -40,7 +40,7 @@ func main() {
 	case "apod":
 		t := time.Now()
 		if len(os.Args) > 2 {
-			apodCommand.Parse(os.Args[2:])
+			_ = apodCommand.Parse(os.Args[2:]) // exits on error
 		}
 		if *apodDate != "" {
 			var err error
@@ -59,11 +59,35 @@ func main() {
 		fmt.Println(apod)
 	case "neo":
 		if len(os.Args) > 2 {
-			neoCommand.Parse(os.Args[2:])
+			_ = neoCommand.Parse(os.Args[2:]) //exits on error
 		}
+		start, end := *neoStart, *neoEnd
+		today := time.Now().Format("2006-01-02")
+		if start == "" {
+			start = today
+		}
+		if end == "" {
+			end = today
+		}
+		st, err := time.Parse("2006-01-02", start)
+		if err != nil {
+			fmt.Printf("nasa neo: invalid -start date, should be YYYY-MM-DD\n")
+			os.Exit(1)
+		}
+		et, err := time.Parse("2006-01-02", end)
+		if err != nil {
+			fmt.Printf("nasa neo: invalid -end date, should be YYYY-MM-DD\n")
+			os.Exit(1)
+		}
+		nl, err := nasa.NeoFeed(st, et)
+		if err != nil {
+			fmt.Printf("nasa neo: %v", err)
+			os.Exit(1)
+		}
+		fmt.Println(nl)
 	case "web":
 		if len(os.Args) > 2 {
-			neoCommand.Parse(os.Args[2:])
+			_ = webCommand.Parse(os.Args[2:]) //exits on error
 		}
 		if err := nasa.Serve(*webListen); err != nil {
 			log.Fatalf("server crashed: %v", err)
