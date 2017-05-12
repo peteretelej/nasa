@@ -74,3 +74,20 @@ __Web server demo:__
 - [nasa.etelej.com/random-apod?auto=1&interval=60](https://nasa.etelej.com/random-apod?auto=1&interval=60): Automatically reloads every 1800 seconds (1 hr)
 - [nasa.etelej.com/random-apod?sd=1&auto=1&interval=5](https://nasa.etelej.com/random-apod?sd=1&auto=1&interval=5): Automatically reloads SD images every 5 seconds
 
+
+## NASA Wallpapers Desktop background
+- Only support Ubuntu Desktop atm.
+
+Automatically change your desktop wallpaper to randomly selected NASA Astronomy Pictures of the Day.
+
+```
+go get -u github.com/peteretelej/github.com/nasa/cmd/nasa-wallpapers
+
+nasa-wallpapers 
+# automatically changes wallpaper with a random NASA picture every 10 minutes
+
+nasa-wallpapers -interval 30s
+# automatically changes wallpaper every 30seconds
+# rem to get and set NASA API KEY to env NASAKEY to avoid ratelimits
+```
+

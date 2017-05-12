@@ -31,14 +31,14 @@ func main() {
 
 	if !*random {
 		if err := todaysAPOD(); err != nil {
-			fmt.Printf("nasa-wallpaper: %v\n", err)
+			fmt.Printf("nasa-wallpapers: %v\n", err)
 			os.Exit(1)
 		}
 		return // this return is just for-show, displayAPOD is long running
 	}
 
 	if err := randomAPOD(*interval); err != nil {
-		fmt.Printf("nasa-wallpaper: %v\n", err)
+		fmt.Printf("nasa-wallpapers: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -54,7 +54,7 @@ func randomAPOD(interval time.Duration) error {
 		return errors.New("interval set is too low")
 	}
 
-	fmt.Printf("nasa-wallpaper: resetting wallpaper to a random APOD every %s\n", interval)
+	fmt.Printf("nasa-wallpapers: resetting wallpaper to a random APOD every %s\n", interval)
 	if err := updateRandom(); err != nil {
 		log.Printf("unable to update wallpaper: %v", err)
 	}
@@ -116,7 +116,7 @@ func updateRandom() error {
 var tmpfile string
 
 func init() {
-	tmp, err := ioutil.TempFile("", "nasa-wallpaper.jpg")
+	tmp, err := ioutil.TempFile("", "nasa-wallpapers-pic.jpg")
 	if err != nil {
 		log.Fatalf("unable to get tempfile to work with: %v", err)
 	}
