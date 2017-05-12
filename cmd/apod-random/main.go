@@ -36,13 +36,9 @@ func serve(listenAddr string) error {
 	if err != nil {
 		return fmt.Errorf("unable to parse template: %v", err)
 	}
-	apod, err := nasa.RandomAPOD()
-	if err != nil {
-		return fmt.Errorf("unable to fetch random apod: %v", err)
-	}
 	h := &handler{
-		lastUpdate: time.Now(),
-		cachedApod: apod,
+		lastUpdate: time.Now().Add(-10 * time.Hour),
+		cachedApod: &nasa.Image{},
 		tmpl:       tmpl,
 	}
 	http.Handle("/", h)
@@ -120,6 +116,10 @@ func (h *handler) render(w http.ResponseWriter, r *http.Request) {
 		if d.AutoReloadInterval < 1 {
 			d.AutoReloadInterval = 5 * 60 // default reload every 5 minutes
 		}
+	}
+	if d.Apod.URL == "" && d.Apod.HDURL == "" {
+		http.Error(w, "NASA API currently unavailable, it's experiencing downtime :(", http.StatusServiceUnavailable)
+		return
 	}
 	if err := h.tmpl.Execute(w, d); err != nil {
 		log.Print(err)
