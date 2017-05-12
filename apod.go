@@ -74,7 +74,7 @@ func ApodImage(t time.Time) (*Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	client := &http.Client{Timeout: time.Second * 15}
+	client := &http.Client{Timeout: time.Second * 30}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("unable to connect to NASA API, %v", err)

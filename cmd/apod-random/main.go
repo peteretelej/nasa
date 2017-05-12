@@ -129,13 +129,22 @@ const tmpl = `<!DOCTYPE html>
 <style>html,body{ margin:0; padding:0}
 body{background-color:#000;color:#fff}
 {{if .Apod -}}
-#bg{
-	position:fixed; top:0; left:0;
-	min-width:100%;min-height:100%;
+#imgwrap{
+	position:fixed; top:0;left:0;
+	min-width:100%; max-width:100%;
+	overflow:hidden;
+}
+#imgwrap img{
+	display:block; margin:0 auto;
+	max-width:100%; max-height:100%;
 }
 {{end -}}
 #apod{ display:block; position:fixed; bottom:0; left:30px; right:30px;}
-#explanation {display:none}
+#explanation {
+	display:none;
+	background-color:rgba(50,50,50,0.5); 
+	padding:10px; border-radius:10px;
+}
 #apod:hover #explanation{display:block}
 @media screen and (max-width:600px){
 	#explanation{display:none;}
@@ -146,11 +155,14 @@ body{background-color:#000;color:#fff}
 <p>Unable to generate random APOD :(.</p>
 {{end}}
 {{if .Apod}}
-<img src="{{.Apod.HDURL}}" id="bg" alt="{{.Apod.Title}}" />
+<div id="imgwrap"><img src="{{.Apod.HDURL}}" id="bg" alt="{{.Apod.Title}}" /></div>
 <div id="apod">
-<p id="explanation">{{.Apod.Explanation}}</a>
+<div id="explanation">
+	<h4>{{.Apod.Title}}</h4>
+	<p>{{.Apod.Explanation}}</p>
+	<p>NASA Astronomy Picture of the Day {{.Apod.Date}} <a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>Open Image in HD</i></a> </p>
+</div>
 <h4>{{.Apod.Title}}</h4>
-<p>NASA Astronomy Picture of the Day {{.Apod.Date}} <a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>View in HD</i></a> </p>
 <p style="text-align:right">
 View in fullscreen (F11) for best experience &#9786;.
 <a href="?auto=1&interval=60" style="color:#fff">Click here to Auto-reload.</a>
