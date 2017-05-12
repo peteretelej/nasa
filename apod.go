@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -57,25 +58,59 @@ func RandomAPOD() (*Image, error) {
 	return ApodImage(t)
 }
 
+// caches todays APOD
+type todaysAPOD struct {
+	mu   sync.RWMutex // protects the following
+	date string       // YYYY-MM-DD
+	apod *Image
+}
+
+var tAPOD = &todaysAPOD{}
+
+func (v *todaysAPOD) update(apod Image) {
+	v.mu.Lock()
+	v.apod = &apod
+	v.date = apod.Date
+	v.mu.Unlock()
+}
+
+//APODToday returns today's APOD, from cache if possible, fetches fresh if not
+func APODToday() (*Image, error) {
+	d := time.Now().Format("2006-01-02")
+
+	tAPOD.mu.RLock()
+	cacheddate, apod := tAPOD.date, tAPOD.apod
+	tAPOD.mu.RUnlock()
+
+	if cacheddate != d || apod == nil {
+		return ApodImage(time.Now())
+	}
+	return apod, nil
+}
+
 // ApodImage returns the NASA Astronomy Picture of the Day
 func ApodImage(t time.Time) (*Image, error) {
+	var today bool
 	if t.After(time.Now()) {
 		t = time.Now()
 	}
 	date := t.Format("2006-01-02")
+	today = time.Now().Format("2006-01-02") == date
 	u, err := url.Parse(APODEndpoint)
 	if err != nil {
 		return nil, err
 	}
 	q := u.Query()
-	q.Set("date", date)
-	q.Add("api_key", nasaKey)
+	q.Set("api_key", nasaKey)
+	if !today {
+		q.Add("date", date)
+	}
 	u.RawQuery = q.Encode()
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
-	client := &http.Client{Timeout: time.Second * 10}
+	client := &http.Client{Timeout: time.Second * 20}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("unable to connect to NASA API, %v", err)
@@ -96,6 +131,9 @@ func ApodImage(t time.Time) (*Image, error) {
 	}
 	if t, err := time.Parse("2006-01-02", ni.Date); err == nil {
 		ni.ApodDate = t
+	}
+	if today {
+		tAPOD.update(ni)
 	}
 	return &ni, nil
 }

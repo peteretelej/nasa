@@ -1,7 +1,8 @@
-# nasa - Go library and CLI for NASA API
+# nasa - Go library, CLI and applications based on the NASA API
 
 - Library for accessing and using the NASA API (APOD, NEO)
 - Command line interface (CLI) for accessing NASA API's services
+- Applications using the library (e.g. web server)
 
 ## nasa Library Usage
 ``` go
@@ -36,7 +37,6 @@ func handle(err error) {
 }
 ```
 
-
 ## nasa CLI
 ``` sh
 # installation
@@ -49,24 +49,20 @@ nasa apod -date 2016-01-17
 # returns the NASA APOD for the date specified
 ```
 
+## Serve website for NASA APOD
 
-## Apps built on this library
-
-#### Random APOD Images server
-Random APOD server: generates a random APOD image and serves at a HTTP url
+Serve APOD on the web 
 ```
-go get -u github.com/peteretelej/nasa/cmd/apod-random
+nasa web
+# serves website at :8080
 
-apod-random
-# launches web server that serves random APOD images from the last two years
-
-apod-random -listen localhost:8000
-# launch on a custom port (default :8080)
-
-apod-random -interval 10m
-# update images on request every 10 minutes (default 1s)
+nasa web -listen localhost:9000
+# serves website at localhost:9000
 ```
-__DEMO__
+
+__Web server demo:__
+```
+- [nasa.etelej.com](https://nasa.etelej.com): NASA Astronomy Picture of the Day (for today)
 - [nasa.etelej.com/random-apod](https://nasa.etelej.com/random-apod): Random images (HD images, updated every second, no autoreload)
 - [nasa.etelej.com/random-apod?sd=1](https://nasa.etelej.com/random-apod?sd=1): Gets Standard Definition images (lower quality,faster load, saves bandwidth).
 - [nasa.etelej.com/random-apod?auto=1](https://nasa.etelej.com/random-apod?auto=1): Automatically reload page (default reload interval: 5 minutes)
