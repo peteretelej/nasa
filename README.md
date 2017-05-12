@@ -1,4 +1,4 @@
-# nasa - Go library, CLI and applications based on the NASA API
+# nasa - Go library, CLI and apps based on the NASA API
 
 - Library for accessing and using the NASA API (APOD, NEO)
 - Command line interface (CLI) for accessing NASA API's services
@@ -61,7 +61,6 @@ nasa web -listen localhost:9000
 ```
 
 __Web server demo:__
-```
 - [nasa.etelej.com](https://nasa.etelej.com): NASA Astronomy Picture of the Day (for today)
 - [nasa.etelej.com/random-apod](https://nasa.etelej.com/random-apod): Random images (HD images, updated every second, no autoreload)
 - [nasa.etelej.com/random-apod?sd=1](https://nasa.etelej.com/random-apod?sd=1): Gets Standard Definition images (lower quality,faster load, saves bandwidth).
