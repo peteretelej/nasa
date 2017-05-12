@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -21,6 +22,10 @@ var (
 func main() {
 	flag.Parse()
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	if os.Getenv("NASAKEY") == "" {
+		fmt.Println("Currently using the demo API Key DEMO_KEY." +
+			" Apply for an API key at https://api.nasa.gov/index.html#apply-for-an-api-key \n")
+	}
 	if err := serve(*listen); err != nil {
 		log.Fatalf("server crashed: %v", err)
 	}
@@ -86,7 +91,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	apod := h.apod()
 	if newApod, err := nasa.RandomAPOD(); err == nil {
-		apod = *newApod
+		// only update if a valid APOD Image is returned
+		if newApod.URL != "" {
+			apod = *newApod
+		}
 	}
 	h.update(apod, time.Now())
 	h.render(w, r)
@@ -128,17 +136,16 @@ const tmpl = `<!DOCTYPE html>
 {{end -}}
 <style>html,body{ margin:0; padding:0}
 body{background-color:#000;color:#fff}
-{{if .Apod -}}
 #imgwrap{
 	position:fixed; top:0;left:0;
 	min-width:100%; max-width:100%;
 	overflow:hidden;
 }
 #imgwrap img{
-	display:block; margin:0 auto;
+	display:block; margin:0 auto;padding:0;
 	max-width:100%; max-height:100%;
 }
-{{end -}}
+
 #apod{ display:block; position:fixed; bottom:0; left:30px; right:30px;}
 #explanation {
 	display:none;
@@ -151,16 +158,12 @@ body{background-color:#000;color:#fff}
 }
 </style>
 <body>
-{{if not .Apod}}
-<p>Unable to generate random APOD :(.</p>
-{{end}}
-{{if .Apod}}
-<div id="imgwrap"><img src="{{.Apod.HDURL}}" id="bg" alt="{{.Apod.Title}}" /></div>
+<div id="imgwrap"><img src="{{if .HD}}{{.Apod.HDURL}}{{else}}{{.Apod.URL}}{{end}}" id="bg" alt="{{.Apod.Title}}" /></div>
 <div id="apod">
 <div id="explanation">
-	<h4>{{.Apod.Title}}</h4>
-	<p>{{.Apod.Explanation}}</p>
-	<p>NASA Astronomy Picture of the Day {{.Apod.Date}} <a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>Open Image in HD</i></a> </p>
+<h4>{{.Apod.Title}}</h4>
+<p>{{.Apod.Explanation}}</p>
+<p>NASA Astronomy Picture of the Day {{.Apod.Date}} <a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>Open Image in HD</i></a> </p>
 </div>
 <h4>{{.Apod.Title}}</h4>
 <p style="text-align:right">
@@ -172,6 +175,5 @@ View in fullscreen (F11) for best experience &#9786;.
 </p>
 </div>
 <script async defer src="https://buttons.github.io/buttons.js"></script>
-{{end}}
 </body>
 </html>`
