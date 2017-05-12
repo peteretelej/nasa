@@ -16,8 +16,9 @@ import (
 )
 
 var (
-	random   = flag.Bool("random", true, "use random pictures, if false will only display today's APOD")
-	interval = flag.Duration("interval", time.Minute*10, "interval to change wallpaper")
+	random    = flag.Bool("random", true, "use random pictures, if false will only display today's APOD")
+	interval  = flag.Duration("interval", time.Minute*10, "interval to change wallpaper")
+	cmdString = flag.String("cmd", "gsettings set org.gnome.desktop.background picture-uri file://%s", "command string to change the wallpaper")
 )
 
 func main() {
@@ -111,8 +112,7 @@ func updateRandom() error {
 	if err != nil {
 		return err
 	}
-	cmdString := fmt.Sprintf("gsettings set org.gnome.desktop.background picture-uri file://%s", tmpfile)
-	cmds := strings.Split(cmdString, " ")
+	cmds := strings.Split(fmt.Sprintf(*cmdString, tmpfile), " ")
 	_, err = exec.Command(cmds[0], cmds[1:]...).Output()
 	return err
 }
