@@ -1,8 +1,10 @@
 # nasa - Go library, CLI and apps based on the NASA API
 
-- Library for accessing and using the NASA API (APOD, NEO)
+Includes:
+- Go Library for accessing and using the NASA API (APOD, NEO)
 - Command line interface (CLI) for accessing NASA API's services
-- Applications using the library (e.g. web server)
+- Apps based on the NASA API: e.g. Desktop Wallpapers, Web Server for APOD and Random APOD ..
+
 
 ## NASA API KEY
 
@@ -10,7 +12,8 @@ Kindly grab a NASA API key from [here](https://api.nasa.gov/index.html#apply-for
 ```
 export NASAKEY=YOUR-API_KEY
 ```
-The API Key will increase the rate limits for your API to access the NASA API. This package & its apps default to the demo key `NASAKEY=DEMO_KEY` if you haven't set one. 
+The API Key will increase the rate limits for your application/package to access the NASA API. 
+This package & its apps default to the demo key `NASAKEY=DEMO_KEY` if you haven't set one. 
 The DEMO_KEY has very low limits (30reqs/hr, 50req/day), only sufficient for demoing.
 
 
@@ -65,9 +68,8 @@ nasa neo -start 2017-05-10 -end 2017-05-12
 # returns Near Earth Objects for the range of dates specified
 ```
 
-## Serve website for NASA APOD
-
-Serve APOD on the web 
+## Webserver for APOD pictures and Random Pics
+Serve APOD on the web (demo: nasa.etelej.com)
 ```
 nasa web
 # serves website at :8080
@@ -76,7 +78,7 @@ nasa web -listen localhost:9000
 # serves website at localhost:9000
 ```
 
-__Web server demo:__
+__Web server demo pages:__
 - [nasa.etelej.com](https://nasa.etelej.com): NASA Astronomy Picture of the Day (for today)
 - [nasa.etelej.com/random-apod](https://nasa.etelej.com/random-apod): Random images (HD images, updated every second, no autoreload)
 - [nasa.etelej.com/random-apod?sd=1](https://nasa.etelej.com/random-apod?sd=1): Gets Standard Definition images (lower quality,faster load, saves bandwidth).
@@ -85,11 +87,9 @@ __Web server demo:__
 - [nasa.etelej.com/random-apod?sd=1&auto=1&interval=5](https://nasa.etelej.com/random-apod?sd=1&auto=1&interval=5): Automatically reloads SD images every 5 seconds
 
 
-## NASA Wallpapers Desktop background
-- Only support Ubuntu Desktop atm.
-
+## NASA Desktop Wallpapers 
 Automatically change your desktop wallpaper to randomly selected NASA Astronomy Pictures of the Day.
-
+- Only supports Ubuntu Desktop (at the moment). fun fact: this was the main reason this package exists.
 ```
 go get -u github.com/peteretelej/github.com/nasa/cmd/nasa-wallpapers
 
