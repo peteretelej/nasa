@@ -91,7 +91,7 @@ __Web server demo pages:__
 Automatically change your desktop wallpaper to randomly selected NASA Astronomy Pictures of the Day.
 - Only supports Ubuntu Desktop (at the moment). fun fact: this was the main reason this package exists.
 ```
-go get -u github.com/peteretelej/github.com/nasa/cmd/nasa-wallpapers
+go get -u github.com/peteretelej/nasa/cmd/nasa-wallpapers
 
 nasa-wallpapers 
 # automatically changes wallpaper with a random NASA picture every 10 minutes
