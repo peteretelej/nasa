@@ -2,6 +2,7 @@ package nasa
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -89,6 +90,9 @@ func ApodImage(t time.Time) (*Image, error) {
 	err = json.Unmarshal(dat, &ni)
 	if err != nil {
 		return nil, err
+	}
+	if ni.URL == "" && ni.HDURL == "" {
+		return nil, errors.New("NASA APOD API is returned an invalid response, may be down temporarily")
 	}
 	if t, err := time.Parse("2006-01-02", ni.Date); err == nil {
 		ni.ApodDate = t
