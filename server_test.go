@@ -50,7 +50,7 @@ func TestRandomHandler(t *testing.T) {
 	testList := []httpTestList{
 		{"GET", "/abcd", http.StatusNotFound, ""},
 		{"GET", "/random-apod/abcd", http.StatusNotFound, ""},
-		{"GET", "/random-apod/abcd", http.StatusNotFound, ""},
+		{"GET", "/random-apod/", http.StatusOK, "#explanation"},
 	}
 
 	var err error
