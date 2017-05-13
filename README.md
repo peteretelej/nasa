@@ -95,7 +95,7 @@ __Web server demo pages:__
 
 ## NASA Desktop Wallpapers 
 Automatically change your desktop wallpaper to randomly selected NASA Astronomy Pictures of the Day.
-- Only supports Ubuntu Desktop (at the moment). fun fact: this was the main reason this package exists.
+- Supports various Linux desktop variants (at the moment) incl Gnome, Gnome2, Lubuntu, KDE and others.
 ```
 go get -u github.com/peteretelej/nasa/cmd/nasa-wallpapers
 
