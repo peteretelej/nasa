@@ -11,7 +11,7 @@ import (
 )
 
 // NeoEndpoint defines the API Endpoint for NASA Neo Web service
-const NeoEndpoint = "https://api.nasa.gov/neo/rest/v1/feed"
+var NeoEndpoint = "https://api.nasa.gov/neo/rest/v1/feed"
 
 type diameter struct {
 	Min float64 `json:"estimated_diameter_min"`

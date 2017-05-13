@@ -27,7 +27,7 @@ Check out https://github.com/peteretelej/nasa/blob/master/README.md for more inf
 `
 
 // APODEndpoint is the NASA API APOD endpoint
-const APODEndpoint = "https://api.nasa.gov/planetary/apod"
+var APODEndpoint = "https://api.nasa.gov/planetary/apod"
 
 // Image defines the structure of NASA images
 type Image struct {
