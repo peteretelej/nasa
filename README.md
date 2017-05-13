@@ -1,4 +1,10 @@
-# nasa - Go library, CLI and apps based on the NASA API
+# nasa - Go library and apps based on the NASA API
+
+[![CircleCI](https://circleci.com/gh/peteretelej/nasa/tree/master.svg?style=svg)](https://circleci.com/gh/peteretelej/nasa/tree/master) 
+[![GoDoc](https://godoc.org/github.com/peteretelej/nasa?status.svg)](https://godoc.org/github.com/peteretelej/nasa)
+[![Go Report Card](https://goreportcard.com/badge/github.com/peteretelej/nasa)](https://goreportcard.com/report/github.com/peteretelej/nasa)
+
+
 
 Includes:
 - Go Library for accessing and using the NASA API (APOD, NEO)

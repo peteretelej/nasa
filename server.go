@@ -11,9 +11,9 @@ import (
 )
 
 // NewServer a http web-server that serves APOD pictures
-// / - today's APOD
-// /random-apod - returns a random APOD
-// TODO: /apod/YYYY-MM-DD - returns apod for specified date
+//     / - today's APOD
+//     /random-apod - returns a random APOD
+//     TODO: /apod/YYYY-MM-DD - returns apod for specified date
 func NewServer(listenAddr string) (*http.Server, error) {
 	var err error
 	tmpl, err = template.New("tmpl").Parse(tmplHTML)

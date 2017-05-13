@@ -23,14 +23,14 @@ var (
 	webListen  = webCommand.String("listen", ":8080", "http web server address")
 )
 
-func main() {
-	flag.Parse()
-	nasaKey := os.Getenv("NASAKEY")
-	if nasaKey == "" {
-		nasaKey = "DEMO_KEY"
+func init() {
+	if os.Getenv("NASAKEY") == "" {
 		fmt.Println(nasa.APIKEYMissing)
 	}
+}
 
+func main() {
+	flag.Parse()
 	if len(os.Args) == 1 {
 		os.Args = append(os.Args, "apod")
 	}

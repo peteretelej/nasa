@@ -21,14 +21,14 @@ var (
 	cmdString = flag.String("cmd", "gsettings set org.gnome.desktop.background picture-uri file://%s", "command string to change the wallpaper")
 )
 
-func main() {
-	flag.Parse()
-	nasaKey := os.Getenv("NASAKEY")
-	if nasaKey == "" {
-		nasaKey = "DEMO_KEY"
+func init() {
+	if os.Getenv("NASAKEY") == "" {
 		fmt.Println(nasa.APIKEYMissing)
 	}
+}
 
+func main() {
+	flag.Parse()
 	if !*random {
 		if err := todaysAPOD(); err != nil {
 			fmt.Printf("nasa-wallpapers: %v\n", err)
