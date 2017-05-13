@@ -36,7 +36,7 @@ func TestNeoFeed(t *testing.T) {
 		}
 		nl, err := NeoFeed(start, end)
 		if err != v.err {
-			t.Errorf("NeoFeed returned wrong error got %v, want %v")
+			t.Errorf("NeoFeed returned wrong error got %v, want %v", err, verr)
 		}
 		if nl == nil {
 			if v.nl != nil {

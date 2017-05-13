@@ -18,7 +18,7 @@ import (
 var (
 	random    = flag.Bool("random", true, "use random pictures, if false will only display today's APOD")
 	interval  = flag.Duration("interval", time.Minute*10, "interval to change wallpaper")
-	cmdString = flag.String("cmd", "gsettings set org.gnome.desktop.background picture-uri file://%s", "command string to change the wallpaper")
+	cmdString = flag.String("cmd", "", "command string to change the wallpaper")
 )
 
 func init() {
@@ -73,6 +73,32 @@ func randomAPOD(interval time.Duration) error {
 	}
 }
 
+var defaultCmdStrings = []string{
+	"gsettings set org.gnome.desktop.background picture-uri file://%s", // gnome
+	"feh --bg-scale %s",
+	"pcmanfm -w %s --wallpaper-mode=fit", //Lubuntu
+	"setroot %s",
+	"xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s %s",
+	"gconftool-2 --set /desktop/gnome/background/picture_filename --type=string %s", // Gnome2
+	"dcop kdesktop KBackgroundIface setWallpaper %s 1",                              // kde
+	`dconf write /org/mate/desktop/background/picture-filename "%s"`,
+}
+
+func getCmdString() string {
+	if *cmdString != "" {
+		return *cmdString
+	}
+	for _, val := range defaultCmdStrings {
+		parts := strings.Split(val, " ")
+		if len(parts) == 0 {
+			continue
+		}
+		if _, err := exec.LookPath(parts[0]); err == nil {
+			return val
+		}
+	}
+	return ""
+}
 func updateRandom() error {
 	apod, err := nasa.RandomAPOD()
 	if err != nil {
@@ -112,7 +138,12 @@ func updateRandom() error {
 	if err != nil {
 		return err
 	}
-	cmds := strings.Split(fmt.Sprintf(*cmdString, tmpfile), " ")
+
+	realCmdString := getCmdString()
+	if realCmdString == "" {
+		return errors.New("wallpapers change command not found, set custom one with --cmd")
+	}
+	cmds := strings.Split(fmt.Sprintf(realCmdString, tmpfile), " ")
 	_, err = exec.Command(cmds[0], cmds[1:]...).Output()
 	return err
 }
