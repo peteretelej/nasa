@@ -88,7 +88,13 @@ func main() {
 		if len(os.Args) > 2 {
 			_ = webCommand.Parse(os.Args[2:]) //exits on error
 		}
-		if err := nasa.Serve(*webListen); err != nil {
+		svr, err := nasa.NewServer(*webListen)
+		if err != nil {
+			fmt.Printf("failed to launch webserver: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("nasa web: launching http server at %s\n", svr.Addr)
+		if err := svr.ListenAndServe(); err != nil {
 			log.Fatalf("server crashed: %v", err)
 		}
 	}

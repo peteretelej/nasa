@@ -10,15 +10,15 @@ import (
 	"time"
 )
 
-// Serve launches a http web-server that serves APOD pictures
+// NewServer a http web-server that serves APOD pictures
 // / - today's APOD
 // /random-apod - returns a random APOD
 // TODO: /apod/YYYY-MM-DD - returns apod for specified date
-func Serve(listenAddr string) error {
+func NewServer(listenAddr string) (*http.Server, error) {
 	var err error
 	tmpl, err = template.New("tmpl").Parse(tmplHTML)
 	if err != nil {
-		return fmt.Errorf("unable to parse template: %v", err)
+		return nil, fmt.Errorf("unable to parse template: %v", err)
 	}
 	rh := &randomHandler{
 		lastUpdate: time.Now().Add(-10 * time.Hour),
@@ -27,14 +27,14 @@ func Serve(listenAddr string) error {
 	}
 	http.HandleFunc("/", handleIndex)
 	http.Handle("/random-apod/", rh)
-	svr := &http.Server{
+
+	return &http.Server{
 		Addr:           listenAddr,
 		ReadTimeout:    30 * time.Second,
 		WriteTimeout:   60 * time.Second,
 		MaxHeaderBytes: 1 << 20,
-	}
-	fmt.Printf("launching http server at %s\n", listenAddr)
-	return svr.ListenAndServe()
+	}, nil
+
 }
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -82,22 +82,18 @@ func (h *randomHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	// render from cache if last update was less than a second ago
-	if time.Now().Sub(h.last()) < time.Second {
-		h.render(w, r)
-		return
-	}
 	apod := h.apod()
-	if newApod, err := RandomAPOD(); err == nil {
-		// only update if a valid APOD Image is returned
-		if newApod.URL != "" {
-			apod = *newApod
+
+	// Update if cached apod is older than a second
+	if time.Now().Sub(h.last()) > time.Second {
+		if newApod, err := RandomAPOD(); err == nil {
+			if newApod.URL != "" {
+				apod = *newApod
+			}
 		}
+		h.update(apod, time.Now())
 	}
-	h.update(apod, time.Now())
-	h.render(w, r)
-}
-func (h *randomHandler) render(w http.ResponseWriter, r *http.Request) {
+
 	td := TmplData{
 		Apod:       h.apod(),
 		SD:         r.URL.Query().Get("sd") != "",

@@ -21,6 +21,7 @@ func init() {
 	}
 }
 
+// APIKEYMissing is the message displayed if a custom API Key is not defined
 const APIKEYMissing = `Currently using the demo API Key DEMO_KEY. Apply for an API key at https://api.nasa.gov/index.html#apply-for-an-api-key
 Check out https://github.com/peteretelej/nasa/blob/master/README.md for more info.
 `
