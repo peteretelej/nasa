@@ -96,14 +96,18 @@ __Web server demo pages:__
 ## NASA Desktop Wallpapers 
 Automatically change your desktop wallpaper to randomly selected NASA Astronomy Pictures of the Day.
 - Supports various Linux desktop variants (at the moment) incl Gnome, Gnome2, Lubuntu, KDE and others.
+- Also supports custom command to set the wallpaper.
 ```
 go get -u github.com/peteretelej/nasa/cmd/nasa-wallpapers
 
-nasa-wallpapers 
+nasa-wallpapers -cmdDefault gnome
 # automatically changes wallpaper with a random NASA picture every 10 minutes
 
-nasa-wallpapers -interval 30s
+nasa-wallpapers -interval 30s -cmdDefault kde
 # automatically changes wallpaper every 30seconds
 # rem to get and set NASA API KEY to env NASAKEY to avoid ratelimits
+
+nasa-wallpapers -cmd "myCustomCommand %s"
+# automatically changes wallpaper every 10 minutes with myCustomCommand
 ```
 
