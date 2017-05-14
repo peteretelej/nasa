@@ -100,8 +100,13 @@ Automatically change your desktop wallpaper to randomly selected NASA Astronomy 
 ```
 go get -u github.com/peteretelej/nasa/cmd/nasa-wallpapers
 
+nasa-wallpapers
+# automatically changes wallpapers every 10 minutes
+# tries to change wallpaper with an existing command, use -cmdDefault to change the default command
+# e.g -cmdDefault feh
+
 nasa-wallpapers -cmdDefault gnome
-# automatically changes wallpaper with a random NASA picture every 10 minutes
+# uses the gnome command for changing wallpapers (ie gsettings)
 
 nasa-wallpapers -interval 30s -cmdDefault kde
 # automatically changes wallpaper every 30seconds

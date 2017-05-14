@@ -15,12 +15,18 @@ import (
 	"github.com/peteretelej/nasa"
 )
 
+// nasa-wallpapers Flags
 var (
-	random     = flag.Bool("random", true, "use random pictures, if false will only display today's APOD")
-	interval   = flag.Duration("interval", time.Minute*10, "interval to change wallpaper")
+	random   = flag.Bool("random", true, "use random pictures, if false will only display today's APOD")
+	interval = flag.Duration("interval", time.Minute*10, "interval to change wallpaper")
+
 	cmdString  = flag.String("cmd", "", "command string to change the wallpaper")
 	cmdDefault = flag.String("cmdDefault", "", "use a default command to set the wallpaper")
-	cmds       []string
+)
+
+// Commands for changing wallpapers
+var (
+	cmds []string // actual command in use
 
 	cmdDefaults = map[string]string{
 		"gnome":   "gsettings set org.gnome.desktop.background picture-uri file://%s",
@@ -95,6 +101,16 @@ func getCmdString() string {
 	if cmd, ok := cmdDefaults[*cmdDefault]; ok {
 		return cmd
 	}
+	// in case no -cmdDefaults is defined, fall back to picking any existing command
+	for _, val := range cmdDefaults {
+		parts := strings.Split(val, " ")
+		if len(parts) == 0 {
+			continue
+		}
+		if _, err := exec.LookPath(parts[0]); err == nil {
+			return val
+		}
+	}
 	return ""
 }
 
@@ -125,6 +141,7 @@ func updateRandom() error {
 	if err != nil {
 		return err
 	}
+	_ = resp.Body.Close()
 	if len(dat) < 512 {
 		return errors.New("invalid response from APOD image url")
 	}
