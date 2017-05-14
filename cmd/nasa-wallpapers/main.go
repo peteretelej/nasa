@@ -16,9 +16,22 @@ import (
 )
 
 var (
-	random    = flag.Bool("random", true, "use random pictures, if false will only display today's APOD")
-	interval  = flag.Duration("interval", time.Minute*10, "interval to change wallpaper")
-	cmdString = flag.String("cmd", "", "command string to change the wallpaper")
+	random     = flag.Bool("random", true, "use random pictures, if false will only display today's APOD")
+	interval   = flag.Duration("interval", time.Minute*10, "interval to change wallpaper")
+	cmdString  = flag.String("cmd", "", "command string to change the wallpaper")
+	cmdDefault = flag.String("cmdDefault", "", "use a default command to set the wallpaper")
+	cmds       []string
+
+	cmdDefaults = map[string]string{
+		"gnome":   "gsettings set org.gnome.desktop.background picture-uri file://%s",
+		"kde":     "dcop kdesktop KBackgroundIface setWallpaper %s 1",
+		"gnome2":  "gconftool-2 --set /desktop/gnome/background/picture_filename --type=string %s",
+		"xfce":    "xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s %s",
+		"mate":    `dconf write /org/mate/desktop/background/picture-filename "%s"`,
+		"pcmanfm": "pcmanfm -w %s --wallpaper-mode=fit", //Lubuntu
+		"feh":     "feh --bg-scale %s",
+		"setroot": "setroot %s",
+	}
 )
 
 func init() {
@@ -29,17 +42,19 @@ func init() {
 
 func main() {
 	flag.Parse()
+	realCmdString := getCmdString()
+	if realCmdString == "" {
+		log.Fatal("wallpapers change command not found, set custom one with -cmd")
+	}
+	cmds = strings.Split(fmt.Sprintf(realCmdString, tmpfile), " ")
 	if !*random {
 		if err := todaysAPOD(); err != nil {
-			fmt.Printf("nasa-wallpapers: %v\n", err)
-			os.Exit(1)
+			log.Fatalf("nasa-wallpapers: %v\n", err)
 		}
-		return // this return is just for-show, displayAPOD is long running
 	}
 
 	if err := randomAPOD(*interval); err != nil {
-		fmt.Printf("nasa-wallpapers: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("nasa-wallpapers: %v\n", err)
 	}
 }
 
@@ -73,32 +88,16 @@ func randomAPOD(interval time.Duration) error {
 	}
 }
 
-var defaultCmdStrings = []string{
-	"gsettings set org.gnome.desktop.background picture-uri file://%s", // gnome
-	"feh --bg-scale %s",
-	"pcmanfm -w %s --wallpaper-mode=fit", //Lubuntu
-	"setroot %s",
-	"xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s %s",
-	"gconftool-2 --set /desktop/gnome/background/picture_filename --type=string %s", // Gnome2
-	"dcop kdesktop KBackgroundIface setWallpaper %s 1",                              // kde
-	`dconf write /org/mate/desktop/background/picture-filename "%s"`,
-}
-
 func getCmdString() string {
 	if *cmdString != "" {
 		return *cmdString
 	}
-	for _, val := range defaultCmdStrings {
-		parts := strings.Split(val, " ")
-		if len(parts) == 0 {
-			continue
-		}
-		if _, err := exec.LookPath(parts[0]); err == nil {
-			return val
-		}
+	if cmd, ok := cmdDefaults[*cmdDefault]; ok {
+		return cmd
 	}
 	return ""
 }
+
 func updateRandom() error {
 	apod, err := nasa.RandomAPOD()
 	if err != nil {
@@ -139,11 +138,6 @@ func updateRandom() error {
 		return err
 	}
 
-	realCmdString := getCmdString()
-	if realCmdString == "" {
-		return errors.New("wallpapers change command not found, set custom one with --cmd")
-	}
-	cmds := strings.Split(fmt.Sprintf(realCmdString, tmpfile), " ")
 	_, err = exec.Command(cmds[0], cmds[1:]...).Output()
 	return err
 }
@@ -160,6 +154,7 @@ func init() {
 		log.Fatalf("unable to use tempfile %v", err)
 	}
 }
+
 func cleanUp() {
 	if tmpfile == "" {
 		return
