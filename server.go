@@ -98,6 +98,7 @@ func (h *randomHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Apod:       h.apod(),
 		SD:         r.URL.Query().Get("sd") != "",
 		AutoReload: r.URL.Query().Get("auto") != "" || r.URL.Query().Get("interval") != "",
+		Legacy:     r.URL.Query().Get("legacy") != "",
 	}
 	i := r.URL.Query().Get("interval")
 	if i != "" {
@@ -120,6 +121,7 @@ type TmplData struct {
 	Apod               Image
 	SD                 bool // Standard definition display
 	AutoReload         bool
+	Legacy             bool // legacy browser does not support new reload
 	AutoReloadInterval int
 }
 
@@ -140,7 +142,9 @@ const tmplHTML = `<!DOCTYPE html>
 <title>{{with .Title}}{{.}}{{else}}NASA Astronomy Picture of the Day{{end}}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 {{if .AutoReload -}}
+{{if not .Legacy }}
 <meta http-equiv="refresh" content="{{.AutoReloadInterval}}" >
+{{end}}
 {{end -}}
 <style>html,body{ margin:0; padding:0}
 body{background-color:#000;color:#fff}
@@ -165,7 +169,12 @@ body{background-color:#000;color:#fff}
 	#explanation{display:none;}
 }
 </style>
-<body>
+{{if and .AutoReload .Legacy}}
+<script type='text/javascript'>
+function TimedRefresh( t ) { setTimeout("location.reload(true);", t); }
+</script>
+{{end}}
+<body {{if and .AutoReload .Legacy}}onload="javascript:TimedRefresh({{.AutoReloadInterval}}*1000)"{{end}}>
 <div id="imgwrap"><img src="{{if .SD}}{{.Apod.URL}}{{else}}{{.Apod.HDURL}}{{end}}" id="bg" alt="{{.Apod.Title}}" /></div>
 <div id="apod">
 <div id="explanation">

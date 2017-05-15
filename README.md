@@ -91,6 +91,7 @@ __Web server demo pages:__
 - [nasa.etelej.com/random-apod?auto=1](https://nasa.etelej.com/random-apod?auto=1): Automatically reload page (default reload interval: 5 minutes)
 - [nasa.etelej.com/random-apod?auto=1&interval=60](https://nasa.etelej.com/random-apod?auto=1&interval=60): Automatically reloads every 1800 seconds (1 hr)
 - [nasa.etelej.com/random-apod?sd=1&auto=1&interval=5](https://nasa.etelej.com/random-apod?sd=1&auto=1&interval=5): Automatically reloads SD images every 5 seconds
+- [nasa.etelej.com/random-apod?auto=1&legacy=1](https://nasa.etelej.com/random-apod?auto=1&legacy=1): Legacy browser support for reloading
 
 
 ## NASA Desktop Wallpapers 
