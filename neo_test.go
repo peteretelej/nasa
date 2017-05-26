@@ -16,7 +16,7 @@ func TestNeoFeed(t *testing.T) {
 		{
 			startText: "2017-05-11",
 			endText:   "2017-05-12",
-			nl:        &NeoList{ElementCount: 17},
+			nl:        &NeoList{ElementCount: 18},
 		},
 		{
 			startText: "1000-05-11",
