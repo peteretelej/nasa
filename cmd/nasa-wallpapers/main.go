@@ -8,8 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/peteretelej/nasa"
@@ -24,22 +22,6 @@ var (
 	cmdDefault = flag.String("cmdDefault", "", "use a default command to set the wallpaper")
 )
 
-// Commands for changing wallpapers
-var (
-	cmds []string // actual command in use
-
-	cmdDefaults = map[string]string{
-		"gnome":   "gsettings set org.gnome.desktop.background picture-uri file://%s",
-		"kde":     "dcop kdesktop KBackgroundIface setWallpaper %s 1",
-		"gnome2":  "gconftool-2 --set /desktop/gnome/background/picture_filename --type=string %s",
-		"xfce":    "xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s %s",
-		"mate":    `dconf write /org/mate/desktop/background/picture-filename "%s"`,
-		"lxde":    "pcmanfm -w %s --wallpaper-mode=fit",
-		"feh":     "feh --bg-scale %s",
-		"setroot": "setroot %s",
-	}
-)
-
 func init() {
 	if os.Getenv("NASAKEY") == "" {
 		fmt.Println(nasa.APIKEYMissing)
@@ -48,11 +30,9 @@ func init() {
 
 func main() {
 	flag.Parse()
-	realCmdString := getCmdString()
-	if realCmdString == "" {
-		log.Fatal("wallpapers change command not found, set custom one with -cmd")
-	}
-	cmds = strings.Split(fmt.Sprintf(realCmdString, tmpfile), " ")
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	nasa.CmdString = *cmdString
+	nasa.CmdDefault = *cmdDefault
 	if !*random {
 		if err := todaysAPOD(); err != nil {
 			log.Fatalf("nasa-wallpapers: %v\n", err)
@@ -65,12 +45,16 @@ func main() {
 }
 
 func todaysAPOD() error {
-	defer cleanUp()
-	return errors.New("TODO")
+	nasa.InitWallpapers()
+	defer nasa.CleanUpWallpapers()
+	// TODO: display today's APOD as wallpaper
+	return errors.New("not implemented")
 }
 
 func randomAPOD(interval time.Duration) error {
-	defer cleanUp()
+	nasa.InitWallpapers()
+	defer nasa.CleanUpWallpapers()
+
 	if interval < time.Second {
 		return errors.New("interval set is too low")
 	}
@@ -89,44 +73,6 @@ func randomAPOD(interval time.Duration) error {
 		}
 		time.Sleep(interval)
 	}
-}
-
-func getCmdString() string {
-	if *cmdString != "" {
-		return *cmdString
-	}
-	if cmd, ok := cmdDefaults[*cmdDefault]; ok {
-		return cmd
-	}
-	// in case no -cmdDefaults is defined, autodetect based on env variables
-	// Based on:
-	// https://askubuntu.com/questions/72549/how-to-determine-which-window-manager-is-running
-	// More cases on other distributions are welcome
-	xdgDesktop := os.Getenv("XDG_CURRENT_DESKTOP")
-	gdmDesktop := os.Getenv("GDM_DESKTOP")
-	switch xdgDesktop {
-	case "Unity":
-		return cmdDefaults["gnome"]
-	case "GNOME":
-		switch gdmDesktop {
-		case "gnome-shell", "gnome-classic", "gnome-fallback", "cinnamon", "gnome":
-			return cmdDefaults["gnome"]
-		}
-	case "KDE":
-		return cmdDefaults["kde"]
-	case "XFCE":
-		return cmdDefaults["xfce"]
-	case "LXDE":
-		return cmdDefaults["lxde"]
-	case "X-Cinnamon":
-		return cmdDefaults["gnome"]
-	case "":
-		switch gdmDesktop {
-		case "kde-plasma":
-			return cmdDefaults["kde"]
-		}
-	}
-	return ""
 }
 
 func updateRandom() error {
@@ -157,44 +103,5 @@ func updateRandom() error {
 		return err
 	}
 	_ = resp.Body.Close()
-	if len(dat) < 512 {
-		return errors.New("invalid response from APOD image url")
-	}
-	switch http.DetectContentType(dat[:512]) {
-	case "image/jpg", "image/jpeg", "image/png", "image/gif":
-	default:
-		return errors.New("Apod returned is not a valid image mimetype")
-	}
-	err = ioutil.WriteFile(tmpfile, dat, 0644)
-	if err != nil {
-		return err
-	}
-
-	_, err = exec.Command(cmds[0], cmds[1:]...).Output()
-	return err
-}
-
-var tmpfile string
-
-func init() {
-	tmp, err := ioutil.TempFile("", "nasa-wallpapers-pic.jpg")
-	if err != nil {
-		log.Fatalf("unable to get tempfile to work with: %v", err)
-	}
-	tmpfile = tmp.Name()
-	if err := tmp.Close(); err != nil {
-		log.Fatalf("unable to use tempfile %v", err)
-	}
-}
-
-func cleanUp() {
-	if tmpfile == "" {
-		return
-	}
-	if _, err := os.Stat(tmpfile); err != nil {
-		return
-	}
-	if err := os.Remove(tmpfile); err != nil {
-		log.Printf("unable to clean up: %v", err)
-	}
+	return nasa.UpdateWallpaper(dat)
 }
