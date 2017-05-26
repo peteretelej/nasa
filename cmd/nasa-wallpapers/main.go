@@ -34,7 +34,7 @@ var (
 		"gnome2":  "gconftool-2 --set /desktop/gnome/background/picture_filename --type=string %s",
 		"xfce":    "xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s %s",
 		"mate":    `dconf write /org/mate/desktop/background/picture-filename "%s"`,
-		"pcmanfm": "pcmanfm -w %s --wallpaper-mode=fit", //Lubuntu
+		"lxde":    "pcmanfm -w %s --wallpaper-mode=fit",
 		"feh":     "feh --bg-scale %s",
 		"setroot": "setroot %s",
 	}
@@ -98,14 +98,32 @@ func getCmdString() string {
 	if cmd, ok := cmdDefaults[*cmdDefault]; ok {
 		return cmd
 	}
-	// in case no -cmdDefaults is defined, fall back to picking any existing command
-	for _, val := range cmdDefaults {
-		parts := strings.Split(val, " ")
-		if len(parts) == 0 {
-			continue
+	// in case no -cmdDefaults is defined, autodetect based on env variables
+	// Based on:
+	// https://askubuntu.com/questions/72549/how-to-determine-which-window-manager-is-running
+	// More cases on other distributions are welcome
+	xdgDesktop := os.Getenv("XDG_CURRENT_DESKTOP")
+	gdmDesktop := os.Getenv("GDM_DESKTOP")
+	switch xdgDesktop {
+	case "Unity":
+		return cmdDefaults["gnome"]
+	case "GNOME":
+		switch gdmDesktop {
+		case "gnome-shell", "gnome-classic", "gnome-fallback", "cinnamon", "gnome":
+			return cmdDefaults["gnome"]
 		}
-		if _, err := exec.LookPath(parts[0]); err == nil {
-			return val
+	case "KDE":
+		return cmdDefaults["kde"]
+	case "XFCE":
+		return cmdDefaults["xfce"]
+	case "LXDE":
+		return cmdDefaults["lxde"]
+	case "X-Cinnamon":
+		return cmdDefaults["gnome"]
+	case "":
+		switch gdmDesktop {
+		case "kde-plasma":
+			return cmdDefaults["kde"]
 		}
 	}
 	return ""
