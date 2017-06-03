@@ -108,12 +108,18 @@ func WindowsChangeWallpaper(filename string) error {
 	if _, err := os.Stat(filename); err != nil {
 		return errors.New("file for new wallpaper does not exist")
 	}
+	/*
+		winCmds := [][]string{
+			{`reg`, `add`, `"HKCU\control panel\desktop"`, `/v`, `wallpaper`, `/t`, `REG_SZ`, `/d`, `""`, `/f`},
+			{`reg`, `add`, `"HKCU\control panel\desktop"`, `/v`, `wallpaper`, `/t`, `REG_SZ`, `/d`, filename, `/f`},
+			{`reg`, `delete`, `"HKCU\Software\Microsoft\Internet Explorer\Desktop\General"`, `/v`, `WallpaperStyle`, `/f`},
+			{`reg`, `add`, `"HKCU\control panel\desktop"`, `/v`, `WallpaperStyle`, `/t`, `REG_SZ`, `/d`, `2`, `/f`},
+			{`RUNDLL32.EXE`, `user32.dll,UpdatePerUserSystemParameters`},
+		}
+	*/
 	winCmds := [][]string{
-		{`reg`, `add`, `"HKCU\control panel\desktop"`, `/v`, `wallpaper`, `/t`, `REG_SZ`, `/d`, `""`, `/f`},
-		{`reg`, `add`, `"HKCU\control panel\desktop"`, `/v`, `wallpaper`, `/t`, `REG_SZ`, `/d`, filename, `/f`},
-		{`reg`, `delete`, `"HKCU\Software\Microsoft\Internet Explorer\Desktop\General"`, `/v`, `WallpaperStyle`, `/f`},
-		{`reg`, `add`, `"HKCU\control panel\desktop"`, `/v`, `WallpaperStyle`, `/t`, `REG_SZ`, `/d`, `2`, `/f`},
-		{`RUNDLL32.EXE`, `user32.dll,UpdatePerUserSystemParameters`},
+		{`Set-ItemProperty`, `-path`, `"HKCU:\Control Panel\Desktop"`, `-name`, `wallpaper`, `value`, filename},
+		{`rundll32.exe`, `user32.dll,`, `UpdatePerUserSystemParameters`},
 	}
 	for _, cmds := range winCmds {
 		out, err := exec.Command(cmds[0], cmds[1:]...).CombinedOutput()
