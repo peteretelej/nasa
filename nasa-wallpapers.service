@@ -1,0 +1,11 @@
+[Unit]
+After=network.target
+Description=Nasa Wallpapers
+
+[Service]
+# PATH TO nasa-wallpapers binary (usu $GOPATH/bin/nasa-wallpapers)
+ExecStart=/usr/local/nasa-wallpapers 
+Environment=NASAKEY=YOUR_NASA_API_KEY_SEE_README XDG_CURRENT_DESKTOP=Unity
+
+[Install]
+WantedBy=multi-user.target
