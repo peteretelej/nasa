@@ -16,7 +16,7 @@ func TestNeoFeed(t *testing.T) {
 		{
 			startText: "2017-05-11",
 			endText:   "2017-05-12",
-			nl:        &NeoList{ElementCount: 18},
+			nl:        &NeoList{ElementCount: 1},
 		},
 		{
 			startText: "1000-05-11",
@@ -44,9 +44,13 @@ func TestNeoFeed(t *testing.T) {
 			}
 			continue
 		}
-		if nl.ElementCount != v.nl.ElementCount {
+		if v.nl.ElementCount == 0 && nl.ElementCount != v.nl.ElementCount {
 			t.Errorf("NeoFeed returned wrong element count got %d, want %d", nl.ElementCount, v.nl.ElementCount)
 		}
+		if v.nl.ElementCount > 0 && nl.ElementCount < v.nl.ElementCount {
+			t.Errorf("NeoFeed returned wrong element count got %d, want >1", nl.ElementCount)
+		}
+
 		if !strings.Contains(nl.String(), "Near Earth Objects From:") {
 			t.Errorf("NeoFeed return an invalid neolist, not valid NeoList stringer")
 		}
