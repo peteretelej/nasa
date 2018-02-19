@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -31,6 +32,7 @@ func NewServer(listenAddr string) (*http.Server, error) {
 	return &http.Server{
 		Addr:           listenAddr,
 		ReadTimeout:    30 * time.Second,
+		IdleTimeout:    5 * time.Minute,
 		WriteTimeout:   60 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}, nil
@@ -122,11 +124,18 @@ type TmplData struct {
 	SD                 bool // Standard definition display
 	AutoReload         bool
 	Legacy             bool // legacy browser does not support new reload
+	IsYoutube          bool
 	AutoReloadInterval int
 }
 
 // Render returns an html to the responsewriter based on the template data
 func (td TmplData) Render(wr http.ResponseWriter) {
+	if strings.Contains(td.Apod.URL, "youtube") {
+		td.IsYoutube = true
+		if i := strings.Index(td.Apod.URL, "?"); i > 1 {
+			td.Apod.URL = td.Apod.URL[:i]
+		}
+	}
 	if td.Apod.URL == "" && td.Apod.HDURL == "" {
 		http.Error(wr, "NASA API currently unavailable, it's experiencing downtime :(", http.StatusServiceUnavailable)
 		return
@@ -175,7 +184,17 @@ function TimedRefresh( t ) { setTimeout("location.reload(true);", t); }
 </script>
 {{end}}
 <body {{if and .AutoReload .Legacy}}onload="javascript:TimedRefresh({{.AutoReloadInterval}}*1000)"{{end}}>
-<div id="imgwrap"><img src="{{if .SD}}{{.Apod.URL}}{{else}}{{.Apod.HDURL}}{{end}}" id="bg" alt="{{.Apod.Title}}" /></div>
+<div id="imgwrap">
+{{if .IsYoutube}}
+<div style="position: fixed; z-index: -99; width: 100%; height: 100%">
+<iframe frameborder="0" height="100%" width="100%" 
+src="{{.Apod.URL}}?autoplay=1&controls=0&showinfo=0&autohide=1">
+</iframe>
+</div>
+{{else}}
+<img src="{{if .SD}}{{.Apod.URL}}{{else}}{{.Apod.HDURL}}{{end}}" id="bg" alt="{{.Apod.Title}}" />
+{{end}}
+</div>
 <div id="apod">
 <div id="explanation">
 <h4>{{.Apod.Title}}</h4>
