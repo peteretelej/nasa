@@ -1,6 +1,7 @@
 # nasa - Go library and apps based on the NASA API
 
-[![CircleCI](https://circleci.com/gh/peteretelej/nasa/tree/master.svg?style=svg)](https://circleci.com/gh/peteretelej/nasa/tree/master) 
+[![CircleCI](https://circleci.com/gh/peteretelej/nasa/tree/master.svg?style=svg)](https://circleci.com/gh/peteretelej/nasa/tree/master) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa?ref=badge_shield)
+
 [![GoDoc](https://godoc.org/github.com/peteretelej/nasa?status.svg)](https://godoc.org/github.com/peteretelej/nasa)
 [![Go Report Card](https://goreportcard.com/badge/github.com/peteretelej/nasa)](https://goreportcard.com/report/github.com/peteretelej/nasa)
 
@@ -117,3 +118,7 @@ nasa-wallpapers -cmd "myCustomCommand %s"
 # automatically changes wallpaper every 10 minutes with myCustomCommand
 ```
 
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa?ref=badge_large)
