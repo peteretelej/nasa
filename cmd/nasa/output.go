@@ -96,18 +96,3 @@ func truncate(s string, maxLen int) string {
 	}
 	return s[:maxLen-3] + "..."
 }
-
-// Compile-time references to suppress unused linter until callers land in
-// later phases. Remove these as each function gains real callers.
-var (
-	_ = printJSON
-	_ = printHeader
-	_ = newTable
-	_ = flushTable
-	_ = formatDate
-	_ = formatBool
-	_ = formatFloat
-	_ = fatal
-	_ = getAPIKey
-	_ = truncate
-)
