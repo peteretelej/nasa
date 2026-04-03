@@ -1,149 +1,99 @@
-# nasa - Go library and apps based on the NASA API
+# nasa
 
-[![CircleCI](https://circleci.com/gh/peteretelej/nasa/tree/master.svg?style=svg)](https://circleci.com/gh/peteretelej/nasa/tree/master) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa?ref=badge_shield)
+The comprehensive Go SDK for NASA APIs.
 
-[![GoDoc](https://godoc.org/github.com/peteretelej/nasa?status.svg)](https://godoc.org/github.com/peteretelej/nasa)
-[![Go Report Card](https://goreportcard.com/badge/github.com/peteretelej/nasa)](https://goreportcard.com/report/github.com/peteretelej/nasa)
+[![Go Reference](https://pkg.go.dev/badge/github.com/peteretelej/nasa.svg)](https://pkg.go.dev/github.com/peteretelej/nasa)
+[![CI](https://github.com/peteretelej/nasa/actions/workflows/ci.yml/badge.svg)](https://github.com/peteretelej/nasa/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+Covers 6 NASA APIs with typed Go responses, built-in rate limiting with multi-key rotation, a CLI for terminal usage, and an MCP server for AI assistants.
 
+## Install
 
-Includes:
-- Go Library for accessing and using the NASA API (APOD, NEO)
-- Command line interface (CLI) for accessing NASA API's services
-- Apps based on the NASA API: e.g. Desktop Wallpapers, Web Server for APOD and Random APOD ..
-
-
-## NASA API KEY
-
-Kindly grab a NASA API key from [here](https://api.nasa.gov/index.html#apply-for-an-api-key), and set it to the environment variable __NASAKEY__.
+```bash
+go get github.com/peteretelej/nasa
 ```
-export NASAKEY=YOUR-API_KEY
-```
-The API Key will increase the rate limits for your application/package to access the NASA API. 
-This package & its apps default to the demo key `NASAKEY=DEMO_KEY` if you haven't set one. 
-The DEMO_KEY has very low limits (30reqs/hr, 50req/day), only sufficient for demoing.
 
+## Quick Start
 
-## nasa Library Usage
-``` go
+```go
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"time"
+	"os"
 
 	"github.com/peteretelej/nasa"
 )
 
 func main() {
-	apod, err := nasa.ApodImage(time.Now())
-	handle(err)
-	fmt.Println(apod)
+	client := nasa.NewClient(nasa.WithAPIKey(os.Getenv("NASA_API_KEY")))
 
-	// apod has structure of nasa.Image, hence get details with:
-	// apod.Date, apod.Title, apod.Explanation, apod.URL, apod.HDURL etc
-	fmt.Printf("Today's APOD is %s, available at %s", apod.Title, apod.HDURL)
-
-	lastweek := time.Now().Add(-(7 * 24 * time.Hour))
-	apod, err = nasa.ApodImage(lastweek)
-	handle(err)
-	fmt.Printf("APOD for 1 week ago:\n%s\n", apod)
-}
-func handle(err error) {
+	apod, err := client.APOD.Today(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Printf("%s: %s\n", apod.Title, apod.URL)
 }
 ```
 
-## nasa CLI
-``` sh
-# installation
-go get -u github.com/peteretelej/nasa/cmd/nasa
+## Features
 
-nasa apod 
-# returns the NASA Astronomy Picture of the day
+- **6 NASA APIs** - APOD, NeoWs, DONKI, NASA Image Library, SSD/CNEOS, EONET
+- **Built-in rate limiting** - automatic 429 retry with header-based dynamic adjustment
+- **Multi-key rotation** - distribute requests across multiple API keys
+- **Typed responses** - strongly typed Go structs, no raw JSON
+- **Context-aware** - supports cancellation and timeouts
+- **CLI** - access all APIs from the terminal
+- **MCP server** - expose NASA APIs as tools for AI assistants
 
-nasa apod -date 2016-01-17 
-# returns the NASA APOD for the date specified
+## API Coverage
 
-nasa neo
-# returns Near Earth Objects for today
+| API | Description | Service |
+|-----|-------------|---------|
+| APOD | Astronomy Picture of the Day | `client.APOD` |
+| NeoWs | Near-Earth Object Web Service | `client.NEO` |
+| DONKI | Space Weather Database and Notification System | `client.DONKI` |
+| NASA Image Library | Image and video search across NASA media | `client.Images` |
+| SSD/CNEOS | Close approaches, fireballs, small bodies | `client.SSD` |
+| EONET | Earth Observatory Natural Event Tracker | `client.EONET` |
 
-nasa neo -start 2017-05-10 -end 2017-05-12
-# returns Near Earth Objects for the range of dates specified
+## Rate Limiting
+
+The client automatically respects NASA API rate limits. With a registered key, the default is 1000 requests/hour. If a key is rate-limited, the client retries with the next available key.
+
+```go
+// Single key
+client := nasa.NewClient(nasa.WithAPIKey(os.Getenv("NASA_API_KEY")))
+
+// Multiple keys for automatic rotation
+client = nasa.NewClient(nasa.WithAPIKeys([]string{"key1", "key2", "key3"}))
 ```
 
-## Webserver for APOD pictures and Random Pics
-Serve APOD on the web (demo: nasa.etelej.com)
-```
-nasa web
-# serves website at :8080
-
-nasa web -listen localhost:9000
-# serves website at localhost:9000
-```
-
-__Web server demo pages:__
-- [nasa.etelej.com](https://nasa.etelej.com): NASA Astronomy Picture of the Day (for today)
-- [nasa.etelej.com/random-apod](https://nasa.etelej.com/random-apod): Random images (HD images, updated every second, no autoreload)
-- [nasa.etelej.com/random-apod?sd=1](https://nasa.etelej.com/random-apod?sd=1): Gets Standard Definition images (lower quality,faster load, saves bandwidth).
-- [nasa.etelej.com/random-apod?auto=1](https://nasa.etelej.com/random-apod?auto=1): Automatically reload page (default reload interval: 5 minutes)
-- [nasa.etelej.com/random-apod?auto=1&interval=60](https://nasa.etelej.com/random-apod?auto=1&interval=60): Automatically reloads every 1800 seconds (1 hr)
-- [nasa.etelej.com/random-apod?sd=1&auto=1&interval=5](https://nasa.etelej.com/random-apod?sd=1&auto=1&interval=5): Automatically reloads SD images every 5 seconds
-- [nasa.etelej.com/random-apod?auto=1&legacy=1](https://nasa.etelej.com/random-apod?auto=1&legacy=1): Legacy browser support for reloading
-
-
-## NASA Desktop Wallpapers 
-Automatically change your desktop wallpaper to randomly selected NASA Astronomy Pictures of the Day.
-- Supports various Linux desktop variants (at the moment) incl Gnome, Gnome2, Lubuntu, KDE and others.
-- Also supports custom command to set the wallpaper.
-```
-go get -u github.com/peteretelej/nasa/cmd/nasa-wallpapers
-
-nasa-wallpapers
-# automatically changes wallpapers every 10 minutes
-# tries to change wallpaper with an existing command, use -cmdDefault to change the default command
-# e.g -cmdDefault feh
-
-nasa-wallpapers -cmdDefault gnome
-# uses the gnome command for changing wallpapers (ie gsettings)
-
-nasa-wallpapers -interval 30s -cmdDefault kde
-# automatically changes wallpaper every 30seconds
-# rem to get and set NASA API KEY to env NASAKEY to avoid ratelimits
-
-nasa-wallpapers -cmd "myCustomCommand %s"
-# automatically changes wallpaper every 10 minutes with myCustomCommand
-```
-
-
-
-## MCP Server
-
-The `nasa-mcp` binary is a [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server that exposes NASA APIs as tools for AI assistants. It communicates over stdio using JSON-RPC 2.0, letting clients like Claude Desktop, Claude Code, Cursor, and VS Code Copilot call NASA endpoints directly.
-
-### Build
+## CLI
 
 ```bash
-go build -o nasa-mcp ./cmd/nasa-mcp/
+go install github.com/peteretelej/nasa/cmd/nasa@latest
 ```
 
-### Install
+```bash
+nasa apod                          # today's Astronomy Picture of the Day
+nasa apod -date 2024-01-01        # APOD for a specific date
+nasa neo feed                      # near-Earth objects for today
+nasa donki cme                     # coronal mass ejections
+nasa images search "apollo 11"     # search NASA image library
+nasa ssd cad                       # close approach data
+```
+
+## MCP Server
 
 ```bash
 go install github.com/peteretelej/nasa/cmd/nasa-mcp@latest
 ```
 
-The `nasa-mcp` binary must be in your `PATH` for the configurations below to work.
-
-### Claude Desktop
-
-Add to your Claude Desktop configuration file:
-
-- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 
 ```json
 {
@@ -156,101 +106,16 @@ Add to your Claude Desktop configuration file:
 }
 ```
 
-### Claude Code
+The MCP server exposes 13 tools covering all 6 APIs. Works with Claude Desktop, Claude Code, Cursor, and VS Code Copilot. See the [documentation](https://peteretelej.github.io/nasa) for other client configurations.
 
-Add to `.claude/mcp.json` or your Claude Code settings:
+## Documentation
 
-```json
-{
-  "mcpServers": {
-    "nasa": {
-      "command": "nasa-mcp",
-      "env": { "NASA_API_KEY": "your-key" }
-    }
-  }
-}
-```
+Full documentation at [peteretelej.github.io/nasa](https://peteretelej.github.io/nasa).
 
-### Cursor
+## Contributing
 
-Go to Settings -> MCP Servers -> Add, or add to `~/.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "nasa": {
-      "command": "nasa-mcp",
-      "env": { "NASA_API_KEY": "your-key" }
-    }
-  }
-}
-```
-
-### VS Code (Copilot)
-
-Add to `.vscode/mcp.json` in your project:
-
-```json
-{
-  "mcp": {
-    "servers": {
-      "nasa": {
-        "command": "nasa-mcp",
-        "env": { "NASA_API_KEY": "your-key" }
-      }
-    }
-  }
-}
-```
-
-### API Key
-
-Set `NASA_API_KEY` in the `env` block of your MCP configuration. Without a key, the server falls back to `DEMO_KEY`, which is limited to 30 requests per hour and 50 per day.
-
-Get a free API key at [api.nasa.gov](https://api.nasa.gov/).
-
-### Available Tools
-
-| Tool | Description |
-|------|-------------|
-| `nasa_apod` | Get Astronomy Picture of the Day |
-| `nasa_apod_range` | Get APOD for a date range |
-| `nasa_neo_feed` | Near-Earth objects for a date range |
-| `nasa_neo_get` | Get specific asteroid by ID |
-| `nasa_donki_cme` | Coronal mass ejections |
-| `nasa_donki_gst` | Geomagnetic storms |
-| `nasa_donki_flr` | Solar flares |
-| `nasa_donki_sep` | Solar energetic particles |
-| `nasa_donki_notifications` | DONKI event notifications |
-| `nasa_images_search` | Search NASA image library |
-| `nasa_ssd_cad` | Close approach data |
-| `nasa_ssd_fireball` | Fireball/bolide events |
-| `nasa_eonet_events` | Natural events (EONET) |
-
-
-## Testing
-
-### Unit Tests
-
-Run all unit tests:
-
-```bash
-go test ./...
-```
-
-### Integration Tests
-
-Integration tests hit the live NASA API and are gated by the `//go:build integration` build tag. They are excluded from `go test ./...` by default.
-
-**Locally**, use the convenience script:
-
-```bash
-./scripts/test-integration.sh
-```
-
-This loads `NASA_API_KEY` from a `.env` file if present, or you can export it directly. Get a free key at [api.nasa.gov](https://api.nasa.gov/).
-
-**In CI**, integration tests run as a separate job triggered by manual dispatch (`workflow_dispatch`) or on a nightly schedule (06:00 UTC). The job reads `NASA_API_KEY` from repository secrets.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa?ref=badge_large)
+
+MIT License - see [LICENSE](LICENSE).
