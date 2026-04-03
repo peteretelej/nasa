@@ -1,0 +1,63 @@
+{
+  "id": "2021277",
+  "neo_reference_id": "2021277",
+  "name": "21277 (1996 TO5)",
+  "nasa_jpl_url": "https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=2021277",
+  "absolute_magnitude_h": 16.1,
+  "estimated_diameter": {
+    "kilometers": {"estimated_diameter_min": 1.6016, "estimated_diameter_max": 3.5812},
+    "meters": {"estimated_diameter_min": 1601.6, "estimated_diameter_max": 3581.2},
+    "miles": {"estimated_diameter_min": 0.9951, "estimated_diameter_max": 2.2253},
+    "feet": {"estimated_diameter_min": 5252.6, "estimated_diameter_max": 11749.3}
+  },
+  "is_potentially_hazardous_asteroid": false,
+  "close_approach_data": [
+    {
+      "close_approach_date": "2026-Apr-01",
+      "close_approach_date_full": "2026-Apr-01 17:14",
+      "epoch_date_close_approach": 1775070840000,
+      "relative_velocity": {
+        "kilometers_per_second": "12.45",
+        "kilometers_per_hour": "44820.0",
+        "miles_per_hour": "27847.0"
+      },
+      "miss_distance": {
+        "astronomical": "0.35",
+        "lunar": "136.15",
+        "kilometers": "52370000",
+        "miles": "32540000"
+      },
+      "orbiting_body": "Earth"
+    }
+  ],
+  "orbital_data": {
+    "orbit_id": "164",
+    "orbit_determination_date": "2024-06-15 06:58:11",
+    "first_observation_date": "1996-07-14",
+    "last_observation_date": "2024-01-15",
+    "data_arc_in_days": 10047,
+    "observations_used": 657,
+    "orbit_uncertainty": "0",
+    "minimum_orbit_intersection": "0.0465",
+    "jupiter_tisserand_invariant": "3.267",
+    "epoch_osculation": "2460400.5",
+    "eccentricity": "0.5197",
+    "semi_major_axis": "2.376",
+    "inclination": "20.952",
+    "ascending_node_longitude": "167.381",
+    "orbital_period": "1337.0",
+    "perihelion_distance": "1.141",
+    "perihelion_argument": "250.175",
+    "aphelion_distance": "3.612",
+    "perihelion_time": "2460865.5",
+    "mean_anomaly": "234.832",
+    "mean_motion": "0.269",
+    "equinox": "J2000",
+    "orbit_class": {
+      "orbit_class_type": "AMO",
+      "orbit_class_description": "Near-Earth asteroid orbits similar to that of 1221 Amor",
+      "orbit_class_range": "1.017 AU < q (perihelion) < 1.3 AU"
+    }
+  },
+  "is_sentry_object": false
+}

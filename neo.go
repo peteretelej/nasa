@@ -94,5 +94,63 @@ Link: %s
 // Limits time to start and end times specified
 func NeoFeed(start, end time.Time) (*NeoList, error) {
 	c := getDefaultClient()
-	return c.NEO.Feed(context.Background(), start, end)
+	feed, err := c.NEO.Feed(context.Background(), start, end)
+	if err != nil {
+		return nil, err
+	}
+	return neoFeedToNeoList(feed, start, end), nil
+}
+
+// neoFeedToNeoList converts a *NEOFeed to a *NeoList for backward compatibility.
+// This is a minimal inline conversion; Phase 3 will replace it with complete field mapping.
+func neoFeedToNeoList(f *NEOFeed, start, end time.Time) *NeoList {
+	nl := &NeoList{
+		Start:        start.Format(dateFormat),
+		End:          end.Format(dateFormat),
+		ElementCount: int64(f.ElementCount),
+	}
+	nl.Links.Self = f.Links.Self
+	nl.Links.Next = f.Links.Next
+	nl.Links.Prev = f.Links.Prev
+
+	nl.NearEarthObjects = make(map[string][]Asteroid, len(f.NearEarthObjects))
+	for date, neos := range f.NearEarthObjects {
+		asteroids := make([]Asteroid, 0, len(neos))
+		for _, neo := range neos {
+			a := Asteroid{
+				ID:                   neo.NeoReferenceID,
+				Name:                 neo.Name,
+				JPLURL:               neo.JPLURL,
+				AbsoluteMagnitude:    neo.AbsoluteMagnitude,
+				PotentiallyHazardous: neo.IsPotentiallyHazardous,
+			}
+			// Map estimated diameter.
+			a.EstimatedDiameter.Kilometers = diameter{Min: neo.EstimatedDiameter.Kilometers.Min, Max: neo.EstimatedDiameter.Kilometers.Max}
+			a.EstimatedDiameter.Meters = diameter{Min: neo.EstimatedDiameter.Meters.Min, Max: neo.EstimatedDiameter.Meters.Max}
+			a.EstimatedDiameter.Miles = diameter{Min: neo.EstimatedDiameter.Miles.Min, Max: neo.EstimatedDiameter.Miles.Max}
+			a.EstimatedDiameter.Feet = diameter{Min: neo.EstimatedDiameter.Feet.Min, Max: neo.EstimatedDiameter.Feet.Max}
+
+			// Map close approach data.
+			for _, ca := range neo.CloseApproachData {
+				cad := closeApproachData{
+					CloseApproachDate:      ca.CloseApproachDate,
+					EpochDateCloseApproach: ca.EpochDateCloseApproach.Time().UnixMilli(),
+					OrbitingBody:           ca.OrbitingBody,
+				}
+				cad.RelativeVelocity.KilometersPerSecond = fmt.Sprintf("%g", float64(ca.RelativeVelocity.KilometersPerSecond))
+				cad.RelativeVelocity.KilometersPerHour = fmt.Sprintf("%g", float64(ca.RelativeVelocity.KilometersPerHour))
+				cad.RelativeVelocity.MilesPerHour = fmt.Sprintf("%g", float64(ca.RelativeVelocity.MilesPerHour))
+				cad.MissDistance.Astronomical = fmt.Sprintf("%g", float64(ca.MissDistance.Astronomical))
+				cad.MissDistance.Lunar = fmt.Sprintf("%g", float64(ca.MissDistance.Lunar))
+				cad.MissDistance.Kilometers = fmt.Sprintf("%g", float64(ca.MissDistance.Kilometers))
+				cad.MissDistance.Miles = fmt.Sprintf("%g", float64(ca.MissDistance.Miles))
+				a.CloseApproachData = append(a.CloseApproachData, cad)
+			}
+
+			asteroids = append(asteroids, a)
+		}
+		nl.NearEarthObjects[date] = asteroids
+	}
+
+	return nl
 }
