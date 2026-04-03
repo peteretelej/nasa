@@ -21,8 +21,9 @@ type Client struct {
 	rpsSet      bool    // true if WithRateLimit was explicitly called
 
 	// Services
-	APOD *APODService
-	NEO  *NEOService
+	APOD  *APODService
+	NEO   *NEOService
+	DONKI *DONKIService
 }
 
 // Option configures a Client.
@@ -93,6 +94,7 @@ func NewClient(opts ...Option) *Client {
 	// Wire services.
 	c.APOD = &APODService{client: c}
 	c.NEO = &NEOService{client: c}
+	c.DONKI = &DONKIService{client: c}
 
 	return c
 }
