@@ -264,3 +264,163 @@ func TestNEOFeedWithKey_SignatureCompiles(t *testing.T) {
 	var f func(string, string, string) (*NEOFeed, error) = NEOFeedWithKey
 	_ = f
 }
+
+// Compile-time struct field type assertions for legacy and new types.
+
+// TestCompat_ImageStructFields verifies the legacy Image struct preserves
+// its field types. All user-facing string fields must remain string; ApodDate
+// must remain time.Time.
+func TestCompat_ImageStructFields(t *testing.T) {
+	var _ string = Image{}.Date
+	var _ string = Image{}.Title
+	var _ string = Image{}.URL
+	var _ string = Image{}.HDURL
+	var _ string = Image{}.Explanation
+	var _ time.Time = Image{}.ApodDate
+}
+
+// TestCompat_APODImageStructFields verifies the new APODImage struct field types.
+func TestCompat_APODImageStructFields(t *testing.T) {
+	var _ string = APODImage{}.Copyright
+	var _ MediaType = APODImage{}.MediaType
+	var _ string = APODImage{}.ServiceVersion
+	var _ string = APODImage{}.ThumbnailURL
+}
+
+// TestCompat_AsteroidStructFields verifies the legacy Asteroid struct preserves
+// its field types, including all orbital data fields which must remain string.
+func TestCompat_AsteroidStructFields(t *testing.T) {
+	var _ string = Asteroid{}.ID
+	var _ string = Asteroid{}.Name
+	var _ string = Asteroid{}.JPLURL
+	var _ float64 = Asteroid{}.AbsoluteMagnitude
+	var _ bool = Asteroid{}.PotentiallyHazardous
+
+	// Orbital data fields must all remain string
+	var a Asteroid
+	var _ string = a.OrbitalData.OrbitID
+	var _ string = a.OrbitalData.OrbitDeterminationDate
+	var _ string = a.OrbitalData.OrbitUncertainity
+	var _ string = a.OrbitalData.MinimumOrbitIntersection
+	var _ string = a.OrbitalData.JupiterTisserandInvariant
+	var _ string = a.OrbitalData.EpochOsculation
+	var _ string = a.OrbitalData.Eccentricity
+	var _ string = a.OrbitalData.Inclination
+	var _ string = a.OrbitalData.SemiMajorAxis
+	var _ string = a.OrbitalData.AscendingNodeLongitude
+	var _ string = a.OrbitalData.OrbitalPeriod
+	var _ string = a.OrbitalData.PerihelionDistance
+	var _ string = a.OrbitalData.PerihelionArgument
+	var _ string = a.OrbitalData.AphelionDistance
+	var _ string = a.OrbitalData.PerihelionTime
+	var _ string = a.OrbitalData.MeanAnomaly
+	var _ string = a.OrbitalData.MeanMotion
+	var _ string = a.OrbitalData.Equinox
+}
+
+// TestCompat_NeoListStructFields verifies the legacy NeoList struct preserves
+// its field types.
+func TestCompat_NeoListStructFields(t *testing.T) {
+	var _ int64 = NeoList{}.ElementCount
+	var _ map[string][]Asteroid = NeoList{}.NearEarthObjects
+}
+
+// TestCompat_APODConversion_ResponseFormat verifies the APOD conversion path:
+// call APOD.Get through a mock server, convert the APODImage to an Image via
+// apodImageToImage, and verify the returned Image has Date as a string in
+// YYYY-MM-DD format and ApodDate as time.Time.
+func TestCompat_APODConversion_ResponseFormat(t *testing.T) {
+	data := loadFixture(t, "apod_single.json")
+	c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(data)
+	})
+
+	date := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
+	apodImg, err := c.APOD.Get(context.Background(), date)
+	if err != nil {
+		t.Fatalf("APOD.Get error: %v", err)
+	}
+
+	img := apodImageToImage(apodImg)
+
+	// Date must be a YYYY-MM-DD string
+	if img.Date != "2024-01-15" {
+		t.Errorf("Image.Date = %q, want %q", img.Date, "2024-01-15")
+	}
+
+	// ApodDate must be a time.Time matching the date
+	expectedTime := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
+	if !img.ApodDate.Equal(expectedTime) {
+		t.Errorf("Image.ApodDate = %v, want %v", img.ApodDate, expectedTime)
+	}
+
+	// Verify other fields carried over
+	if img.Title != "Test APOD Title" {
+		t.Errorf("Image.Title = %q, want %q", img.Title, "Test APOD Title")
+	}
+	if img.URL == "" {
+		t.Error("Image.URL is empty, want non-empty")
+	}
+	if img.HDURL == "" {
+		t.Error("Image.HDURL is empty, want non-empty")
+	}
+	if img.Explanation == "" {
+		t.Error("Image.Explanation is empty, want non-empty")
+	}
+}
+
+// TestCompat_NeoFeedConversion_ResponseFormat verifies the NEO feed conversion
+// path: call NEO.Feed through a mock server, convert the NEOFeed to a NeoList
+// via neoFeedToNeoList, and verify the returned NeoList has ElementCount as
+// int64 and NearEarthObjects as the expected old map type.
+func TestCompat_NeoFeedConversion_ResponseFormat(t *testing.T) {
+	data := loadFixture(t, "neo_feed.json")
+	c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(data)
+	})
+
+	start := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
+	end := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
+	feed, err := c.NEO.Feed(context.Background(), start, end)
+	if err != nil {
+		t.Fatalf("NEO.Feed error: %v", err)
+	}
+
+	nl := neoFeedToNeoList(feed, "2024-01-15", "2024-01-15")
+
+	// ElementCount must be int64
+	if nl.ElementCount != 1 {
+		t.Errorf("NeoList.ElementCount = %d, want 1", nl.ElementCount)
+	}
+
+	// NearEarthObjects must be map[string][]Asteroid
+	if nl.NearEarthObjects == nil {
+		t.Fatal("NeoList.NearEarthObjects is nil")
+	}
+
+	asteroids, ok := nl.NearEarthObjects["2024-01-15"]
+	if !ok {
+		t.Fatal("NeoList.NearEarthObjects missing key \"2024-01-15\"")
+	}
+	if len(asteroids) != 1 {
+		t.Fatalf("len(asteroids) = %d, want 1", len(asteroids))
+	}
+
+	a := asteroids[0]
+	if a.ID != "3542519" {
+		t.Errorf("Asteroid.ID = %q, want %q", a.ID, "3542519")
+	}
+	if a.Name != "(2010 PK9)" {
+		t.Errorf("Asteroid.Name = %q, want %q", a.Name, "(2010 PK9)")
+	}
+
+	// Verify Start/End are set correctly
+	if nl.Start != "2024-01-15" {
+		t.Errorf("NeoList.Start = %q, want %q", nl.Start, "2024-01-15")
+	}
+	if nl.End != "2024-01-15" {
+		t.Errorf("NeoList.End = %q, want %q", nl.End, "2024-01-15")
+	}
+}
