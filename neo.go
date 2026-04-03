@@ -3,7 +3,7 @@ package nasa
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -116,7 +116,7 @@ func NeoFeed(start, end time.Time) (*NeoList, error) {
 		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	dat, err := ioutil.ReadAll(resp.Body)
+	dat, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

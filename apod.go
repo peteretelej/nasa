@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -50,10 +50,6 @@ About:
 `, ni.Title, ni.Date, ni.URL, ni.HDURL, ni.Explanation)
 }
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
-
 // RandomAPOD returns an Astronomy Picture of the Day based on a random date
 // Picks any image shared between the last 2 years
 func RandomAPOD() (*Image, error) {
@@ -79,7 +75,7 @@ func (v *todaysAPOD) update(apod Image) {
 	v.mu.Unlock()
 }
 
-//APODToday returns today's APOD, from cache if possible, fetches fresh if not
+// APODToday returns today's APOD, from cache if possible, fetches fresh if not
 func APODToday() (*Image, error) {
 	d := time.Now().Format("2006-01-02")
 
@@ -121,7 +117,7 @@ func ApodImage(t time.Time) (*Image, error) {
 		return nil, fmt.Errorf("unable to connect to NASA API, %v", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
-	dat, err := ioutil.ReadAll(resp.Body)
+	dat, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

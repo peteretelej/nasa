@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -152,7 +152,7 @@ func updateRandom() error {
 			resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
 	defer func() { _ = resp.Body.Close() }()
-	dat, err := ioutil.ReadAll(resp.Body)
+	dat, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ func updateRandom() error {
 	default:
 		return errors.New("Apod returned is not a valid image mimetype")
 	}
-	err = ioutil.WriteFile(tmpfile, dat, 0644)
+	err = os.WriteFile(tmpfile, dat, 0644)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func updateRandom() error {
 var tmpfile string
 
 func init() {
-	tmp, err := ioutil.TempFile("", "nasa-wallpapers-pic.jpg")
+	tmp, err := os.CreateTemp("", "nasa-wallpapers-pic.jpg")
 	if err != nil {
 		log.Fatalf("unable to get tempfile to work with: %v", err)
 	}

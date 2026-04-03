@@ -47,7 +47,6 @@ func main() {
 			if err != nil {
 				fmt.Printf("nasa apod: invalid -date, should use format YYYY-MM-DD\n")
 				os.Exit(1)
-				os.Exit(1)
 			}
 		}
 		apod, err := nasa.ApodImage(t)
