@@ -1,0 +1,35 @@
+# Enable GitHub Pages in repo settings: Settings > Pages > Source > GitHub Actions.
+# The workflow will fail silently if Pages is not enabled.
+name: Deploy Docs
+
+on:
+  push:
+    branches: [main]
+    paths: [docs/**, README.md]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: peteretelej/starlight-action@v1
+        with:
+          docs: docs/
+          title: NASA Go SDK
+          description: "The comprehensive Go SDK for NASA APIs"
+          readme: true
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
