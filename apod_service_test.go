@@ -48,23 +48,23 @@ func TestAPODService_Today(t *testing.T) {
 		t.Fatalf("Today() error: %v", err)
 	}
 
-	if img.Title != "Test APOD Title" {
-		t.Errorf("Title = %q, want %q", img.Title, "Test APOD Title")
+	if img.Title != "Star Cluster IC 348 from Webb" {
+		t.Errorf("Title = %q, want %q", img.Title, "Star Cluster IC 348 from Webb")
 	}
-	if img.Explanation != "Test explanation for APOD." {
-		t.Errorf("Explanation = %q, want %q", img.Explanation, "Test explanation for APOD.")
+	if !strings.Contains(img.Explanation, "IC 348 is a young star cluster") {
+		t.Errorf("Explanation = %q, want substring about IC 348", img.Explanation)
 	}
-	if img.URL != "https://apod.nasa.gov/apod/image/2401/test.jpg" {
+	if img.URL != "https://apod.nasa.gov/apod/image/2401/IC348_webb_960.jpg" {
 		t.Errorf("URL = %q, want full URL", img.URL)
 	}
-	if img.HDURL != "https://apod.nasa.gov/apod/image/2401/test_hd.jpg" {
+	if img.HDURL != "https://apod.nasa.gov/apod/image/2401/IC348_webb_3788.jpg" {
 		t.Errorf("HDURL = %q, want full HD URL", img.HDURL)
 	}
 	if img.MediaType != MediaImage {
 		t.Errorf("MediaType = %q, want %q", img.MediaType, MediaImage)
 	}
-	if img.Copyright != "Test Photographer" {
-		t.Errorf("Copyright = %q, want %q", img.Copyright, "Test Photographer")
+	if img.Copyright != "" {
+		t.Errorf("Copyright = %q, want empty (no copyright in fixture)", img.Copyright)
 	}
 	if img.ServiceVersion != "v1" {
 		t.Errorf("ServiceVersion = %q, want %q", img.ServiceVersion, "v1")
@@ -92,8 +92,8 @@ func TestAPODService_Get(t *testing.T) {
 		t.Fatalf("Get() error: %v", err)
 	}
 
-	if img.Title != "Test APOD Title" {
-		t.Errorf("Title = %q, want %q", img.Title, "Test APOD Title")
+	if img.Title != "Star Cluster IC 348 from Webb" {
+		t.Errorf("Title = %q, want %q", img.Title, "Star Cluster IC 348 from Webb")
 	}
 
 	// Verify date and thumbs params were sent
@@ -123,7 +123,7 @@ func TestAPODService_Get_VideoType(t *testing.T) {
 	if img.ThumbnailURL == "" {
 		t.Error("ThumbnailURL should be populated for video entries")
 	}
-	if img.ThumbnailURL != "https://img.youtube.com/vi/abc123/0.jpg" {
+	if img.ThumbnailURL != "https://img.youtube.com/vi/QSivvdIyeG4/0.jpg" {
 		t.Errorf("ThumbnailURL = %q, want youtube thumbnail", img.ThumbnailURL)
 	}
 }
@@ -142,14 +142,14 @@ func TestAPODService_GetRange(t *testing.T) {
 		t.Fatalf("got %d images, want 3", len(imgs))
 	}
 
-	if imgs[0].Title != "Range Image One" {
-		t.Errorf("imgs[0].Title = %q, want %q", imgs[0].Title, "Range Image One")
+	if imgs[0].Title != "The Light, the Dark, and the Dusty" {
+		t.Errorf("imgs[0].Title = %q, want %q", imgs[0].Title, "The Light, the Dark, and the Dusty")
 	}
-	if imgs[1].MediaType != MediaVideo {
-		t.Errorf("imgs[1].MediaType = %q, want %q", imgs[1].MediaType, MediaVideo)
+	if imgs[1].MediaType != MediaImage {
+		t.Errorf("imgs[1].MediaType = %q, want %q", imgs[1].MediaType, MediaImage)
 	}
-	if imgs[2].Copyright != "Photographer Three" {
-		t.Errorf("imgs[2].Copyright = %q, want %q", imgs[2].Copyright, "Photographer Three")
+	if imgs[2].Copyright != "Michael Luy" {
+		t.Errorf("imgs[2].Copyright = %q, want %q", imgs[2].Copyright, "Michael Luy")
 	}
 }
 

@@ -42,37 +42,37 @@ func TestNEOService_Feed(t *testing.T) {
 		t.Fatalf("NEO.Feed returned error: %v", err)
 	}
 
-	if feed.ElementCount != 1 {
-		t.Errorf("ElementCount = %d, want 1", feed.ElementCount)
+	if feed.ElementCount != 19 {
+		t.Errorf("ElementCount = %d, want 19", feed.ElementCount)
 	}
 
 	asteroids, ok := feed.NearEarthObjects["2024-01-15"]
 	if !ok {
 		t.Fatal("expected key 2024-01-15 in NearEarthObjects")
 	}
-	if len(asteroids) != 1 {
-		t.Fatalf("expected 1 asteroid, got %d", len(asteroids))
+	if len(asteroids) != 19 {
+		t.Fatalf("expected 19 asteroids, got %d", len(asteroids))
 	}
 
 	a := asteroids[0]
-	if a.ID != "3542519" {
-		t.Errorf("ID = %q, want %q", a.ID, "3542519")
+	if a.ID != "3312035" {
+		t.Errorf("ID = %q, want %q", a.ID, "3312035")
 	}
-	if a.Name != "(2010 PK9)" {
-		t.Errorf("Name = %q, want %q", a.Name, "(2010 PK9)")
+	if a.Name != "(2006 AM8)" {
+		t.Errorf("Name = %q, want %q", a.Name, "(2006 AM8)")
 	}
 
 	// Verify string-number conversion via StringFloat64.
 	ca := a.CloseApproachData[0]
-	if got := float64(ca.RelativeVelocity.KilometersPerSecond); got != 15.23 {
-		t.Errorf("KilometersPerSecond = %f, want 15.23", got)
+	if got := float64(ca.RelativeVelocity.KilometersPerSecond); got != 39.5920533483 {
+		t.Errorf("KilometersPerSecond = %f, want 39.5920533483", got)
 	}
-	if got := float64(ca.MissDistance.Astronomical); got != 0.2 {
-		t.Errorf("Astronomical = %f, want 0.2", got)
+	if got := float64(ca.MissDistance.Astronomical); got != 0.4287565823 {
+		t.Errorf("Astronomical = %f, want 0.4287565823", got)
 	}
 
 	// Verify close_approach_date_full was parsed.
-	wantDateFull := time.Date(2024, 1, 15, 8, 30, 0, 0, time.UTC)
+	wantDateFull := time.Date(2024, 1, 15, 13, 57, 0, 0, time.UTC)
 	if !ca.CloseApproachDateFull.Equal(wantDateFull) {
 		t.Errorf("CloseApproachDateFull = %v, want %v", ca.CloseApproachDateFull, wantDateFull)
 	}
@@ -143,42 +143,42 @@ func TestNEOService_Get(t *testing.T) {
 	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"))
-	neo, err := c.NEO.Get(context.Background(), "2021277")
+	neo, err := c.NEO.Get(context.Background(), "3312035")
 	if err != nil {
 		t.Fatalf("NEO.Get returned error: %v", err)
 	}
 
-	if neo.ID != "2021277" {
-		t.Errorf("ID = %q, want %q", neo.ID, "2021277")
+	if neo.ID != "3312035" {
+		t.Errorf("ID = %q, want %q", neo.ID, "3312035")
 	}
-	if neo.Name != "21277 (1996 TO5)" {
-		t.Errorf("Name = %q, want %q", neo.Name, "21277 (1996 TO5)")
+	if neo.Name != "(2006 AM8)" {
+		t.Errorf("Name = %q, want %q", neo.Name, "(2006 AM8)")
 	}
 
 	// Verify orbital data is present.
 	if neo.OrbitalData == nil {
 		t.Fatal("expected OrbitalData to be present")
 	}
-	if neo.OrbitalData.OrbitID != "164" {
-		t.Errorf("OrbitID = %q, want %q", neo.OrbitalData.OrbitID, "164")
+	if neo.OrbitalData.OrbitID != "34" {
+		t.Errorf("OrbitID = %q, want %q", neo.OrbitalData.OrbitID, "34")
 	}
-	if neo.OrbitalData.DataArcInDays != 10047 {
-		t.Errorf("DataArcInDays = %d, want 10047", neo.OrbitalData.DataArcInDays)
+	if neo.OrbitalData.DataArcInDays != 6567 {
+		t.Errorf("DataArcInDays = %d, want 6567", neo.OrbitalData.DataArcInDays)
 	}
 
 	// Verify orbit class.
 	if neo.OrbitalData.OrbitClass == nil {
 		t.Fatal("expected OrbitClass to be present")
 	}
-	if neo.OrbitalData.OrbitClass.Type != "AMO" {
-		t.Errorf("OrbitClass.Type = %q, want %q", neo.OrbitalData.OrbitClass.Type, "AMO")
+	if neo.OrbitalData.OrbitClass.Type != "APO" {
+		t.Errorf("OrbitClass.Type = %q, want %q", neo.OrbitalData.OrbitClass.Type, "APO")
 	}
 
 	// Verify close approach date full parsing.
 	if len(neo.CloseApproachData) == 0 {
 		t.Fatal("expected close approach data")
 	}
-	wantDateFull := time.Date(2026, 4, 1, 17, 14, 0, 0, time.UTC)
+	wantDateFull := time.Date(1901, 3, 2, 11, 52, 0, 0, time.UTC)
 	if !neo.CloseApproachData[0].CloseApproachDateFull.Equal(wantDateFull) {
 		t.Errorf("CloseApproachDateFull = %v, want %v",
 			neo.CloseApproachData[0].CloseApproachDateFull, wantDateFull)
@@ -229,8 +229,8 @@ func TestNEOService_Browse(t *testing.T) {
 		t.Fatalf("NEO.Browse returned error: %v", err)
 	}
 
-	if browse.Page.TotalElements != 35000 {
-		t.Errorf("TotalElements = %d, want 35000", browse.Page.TotalElements)
+	if browse.Page.TotalElements != 42794 {
+		t.Errorf("TotalElements = %d, want 42794", browse.Page.TotalElements)
 	}
 	if browse.Page.Size != 2 {
 		t.Errorf("Page.Size = %d, want 2", browse.Page.Size)
@@ -238,8 +238,8 @@ func TestNEOService_Browse(t *testing.T) {
 	if len(browse.NearEarthObjects) != 2 {
 		t.Fatalf("expected 2 NEOs, got %d", len(browse.NearEarthObjects))
 	}
-	if browse.NearEarthObjects[0].Name != "433 Eros (A898 PA)" {
-		t.Errorf("first NEO name = %q, want %q", browse.NearEarthObjects[0].Name, "433 Eros (A898 PA)")
+	if browse.NearEarthObjects[0].Name != "1620 Geographos (1951 RA)" {
+		t.Errorf("first NEO name = %q, want %q", browse.NearEarthObjects[0].Name, "1620 Geographos (1951 RA)")
 	}
 
 	// Verify links were fixed to HTTPS.

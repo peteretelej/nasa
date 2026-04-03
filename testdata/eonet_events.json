@@ -1,81 +1,212 @@
 {
-  "title": "EONET Events",
   "description": "Natural events from EONET.",
-  "link": "https://eonet.gsfc.nasa.gov/api/v3/events",
   "events": [
     {
-      "id": "EONET_6354",
-      "title": "Wildfire - Los Angeles, California",
-      "description": "A large wildfire near Los Angeles.",
-      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_6354",
-      "closed": null,
       "categories": [
         {
           "id": "wildfires",
           "title": "Wildfires"
         }
       ],
-      "sources": [
-        {
-          "id": "InciWeb",
-          "url": "https://inciweb.wildfire.gov/incident-information/caanf-palisades"
-        }
-      ],
+      "closed": null,
+      "description": null,
       "geometry": [
         {
-          "date": "2026-01-07T18:00:00Z",
-          "type": "Point",
-          "coordinates": [-118.52, 34.05],
-          "magnitudeValue": null,
-          "magnitudeUnit": ""
-        },
-        {
-          "date": "2026-01-08T12:00:00Z",
-          "type": "Point",
-          "coordinates": [-118.53, 34.06],
-          "magnitudeValue": null,
-          "magnitudeUnit": ""
-        },
-        {
-          "date": "2026-01-09T00:00:00Z",
-          "type": "Polygon",
-          "coordinates": [[[-118.55, 34.03], [-118.50, 34.03], [-118.50, 34.08], [-118.55, 34.08], [-118.55, 34.03]]],
-          "magnitudeValue": null,
-          "magnitudeUnit": ""
+          "coordinates": [
+            -92.6888328,
+            45.7153853
+          ],
+          "date": "2026-04-02T11:26:00Z",
+          "magnitudeUnit": "acres",
+          "magnitudeValue": 655.7,
+          "type": "Point"
         }
-      ]
+      ],
+      "id": "EONET_19203",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_19203",
+      "sources": [
+        {
+          "id": "IRWIN",
+          "url": "https://irwin.doi.gov/observer/incidents/eabb9fb3-1d6f-4c28-bd48-f0046d869592"
+        }
+      ],
+      "title": "rx-12_ 13_ 14 Prescribed Fire, Burnett, Wisconsin"
     },
     {
-      "id": "EONET_6280",
-      "title": "Tropical Storm Gamma",
-      "description": "",
-      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_6280",
-      "closed": "2025-11-15T00:00:00Z",
+      "categories": [
+        {
+          "id": "wildfires",
+          "title": "Wildfires"
+        }
+      ],
+      "closed": null,
+      "description": null,
+      "geometry": [
+        {
+          "coordinates": [
+            -95.537898,
+            31.407942
+          ],
+          "date": "2026-04-02T10:05:00Z",
+          "magnitudeUnit": "acres",
+          "magnitudeValue": 1000,
+          "type": "Point"
+        }
+      ],
+      "id": "EONET_19204",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_19204",
+      "sources": [
+        {
+          "id": "IRWIN",
+          "url": "https://irwin.doi.gov/observer/incidents/9c7899c5-36e0-4c21-8a50-b171e1c431a3"
+        }
+      ],
+      "title": "Rx Houston 3041 Prescribed Fire, Houston, Texas"
+    },
+    {
       "categories": [
         {
           "id": "severeStorms",
           "title": "Severe Storms"
         }
       ],
+      "closed": null,
+      "description": null,
+      "geometry": [
+        {
+          "coordinates": [
+            73.6,
+            -11.6
+          ],
+          "date": "2026-04-02T00:00:00Z",
+          "magnitudeUnit": null,
+          "magnitudeValue": null,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            73.5,
+            -12
+          ],
+          "date": "2026-04-02T06:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 40,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            73.2,
+            -12.6
+          ],
+          "date": "2026-04-02T12:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 45,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            73.5,
+            -12.6
+          ],
+          "date": "2026-04-02T18:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 55,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            73.2,
+            -14.1
+          ],
+          "date": "2026-04-03T00:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 55,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            72.9,
+            -15.2
+          ],
+          "date": "2026-04-03T06:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 55,
+          "type": "Point"
+        }
+      ],
+      "id": "EONET_19169",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_19169",
       "sources": [
         {
           "id": "JTWC",
-          "url": "https://www.metoc.navy.mil/jtwc/"
-        },
-        {
-          "id": "GDACS",
-          "url": "https://www.gdacs.org/report.aspx?eventtype=TC&eventid=1000999"
+          "url": "https://www.metoc.navy.mil/jtwc/products/sh2926.tcw"
         }
       ],
+      "title": "Tropical Cyclone Indusa"
+    },
+    {
+      "categories": [
+        {
+          "id": "wildfires",
+          "title": "Wildfires"
+        }
+      ],
+      "closed": null,
+      "description": null,
       "geometry": [
         {
-          "date": "2025-11-10T06:00:00Z",
-          "type": "Point",
-          "coordinates": [135.2, 15.8],
-          "magnitudeValue": 65.0,
-          "magnitudeUnit": "kts"
+          "coordinates": [
+            -94.327475,
+            34.800258
+          ],
+          "date": "2026-04-01T09:11:00Z",
+          "magnitudeUnit": "acres",
+          "magnitudeValue": 1402,
+          "type": "Point"
         }
-      ]
+      ],
+      "id": "EONET_19208",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_19208",
+      "sources": [
+        {
+          "id": "IRWIN",
+          "url": "https://irwin.doi.gov/observer/incidents/d8c5a10e-0de4-4795-93dc-b97ec766c59c"
+        }
+      ],
+      "title": "RX PCS Beauchamp North Prescribed Fire, Scott, Arkansas"
+    },
+    {
+      "categories": [
+        {
+          "id": "wildfires",
+          "title": "Wildfires"
+        }
+      ],
+      "closed": null,
+      "description": "12 Miles S from Cambridge, MD",
+      "geometry": [
+        {
+          "coordinates": [
+            -75.97625,
+            38.396085
+          ],
+          "date": "2026-03-31T13:22:00Z",
+          "magnitudeUnit": "acres",
+          "magnitudeValue": 1500,
+          "type": "Point"
+        }
+      ],
+      "id": "EONET_19229",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_19229",
+      "sources": [
+        {
+          "id": "IRWIN",
+          "url": "https://irwin.doi.gov/observer/incidents/ffb9c705-43cf-4cda-b434-ad3686d67bd2"
+        }
+      ],
+      "title": "Julie Pond Wildfire, Dorchester, Maryland"
     }
-  ]
+  ],
+  "link": "https://eonet.gsfc.nasa.gov/api/v3/events",
+  "title": "EONET Events"
 }

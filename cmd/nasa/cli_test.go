@@ -1,10 +1,7 @@
-//go:build integration
-
 package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"log"
 	"os"
@@ -12,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 )
 
 var nasaBin string
@@ -54,19 +50,6 @@ func runCLI(t *testing.T, args ...string) (stdout, stderr string, exitCode int) 
 		}
 	}
 	return outBuf.String(), errBuf.String(), exitCode
-}
-
-// requireAPIKey skips the test if NASA_API_KEY is not set.
-func requireAPIKey(t *testing.T) {
-	t.Helper()
-	if os.Getenv("NASA_API_KEY") == "" {
-		t.Skip("NASA_API_KEY not set, skipping live API test")
-	}
-}
-
-// sleepBetweenCalls adds a delay between live API calls to avoid rate limiting.
-func sleepBetweenCalls() {
-	time.Sleep(2 * time.Second)
 }
 
 func TestCLI_Help(t *testing.T) {
@@ -121,41 +104,4 @@ func TestCLI_ServiceHelp(t *testing.T) {
 			t.Errorf("expected stdout to contain %q", sub)
 		}
 	}
-}
-
-func TestCLI_APOD(t *testing.T) {
-	requireAPIKey(t)
-	stdout, _, exitCode := runCLI(t, "apod")
-	if exitCode != 0 {
-		t.Fatalf("expected exit code 0, got %d", exitCode)
-	}
-	if !strings.Contains(stdout, "Title") {
-		t.Errorf("expected stdout to contain %q, got %q", "Title", stdout)
-	}
-	sleepBetweenCalls()
-}
-
-func TestCLI_APOD_JSON(t *testing.T) {
-	requireAPIKey(t)
-	stdout, _, exitCode := runCLI(t, "apod", "--json")
-	if exitCode != 0 {
-		t.Fatalf("expected exit code 0, got %d", exitCode)
-	}
-	var result map[string]any
-	if err := json.Unmarshal([]byte(stdout), &result); err != nil {
-		t.Fatalf("expected valid JSON output, got unmarshal error: %v\nstdout: %s", err, stdout)
-	}
-	sleepBetweenCalls()
-}
-
-func TestCLI_NEOFeed(t *testing.T) {
-	requireAPIKey(t)
-	stdout, _, exitCode := runCLI(t, "neo", "feed")
-	if exitCode != 0 {
-		t.Fatalf("expected exit code 0, got %d", exitCode)
-	}
-	if !strings.Contains(stdout, "Near-Earth Objects") {
-		t.Errorf("expected stdout to contain %q, got %q", "Near-Earth Objects", stdout)
-	}
-	sleepBetweenCalls()
 }

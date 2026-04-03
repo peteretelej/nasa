@@ -1,16 +1,205 @@
 {
+  "description": "List of all the available event sources in the EONET system",
+  "link": "https://eonet.gsfc.nasa.gov/api/v3/sources",
   "sources": [
     {
-      "id": "InciWeb",
-      "url": "https://inciweb.nwcg.gov/"
+      "id": "AVO",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=AVO",
+      "source": "https://www.avo.alaska.edu/",
+      "title": "Alaska Volcano Observatory"
+    },
+    {
+      "id": "ABFIRE",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=ABFIRE",
+      "source": "https://wildfire.alberta.ca/",
+      "title": "Alberta Wildfire"
+    },
+    {
+      "id": "AU_BOM",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=AU_BOM",
+      "source": "http://www.bom.gov.au/",
+      "title": "Australia Bureau of Meteorology"
+    },
+    {
+      "id": "BYU_ICE",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=BYU_ICE",
+      "source": "http://www.scp.byu.edu/data/iceberg/database1.html",
+      "title": "Brigham Young University Antarctic Iceberg Tracking Database"
+    },
+    {
+      "id": "BCWILDFIRE",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=BCWILDFIRE",
+      "source": "http://bcwildfire.ca/",
+      "title": "British Columbia Wildfire Service"
+    },
+    {
+      "id": "CALFIRE",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=CALFIRE",
+      "source": "http://www.calfire.ca.gov/",
+      "title": "California Department of Forestry and Fire Protection"
+    },
+    {
+      "id": "CEMS",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=CEMS",
+      "source": "http://emergency.copernicus.eu/",
+      "title": "Copernicus Emergency Management Service"
+    },
+    {
+      "id": "EO",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=EO",
+      "source": "https://earthobservatory.nasa.gov/",
+      "title": "Earth Observatory"
+    },
+    {
+      "id": "Earthdata",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=Earthdata",
+      "source": "https://earthdata.nasa.gov",
+      "title": "Earthdata"
+    },
+    {
+      "id": "FEMA",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=FEMA",
+      "source": "https://www.fema.gov/",
+      "title": "Federal Emergency Management Agency (FEMA)"
+    },
+    {
+      "id": "FloodList",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=FloodList",
+      "source": "http://floodlist.com/",
+      "title": "FloodList"
     },
     {
       "id": "GDACS",
-      "url": "https://www.gdacs.org/"
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=GDACS",
+      "source": "http://www.gdacs.org/",
+      "title": "Global Disaster Alert and Coordination System"
+    },
+    {
+      "id": "GLIDE",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=GLIDE",
+      "source": "http://www.glidenumber.net/",
+      "title": "GLobal IDEntifier Number (GLIDE)"
+    },
+    {
+      "id": "InciWeb",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=InciWeb",
+      "source": "https://inciweb.nwcg.gov/",
+      "title": "InciWeb"
+    },
+    {
+      "id": "IRWIN",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=IRWIN",
+      "source": "https://irwin.doi.gov/observer/",
+      "title": "Integrated Reporting of Wildfire Information (IRWIN) Observer"
+    },
+    {
+      "id": "IDC",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=IDC",
+      "source": "https://www.disasterscharter.org/",
+      "title": "International Charter on Space and Major Disasters"
+    },
+    {
+      "id": "JTWC",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=JTWC",
+      "source": "http://www.metoc.navy.mil/jtwc/jtwc.html",
+      "title": "Joint Typhoon Warning Center"
+    },
+    {
+      "id": "MRR",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=MRR",
+      "source": "https://lance.modaps.eosdis.nasa.gov/cgi-bin/imagery/gallery.cgi",
+      "title": "LANCE Rapid Response"
+    },
+    {
+      "id": "MBFIRE",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=MBFIRE",
+      "source": "http://www.gov.mb.ca/sd/fire/Fire-Maps/",
+      "title": "Manitoba Wildfire Program"
+    },
+    {
+      "id": "NASA_ESRS",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=NASA_ESRS",
+      "source": "https://eol.jsc.nasa.gov/ESRS/",
+      "title": "NASA Earth Science and Remote Sensing Unit"
+    },
+    {
+      "id": "NASA_DISP",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=NASA_DISP",
+      "source": "https://disasters.nasa.gov/",
+      "title": "NASA Earth Science Disasters Program"
+    },
+    {
+      "id": "NASA_HURR",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=NASA_HURR",
+      "source": "https://blogs.nasa.gov/hurricanes/",
+      "title": "NASA Hurricane And Typhoon Updates"
+    },
+    {
+      "id": "NOAA_NHC",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=NOAA_NHC",
+      "source": "https://www.nhc.noaa.gov/",
+      "title": "National Hurricane Center"
+    },
+    {
+      "id": "NOAA_CPC",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=NOAA_CPC",
+      "source": "http://www.cpc.ncep.noaa.gov/",
+      "title": "NOAA Center for Weather and Climate Prediction"
+    },
+    {
+      "id": "PDC",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=PDC",
+      "source": "http://www.pdc.org/",
+      "title": "Pacific Disaster Center"
+    },
+    {
+      "id": "ReliefWeb",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=ReliefWeb",
+      "source": "http://reliefweb.int/",
+      "title": "ReliefWeb"
+    },
+    {
+      "id": "SIVolcano",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=SIVolcano",
+      "source": "http://www.volcano.si.edu/",
+      "title": "Smithsonian Institution Global Volcanism Program"
+    },
+    {
+      "id": "NATICE",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=NATICE",
+      "source": "http://www.natice.noaa.gov/Main_Products.htm",
+      "title": "U.S. National Ice Center"
+    },
+    {
+      "id": "UNISYS",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=UNISYS",
+      "source": "http://weather.unisys.com/hurricane/",
+      "title": "Unisys Weather"
+    },
+    {
+      "id": "USGS_EHP",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=USGS_EHP",
+      "source": "https://earthquake.usgs.gov/",
+      "title": "USGS Earthquake Hazards Program"
     },
     {
       "id": "USGS_CMT",
-      "url": "https://earthquake.usgs.gov/"
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=USGS_CMT",
+      "source": "https://cmt.usgs.gov/",
+      "title": "USGS Emergency Operations Collection Management Tool"
+    },
+    {
+      "id": "HDDS",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=HDDS",
+      "source": "https://hddsexplorer.usgs.gov/",
+      "title": "USGS Hazards Data Distribution System"
+    },
+    {
+      "id": "DFES_WA",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events?source=DFES_WA",
+      "source": "https://www.dfes.wa.gov.au/",
+      "title": "Western Australia Department of Fire and Emergency Services"
     }
-  ]
+  ],
+  "title": "EONET Event Sources"
 }

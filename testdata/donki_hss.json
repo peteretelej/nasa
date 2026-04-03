@@ -1,12 +1,22 @@
 [
   {
-    "hssID": "2024-01-20T06:00:00-HSS-001",
-    "eventTime": "2024-01-20T06:00:00",
+    "eventTime": "2024-01-29T12:52Z",
+    "hssID": "2024-01-29T12:52:00-HSS-001",
     "instruments": [
-      {"displayName": "DSCOVR: PLASMAG"},
-      {"displayName": "ACE: SWEPAM"}
+      {
+        "displayName": "DSCOVR: PLASMAG"
+      },
+      {
+        "displayName": "ACE: SWEPAM"
+      },
+      {
+        "displayName": "ACE: MAG"
+      }
     ],
-    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/HSS/29140",
-    "linkedEvents": null
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/HSS/28887/-1",
+    "linkedEvents": null,
+    "sentNotifications": null,
+    "submissionTime": "2024-01-30T20:58Z",
+    "versionId": 3
   }
 ]

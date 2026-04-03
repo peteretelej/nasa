@@ -35,8 +35,8 @@ func TestAPODGet_Wrapper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("APOD.Get error: %v", err)
 	}
-	if img.Title != "Test APOD Title" {
-		t.Errorf("Title = %q, want %q", img.Title, "Test APOD Title")
+	if img.Title != "Star Cluster IC 348 from Webb" {
+		t.Errorf("Title = %q, want %q", img.Title, "Star Cluster IC 348 from Webb")
 	}
 	expectedDate := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
 	if !img.Date.Equal(expectedDate) {
@@ -68,8 +68,8 @@ func TestAPODTodayWithKey_Wrapper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("APOD.Today error: %v", err)
 	}
-	if img.Title != "Test APOD Title" {
-		t.Errorf("Title = %q, want %q", img.Title, "Test APOD Title")
+	if img.Title != "Star Cluster IC 348 from Webb" {
+		t.Errorf("Title = %q, want %q", img.Title, "Star Cluster IC 348 from Webb")
 	}
 }
 
@@ -99,8 +99,8 @@ func TestNEOFeedWithKey_Wrapper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NEO.Feed error: %v", err)
 	}
-	if feed.ElementCount != 1 {
-		t.Errorf("ElementCount = %d, want 1", feed.ElementCount)
+	if feed.ElementCount != 19 {
+		t.Errorf("ElementCount = %d, want 19", feed.ElementCount)
 	}
 }
 
@@ -359,8 +359,8 @@ func TestCompat_APODConversion_ResponseFormat(t *testing.T) {
 	}
 
 	// Verify other fields carried over
-	if img.Title != "Test APOD Title" {
-		t.Errorf("Image.Title = %q, want %q", img.Title, "Test APOD Title")
+	if img.Title != "Star Cluster IC 348 from Webb" {
+		t.Errorf("Image.Title = %q, want %q", img.Title, "Star Cluster IC 348 from Webb")
 	}
 	if img.URL == "" {
 		t.Error("Image.URL is empty, want non-empty")
@@ -396,8 +396,8 @@ func TestCompat_NeoFeedConversion_ResponseFormat(t *testing.T) {
 	nl := neoFeedToNeoList(feed, "2024-01-15", "2024-01-15")
 
 	// ElementCount must be int64
-	if nl.ElementCount != 1 {
-		t.Errorf("NeoList.ElementCount = %d, want 1", nl.ElementCount)
+	if nl.ElementCount != 19 {
+		t.Errorf("NeoList.ElementCount = %d, want 19", nl.ElementCount)
 	}
 
 	// NearEarthObjects must be map[string][]Asteroid
@@ -409,16 +409,16 @@ func TestCompat_NeoFeedConversion_ResponseFormat(t *testing.T) {
 	if !ok {
 		t.Fatal("NeoList.NearEarthObjects missing key \"2024-01-15\"")
 	}
-	if len(asteroids) != 1 {
-		t.Fatalf("len(asteroids) = %d, want 1", len(asteroids))
+	if len(asteroids) != 19 {
+		t.Fatalf("len(asteroids) = %d, want 19", len(asteroids))
 	}
 
 	a := asteroids[0]
-	if a.ID != "3542519" {
-		t.Errorf("Asteroid.ID = %q, want %q", a.ID, "3542519")
+	if a.ID != "3312035" {
+		t.Errorf("Asteroid.ID = %q, want %q", a.ID, "3312035")
 	}
-	if a.Name != "(2010 PK9)" {
-		t.Errorf("Asteroid.Name = %q, want %q", a.Name, "(2010 PK9)")
+	if a.Name != "(2006 AM8)" {
+		t.Errorf("Asteroid.Name = %q, want %q", a.Name, "(2006 AM8)")
 	}
 
 	// Verify Start/End are set correctly

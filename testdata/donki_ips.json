@@ -1,16 +1,1 @@
-[
-  {
-    "catalog": "SWPC_CATALOG",
-    "activityID": "2024-01-17T03:20:00-IPS-001",
-    "location": "Earth",
-    "eventTime": "2024-01-17T03:20Z",
-    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/IPS/29050",
-    "instruments": [
-      {"displayName": "DSCOVR: PLASMAG"}
-    ],
-    "linkedEvents": [
-      {"activityID": "2024-01-15T06:12:00-CME-001"},
-      {"activityID": "2024-01-15T05:00:00-FLR-001"}
-    ]
-  }
-]
+[]

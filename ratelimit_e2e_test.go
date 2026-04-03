@@ -53,8 +53,8 @@ func TestRateLimit_MultiKeyFailover_ServiceLevel(t *testing.T) {
 	if img == nil {
 		t.Fatal("expected non-nil APOD image")
 	}
-	if img.Title != "Test APOD Title" {
-		t.Errorf("expected title 'Test APOD Title', got %q", img.Title)
+	if img.Title != "Star Cluster IC 348 from Webb" {
+		t.Errorf("expected title 'Star Cluster IC 348 from Webb', got %q", img.Title)
 	}
 
 	mu.Lock()

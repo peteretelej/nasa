@@ -599,11 +599,11 @@ func TestHandlerDONKICME(t *testing.T) {
 func TestHandlerDONKIGST(t *testing.T) {
 	client := setupTestClient(t)
 
-	t.Run("valid", func(t *testing.T) {
+	t.Run("valid_empty", func(t *testing.T) {
 		resp := callTool(client, "nasa_donki_gst", map[string]any{})
 		text := toolText(t, resp)
-		if !strings.Contains(text, "Geomagnetic Storms") {
-			t.Error("expected 'Geomagnetic Storms' in output")
+		if !strings.Contains(text, "No geomagnetic storm events found") {
+			t.Error("expected 'No geomagnetic storm events found' in output")
 		}
 	})
 }

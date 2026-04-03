@@ -16,16 +16,41 @@ type httpTestList struct {
 	contains string
 }
 
-func TestDeprecatedHandleIndex(t *testing.T) {
-	testList := []httpTestList{
-		{"GET", "/", http.StatusOK, "#explanation"},
-		{"GET", "/abcd", http.StatusNotFound, ""},
+// apodMockHandler returns an http.HandlerFunc that serves different fixtures
+// depending on whether the request looks like a Today call (single object) or
+// a Random call (array, triggered by the "count" query param).
+func apodMockHandler(t *testing.T, todayFixture, randomFixture string) http.HandlerFunc {
+	t.Helper()
+	todayData := loadFixture(t, todayFixture)
+	randomData := loadFixture(t, randomFixture)
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasPrefix(r.URL.Path, "/planetary/apod") {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Query().Get("count") != "" {
+			w.Write(randomData)
+		} else {
+			w.Write(todayData)
+		}
 	}
+}
+
+func TestDeprecatedHandleIndex(t *testing.T) {
+	// Wire up a mock client so APODToday() does not hit the real API.
+	c := setupMockServer(t, apodMockHandler(t, "apod_single.json", "apod_range.json"))
+	setDefaultClientForTest(t, c)
 
 	var err error
 	deprecatedTmpl, err = template.New("tmpl").Parse(deprecatedTmplHTML)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	testList := []httpTestList{
+		{"GET", "/", http.StatusOK, "#explanation"},
+		{"GET", "/abcd", http.StatusNotFound, ""},
 	}
 
 	for _, v := range testList {
@@ -37,26 +62,59 @@ func TestDeprecatedHandleIndex(t *testing.T) {
 		handler := http.HandlerFunc(deprecatedHandleIndex)
 		handler.ServeHTTP(rr, req)
 		if rr.Code != v.code {
-			t.Errorf("deprecatedHandleIndex returned wrong status got %d, want %d", rr.Code, v.code)
+			t.Errorf("deprecatedHandleIndex %s returned wrong status got %d, want %d", v.path, rr.Code, v.code)
 		}
-		if !strings.Contains(rr.Body.String(), v.contains) {
-			t.Errorf("deprecatedHandleIndex returned body missing wanted text: %s", v.contains)
+		if v.contains != "" && !strings.Contains(rr.Body.String(), v.contains) {
+			t.Errorf("deprecatedHandleIndex %s missing expected text %q", v.path, v.contains)
 		}
 	}
 }
 
-func TestDeprecatedRandomHandler(t *testing.T) {
-	testList := []httpTestList{
-		{"GET", "/abcd", http.StatusNotFound, ""},
-		{"GET", "/random-apod/abcd", http.StatusNotFound, ""},
-		{"GET", "/random-apod/", http.StatusOK, "#explanation"},
-	}
+func TestDeprecatedHandleIndex_Fallback(t *testing.T) {
+	// Mock server that always fails, forcing the fallback path.
+	c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, `{"code":500,"msg":"internal"}`, http.StatusInternalServerError)
+	})
+	setDefaultClientForTest(t, c)
 
 	var err error
 	deprecatedTmpl, err = template.New("tmpl").Parse(deprecatedTmplHTML)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	http.HandlerFunc(deprecatedHandleIndex).ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("fallback: got status %d, want %d", rr.Code, http.StatusOK)
+	}
+	if !strings.Contains(rr.Body.String(), "temporarily unavailable") {
+		t.Error("fallback: body should contain fallback explanation text")
+	}
+}
+
+func TestDeprecatedRandomHandler(t *testing.T) {
+	// Wire up a mock client so RandomAPOD() does not hit the real API.
+	c := setupMockServer(t, apodMockHandler(t, "apod_single.json", "apod_range.json"))
+	setDefaultClientForTest(t, c)
+
+	var err error
+	deprecatedTmpl, err = template.New("tmpl").Parse(deprecatedTmplHTML)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testList := []httpTestList{
+		{"GET", "/abcd", http.StatusNotFound, ""},
+		{"GET", "/random-apod/abcd", http.StatusNotFound, ""},
+		{"GET", "/random-apod/", http.StatusOK, "#explanation"},
+	}
+
 	for _, v := range testList {
 		req, err := http.NewRequest(v.method, v.path, nil)
 		if err != nil {
@@ -70,11 +128,44 @@ func TestDeprecatedRandomHandler(t *testing.T) {
 		}
 		handler.ServeHTTP(rr, req)
 		if rr.Code != v.code {
-			t.Errorf("deprecatedRandomHandler returned wrong status got %d, want %d", rr.Code, v.code)
+			t.Errorf("deprecatedRandomHandler %s returned wrong status got %d, want %d", v.path, rr.Code, v.code)
 		}
-		if !strings.Contains(rr.Body.String(), v.contains) {
-			t.Errorf("deprecatedRandomHandler missing expected text in returned body: %s", v.contains)
+		if v.contains != "" && !strings.Contains(rr.Body.String(), v.contains) {
+			t.Errorf("deprecatedRandomHandler %s missing expected text %q", v.path, v.contains)
 		}
+	}
+}
+
+func TestDeprecatedRandomHandler_Fallback(t *testing.T) {
+	// Mock server that always fails, forcing the fallback path.
+	c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, `{"code":500,"msg":"internal"}`, http.StatusInternalServerError)
+	})
+	setDefaultClientForTest(t, c)
+
+	var err error
+	deprecatedTmpl, err = template.New("tmpl").Parse(deprecatedTmplHTML)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, err := http.NewRequest("GET", "/random-apod/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler := &deprecatedRandomHandler{
+		lastUpdate: time.Now().Add(-10 * time.Hour),
+		cachedApod: &Image{}, // empty, so fallback will be used
+		tmpl:       deprecatedTmpl,
+	}
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("fallback: got status %d, want %d", rr.Code, http.StatusOK)
+	}
+	if !strings.Contains(rr.Body.String(), "temporarily unavailable") {
+		t.Error("fallback: body should contain fallback explanation text")
 	}
 }
 

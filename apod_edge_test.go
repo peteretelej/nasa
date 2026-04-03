@@ -79,8 +79,8 @@ func TestAPODGet_SingleObjectVsArrayResponse(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Get() error: %v", err)
 		}
-		if img.Title != "Test APOD Title" {
-			t.Errorf("Title = %q, want %q", img.Title, "Test APOD Title")
+		if img.Title != "Star Cluster IC 348 from Webb" {
+			t.Errorf("Title = %q, want %q", img.Title, "Star Cluster IC 348 from Webb")
 		}
 	})
 
@@ -94,8 +94,8 @@ func TestAPODGet_SingleObjectVsArrayResponse(t *testing.T) {
 		if len(imgs) != 1 {
 			t.Fatalf("got %d images, want 1", len(imgs))
 		}
-		if imgs[0].Title != "Test APOD Title" {
-			t.Errorf("Title = %q, want %q", imgs[0].Title, "Test APOD Title")
+		if imgs[0].Title != "Star Cluster IC 348 from Webb" {
+			t.Errorf("Title = %q, want %q", imgs[0].Title, "Star Cluster IC 348 from Webb")
 		}
 	})
 }
@@ -131,8 +131,8 @@ func TestAPODGetRange_EmptyRange(t *testing.T) {
 	if len(imgs) != 1 {
 		t.Fatalf("got %d images, want 1 for start==end range", len(imgs))
 	}
-	if imgs[0].Title != "Test APOD Title" {
-		t.Errorf("Title = %q, want %q", imgs[0].Title, "Test APOD Title")
+	if imgs[0].Title != "Star Cluster IC 348 from Webb" {
+		t.Errorf("Title = %q, want %q", imgs[0].Title, "Star Cluster IC 348 from Webb")
 	}
 }
 

@@ -49,7 +49,7 @@ func ExampleAPODService_Get() {
 	fmt.Println(apod.Title)
 	fmt.Println(apod.MediaType)
 	// Output:
-	// Test APOD Title
+	// Star Cluster IC 348 from Webb
 	// image
 }
 
@@ -67,10 +67,10 @@ func ExampleAPODService_Today() {
 		return
 	}
 	fmt.Println(apod.Title)
-	fmt.Println(apod.Copyright)
+	fmt.Println("copyright:", apod.Copyright)
 	// Output:
-	// Test APOD Title
-	// Test Photographer
+	// Star Cluster IC 348 from Webb
+	// copyright:
 }
 
 func ExampleAPODService_Random() {
@@ -92,9 +92,9 @@ func ExampleAPODService_Random() {
 	fmt.Println(imgs[2].Title)
 	// Output:
 	// 3 images
-	// Range Image One
-	// Range Video Two
-	// Range Image Three
+	// The Light, the Dark, and the Dusty
+	// Quadrantids of the North
+	// Good Morning Moon
 }
 
 func ExampleNEOService_Feed() {
@@ -115,12 +115,11 @@ func ExampleNEOService_Feed() {
 		return
 	}
 	fmt.Println("count:", feed.ElementCount)
-	for _, neo := range feed.NearEarthObjects["2024-01-15"] {
-		fmt.Println(neo.Name, "hazardous:", neo.IsPotentiallyHazardous)
-	}
+	neo := feed.NearEarthObjects["2024-01-15"][0]
+	fmt.Println(neo.Name, "hazardous:", neo.IsPotentiallyHazardous)
 	// Output:
-	// count: 1
-	// (2010 PK9) hazardous: false
+	// count: 19
+	// (2006 AM8) hazardous: false
 }
 
 func ExampleDONKIService() {
@@ -144,9 +143,9 @@ func ExampleDONKIService() {
 	fmt.Println(cmes[0].ActivityID)
 	fmt.Println("source:", cmes[0].SourceLocation)
 	// Output:
-	// 2 CME events
-	// 2024-01-15T06:12:00-CME-001
-	// source: N10E80
+	// 3 CME events
+	// 2024-01-10T00:12:00-CME-001
+	// source: N15E80
 }
 
 func ExampleImageService_Search() {
@@ -174,8 +173,8 @@ func ExampleImageService_Search() {
 	fmt.Println("total:", results.TotalHits)
 	fmt.Println(results.Items[0].NasaID, "-", results.Items[0].Title)
 	// Output:
-	// total: 1542
-	// PIA12345 - Apollo 11 Lunar Module
+	// total: 1596
+	// KSC-19850101-MH-NAS01-0001-Apollo_11_Buzz_Aldrin_Experts-B_2141 - Apollo 11 Productions
 }
 
 func ExampleSSDService() {
@@ -202,7 +201,7 @@ func ExampleSSDService() {
 	fmt.Println(cads[2].Designation, "dist:", cads[2].Distance, "AU")
 	// Output:
 	// 3 close approaches
-	// 99942 Apophis dist: 0.000254 AU
+	// 2023 DZ2 dist: 0.00676762046379765 AU
 }
 
 func ExampleEONETService() {
@@ -229,8 +228,8 @@ func ExampleEONETService() {
 	fmt.Println(events[0].Title)
 	fmt.Println("categories:", events[0].Categories[0].Title)
 	// Output:
-	// 2 events
-	// Wildfire - Los Angeles, California
+	// 5 events
+	// rx-12_ 13_ 14 Prescribed Fire, Burnett, Wisconsin
 	// categories: Wildfires
 }
 

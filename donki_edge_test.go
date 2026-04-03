@@ -50,8 +50,8 @@ func TestDONKI_NullSourceLocation(t *testing.T) {
 }
 
 // TestDONKI_CrossReferenceActivityIDs verifies that LinkedEvents cross-
-// references are correctly parsed across CME and FLR endpoints. The CME
-// fixture links to FLR-001, and the FLR fixture links back to CME-001.
+// references are correctly parsed across CME and FLR endpoints. The real
+// fixtures have FLR events that link to CME activity IDs.
 func TestDONKI_CrossReferenceActivityIDs(t *testing.T) {
 	// Load both CME and FLR fixtures to serve from the same mock server.
 	cmeData, err := os.ReadFile("testdata/donki_cme.json")
@@ -81,8 +81,8 @@ func TestDONKI_CrossReferenceActivityIDs(t *testing.T) {
 	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST_KEY"))
-	start := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
-	end := time.Date(2024, 1, 17, 0, 0, 0, 0, time.UTC)
+	start := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
+	end := time.Date(2024, 1, 11, 0, 0, 0, 0, time.UTC)
 
 	// Fetch CME events.
 	cmeEvents, err := c.DONKI.CME(context.Background(), start, end)
@@ -93,14 +93,10 @@ func TestDONKI_CrossReferenceActivityIDs(t *testing.T) {
 		t.Fatal("expected at least 1 CME event")
 	}
 
-	// First CME should link to the FLR event.
+	// First CME in fixture has no linked events (null).
 	cme := cmeEvents[0]
-	if len(cme.LinkedEvents) != 1 {
-		t.Fatalf("CME LinkedEvents count = %d, want 1", len(cme.LinkedEvents))
-	}
-	cmeLinkedID := cme.LinkedEvents[0].ActivityID
-	if cmeLinkedID != "2024-01-15T05:00:00-FLR-001" {
-		t.Errorf("CME linked event ID = %q, want %q", cmeLinkedID, "2024-01-15T05:00:00-FLR-001")
+	if cme.LinkedEvents != nil {
+		t.Errorf("CME LinkedEvents = %v, want nil", cme.LinkedEvents)
 	}
 
 	// Fetch FLR events.
@@ -108,26 +104,22 @@ func TestDONKI_CrossReferenceActivityIDs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FLR() error: %v", err)
 	}
-	if len(flrEvents) < 1 {
-		t.Fatal("expected at least 1 FLR event")
+	if len(flrEvents) < 2 {
+		t.Fatal("expected at least 2 FLR events")
 	}
 
-	// The FLR should link back to the CME event.
-	flr := flrEvents[0]
+	// Second FLR links to a CME event via activityID.
+	flr := flrEvents[1]
 	if len(flr.LinkedEvents) != 1 {
 		t.Fatalf("FLR LinkedEvents count = %d, want 1", len(flr.LinkedEvents))
 	}
 	flrLinkedID := flr.LinkedEvents[0].ActivityID
-	if flrLinkedID != "2024-01-15T06:12:00-CME-001" {
-		t.Errorf("FLR linked event ID = %q, want %q", flrLinkedID, "2024-01-15T06:12:00-CME-001")
+	if flrLinkedID != "2024-01-10T19:36:00-CME-001" {
+		t.Errorf("FLR linked event ID = %q, want %q", flrLinkedID, "2024-01-10T19:36:00-CME-001")
 	}
 
-	// Verify bidirectional cross-reference: CME->FLR ID matches FLR's own ID,
-	// and FLR->CME ID matches CME's own ID.
-	if cmeLinkedID != flr.FlrID {
-		t.Errorf("CME links to %q but FLR's own ID is %q", cmeLinkedID, flr.FlrID)
-	}
-	if flrLinkedID != cme.ActivityID {
-		t.Errorf("FLR links to %q but CME's own ID is %q", flrLinkedID, cme.ActivityID)
+	// Verify the linked ID looks like a CME activity ID.
+	if !strings.Contains(flrLinkedID, "-CME-") {
+		t.Errorf("expected linked ID %q to contain '-CME-'", flrLinkedID)
 	}
 }

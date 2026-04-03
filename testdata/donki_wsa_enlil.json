@@ -1,36 +1,260 @@
 [
   {
-    "simulationID": "2024-01-15T12:00Z-WSA-ENLIL",
-    "modelCompletionTime": "2024-01-15T16:00:00Z",
-    "au": 2.0,
+    "au": 2,
     "cmeInputs": [
       {
-        "cmeStartTime": "2024-01-15T06:12Z",
-        "latitude": 10.0,
-        "longitude": 80.0,
-        "speed": 1200.5,
-        "halfAngle": 42.0,
-        "time21_5": "2024-01-15T14:30:00",
-        "isMostAccurate": true,
-        "levelOfData": 2,
-        "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/CMEAnalysis/29002",
-        "note": "Full halo event"
+        "cmeStartTime": "2023-12-31T22:00Z",
+        "cmeid": "2023-12-31T22:00:00-CME-001",
+        "featureCode": "LE",
+        "halfAngle": 45,
+        "ipsList": [
+          {
+            "activityID": "2024-01-03T14:19:00-IPS-001",
+            "catalog": null,
+            "eventTime": "2024-01-03T14:19Z",
+            "instruments": [
+              {
+                "displayName": "DSCOVR: PLASMAG"
+              },
+              {
+                "displayName": "ACE: SWEPAM"
+              },
+              {
+                "displayName": "ACE: MAG"
+              }
+            ],
+            "link": null,
+            "linkedEvents": [],
+            "location": "Earth",
+            "sentNotifications": [],
+            "submissionTime": null,
+            "versionId": 0
+          },
+          {
+            "activityID": "2024-01-03T15:30:00-IPS-001",
+            "catalog": null,
+            "eventTime": "2024-01-03T15:30Z",
+            "instruments": [
+              {
+                "displayName": "STEREO A: IMPACT"
+              },
+              {
+                "displayName": "STEREO A: PLASTIC"
+              }
+            ],
+            "link": null,
+            "linkedEvents": [],
+            "location": "STEREO A",
+            "sentNotifications": [],
+            "submissionTime": null,
+            "versionId": 0
+          }
+        ],
+        "isMostAccurate": false,
+        "latitude": 1,
+        "levelOfData": 0,
+        "longitude": -151,
+        "speed": 2222,
+        "time21_5": "2023-12-31T23:11Z"
       }
     ],
-    "estimatedShockArrivalTime": "2024-01-18T04:00Z",
-    "estimatedDuration": 14.5,
-    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/29200",
+    "estimatedDuration": null,
+    "estimatedShockArrivalTime": null,
     "impactList": [
       {
+        "arrivalTime": "2024-01-04T12:00Z",
+        "isGlancingBlow": true,
+        "isMinorImpact": false,
+        "location": "Mars"
+      }
+    ],
+    "isEarthGB": false,
+    "isEarthMinorImpact": false,
+    "kp_135": null,
+    "kp_18": null,
+    "kp_180": null,
+    "kp_90": null,
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/28426/-1",
+    "modelCompletionTime": "2024-01-01T05:04Z",
+    "rmin_re": null,
+    "simulationID": "WSA-ENLIL/28426/1"
+  },
+  {
+    "au": 2,
+    "cmeInputs": [
+      {
+        "cmeStartTime": "2023-12-31T22:00Z",
+        "cmeid": "2023-12-31T22:00:00-CME-001",
+        "featureCode": "LE",
+        "halfAngle": 45,
+        "ipsList": [
+          {
+            "activityID": "2024-01-03T14:19:00-IPS-001",
+            "catalog": null,
+            "eventTime": "2024-01-03T14:19Z",
+            "instruments": [
+              {
+                "displayName": "DSCOVR: PLASMAG"
+              },
+              {
+                "displayName": "ACE: SWEPAM"
+              },
+              {
+                "displayName": "ACE: MAG"
+              }
+            ],
+            "link": null,
+            "linkedEvents": [],
+            "location": "Earth",
+            "sentNotifications": [],
+            "submissionTime": null,
+            "versionId": 0
+          },
+          {
+            "activityID": "2024-01-03T15:30:00-IPS-001",
+            "catalog": null,
+            "eventTime": "2024-01-03T15:30Z",
+            "instruments": [
+              {
+                "displayName": "STEREO A: IMPACT"
+              },
+              {
+                "displayName": "STEREO A: PLASTIC"
+              }
+            ],
+            "link": null,
+            "linkedEvents": [],
+            "location": "STEREO A",
+            "sentNotifications": [],
+            "submissionTime": null,
+            "versionId": 0
+          }
+        ],
+        "isMostAccurate": true,
+        "latitude": -14,
+        "levelOfData": 0,
+        "longitude": -60,
+        "speed": 2184,
+        "time21_5": "2023-12-31T23:23Z"
+      }
+    ],
+    "estimatedDuration": null,
+    "estimatedShockArrivalTime": "2024-01-02T18:00Z",
+    "impactList": [
+      {
+        "arrivalTime": "2024-01-02T07:00Z",
         "isGlancingBlow": false,
-        "location": "Earth",
-        "arrivalTime": "2024-01-18T04:00Z"
+        "isMinorImpact": false,
+        "location": "Solar Orbiter"
       },
       {
+        "arrivalTime": "2024-01-03T12:30Z",
         "isGlancingBlow": true,
-        "location": "Mars",
-        "arrivalTime": "2024-01-19T18:00Z"
+        "isMinorImpact": false,
+        "location": "Psyche"
+      },
+      {
+        "arrivalTime": "2024-01-02T23:00Z",
+        "isGlancingBlow": true,
+        "isMinorImpact": false,
+        "location": "STEREO A"
       }
-    ]
+    ],
+    "isEarthGB": true,
+    "isEarthMinorImpact": false,
+    "kp_135": 4,
+    "kp_18": null,
+    "kp_180": 5,
+    "kp_90": 3,
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/28430/-1",
+    "modelCompletionTime": "2024-01-01T15:30Z",
+    "rmin_re": null,
+    "simulationID": "WSA-ENLIL/28430/1"
+  },
+  {
+    "au": 5.5,
+    "cmeInputs": [
+      {
+        "cmeStartTime": "2023-12-31T22:00Z",
+        "cmeid": "2023-12-31T22:00:00-CME-001",
+        "featureCode": "LE",
+        "halfAngle": 45,
+        "ipsList": [
+          {
+            "activityID": "2024-01-03T14:19:00-IPS-001",
+            "catalog": null,
+            "eventTime": "2024-01-03T14:19Z",
+            "instruments": [
+              {
+                "displayName": "DSCOVR: PLASMAG"
+              },
+              {
+                "displayName": "ACE: SWEPAM"
+              },
+              {
+                "displayName": "ACE: MAG"
+              }
+            ],
+            "link": null,
+            "linkedEvents": [],
+            "location": "Earth",
+            "sentNotifications": [],
+            "submissionTime": null,
+            "versionId": 0
+          },
+          {
+            "activityID": "2024-01-03T15:30:00-IPS-001",
+            "catalog": null,
+            "eventTime": "2024-01-03T15:30Z",
+            "instruments": [
+              {
+                "displayName": "STEREO A: IMPACT"
+              },
+              {
+                "displayName": "STEREO A: PLASTIC"
+              }
+            ],
+            "link": null,
+            "linkedEvents": [],
+            "location": "STEREO A",
+            "sentNotifications": [],
+            "submissionTime": null,
+            "versionId": 0
+          }
+        ],
+        "isMostAccurate": true,
+        "latitude": -14,
+        "levelOfData": 0,
+        "longitude": -60,
+        "speed": 2184,
+        "time21_5": "2023-12-31T23:23Z"
+      }
+    ],
+    "estimatedDuration": null,
+    "estimatedShockArrivalTime": null,
+    "impactList": [
+      {
+        "arrivalTime": "2024-01-11T00:18Z",
+        "isGlancingBlow": false,
+        "isMinorImpact": false,
+        "location": "Juno"
+      },
+      {
+        "arrivalTime": "2024-01-02T07:21Z",
+        "isGlancingBlow": false,
+        "isMinorImpact": false,
+        "location": "Solar Orbiter"
+      }
+    ],
+    "isEarthGB": false,
+    "isEarthMinorImpact": false,
+    "kp_135": null,
+    "kp_18": null,
+    "kp_180": null,
+    "kp_90": null,
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/28431/-1",
+    "modelCompletionTime": "2024-01-01T16:28Z",
+    "rmin_re": null,
+    "simulationID": "WSA-ENLIL/28431/1"
   }
 ]

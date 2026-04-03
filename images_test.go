@@ -71,8 +71,8 @@ func TestImageSearch(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if coll.TotalHits != 1542 {
-		t.Errorf("expected TotalHits=1542, got %d", coll.TotalHits)
+	if coll.TotalHits != 1596 {
+		t.Errorf("expected TotalHits=1596, got %d", coll.TotalHits)
 	}
 	if len(coll.Items) != 2 {
 		t.Fatalf("expected 2 items, got %d", len(coll.Items))
@@ -80,29 +80,29 @@ func TestImageSearch(t *testing.T) {
 
 	// Check first item.
 	item := coll.Items[0]
-	if item.NasaID != "PIA12345" {
-		t.Errorf("expected NasaID=PIA12345, got %s", item.NasaID)
+	if item.NasaID != "KSC-19850101-MH-NAS01-0001-Apollo_11_Buzz_Aldrin_Experts-B_2141" {
+		t.Errorf("expected NasaID=KSC-19850101-MH-NAS01-0001-Apollo_11_Buzz_Aldrin_Experts-B_2141, got %s", item.NasaID)
 	}
-	if item.Title != "Apollo 11 Lunar Module" {
-		t.Errorf("expected title 'Apollo 11 Lunar Module', got %s", item.Title)
+	if item.Title != "Apollo 11 Productions" {
+		t.Errorf("expected title 'Apollo 11 Productions', got %s", item.Title)
 	}
-	if item.MediaType != "image" {
-		t.Errorf("expected media_type=image, got %s", item.MediaType)
+	if item.MediaType != "video" {
+		t.Errorf("expected media_type=video, got %s", item.MediaType)
 	}
-	if item.Center != "JSC" {
-		t.Errorf("expected center=JSC, got %s", item.Center)
+	if item.Center != "KSC" {
+		t.Errorf("expected center=KSC, got %s", item.Center)
 	}
-	if item.DateCreated.Year() != 1969 {
-		t.Errorf("expected year 1969, got %d", item.DateCreated.Year())
+	if item.DateCreated.Year() != 1985 {
+		t.Errorf("expected year 1985, got %d", item.DateCreated.Year())
 	}
-	if len(item.Keywords) != 3 {
-		t.Errorf("expected 3 keywords, got %d", len(item.Keywords))
+	if len(item.Keywords) != 2 {
+		t.Errorf("expected 2 keywords, got %d", len(item.Keywords))
 	}
 	if item.Photographer != "NASA" {
 		t.Errorf("expected photographer=NASA, got %s", item.Photographer)
 	}
-	if item.Location != "Moon" {
-		t.Errorf("expected location=Moon, got %s", item.Location)
+	if item.Location != "KSC" {
+		t.Errorf("expected location=KSC, got %s", item.Location)
 	}
 	if !strings.Contains(item.PreviewURL, "thumb.jpg") {
 		t.Errorf("expected preview URL with thumb.jpg, got %s", item.PreviewURL)
@@ -111,7 +111,7 @@ func TestImageSearch(t *testing.T) {
 		t.Errorf("expected asset URL with collection.json, got %s", item.AssetURL)
 	}
 
-	// Check second item (video).
+	// Check second item (also video).
 	item2 := coll.Items[1]
 	if item2.MediaType != "video" {
 		t.Errorf("expected media_type=video, got %s", item2.MediaType)
@@ -224,16 +224,16 @@ func TestImageAsset(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(manifest.Items) != 6 {
-		t.Fatalf("expected 6 asset items, got %d", len(manifest.Items))
+	if len(manifest.Items) != 24 {
+		t.Fatalf("expected 24 asset items, got %d", len(manifest.Items))
 	}
 
-	// Verify first and last hrefs.
-	if !strings.Contains(manifest.Items[0].Href, "orig.jpg") {
-		t.Errorf("expected first item to be orig.jpg, got %s", manifest.Items[0].Href)
+	// Verify first and metadata hrefs.
+	if !strings.Contains(manifest.Items[0].Href, "orig.mp4") {
+		t.Errorf("expected first item to be orig.mp4, got %s", manifest.Items[0].Href)
 	}
 	if !strings.Contains(manifest.Items[5].Href, "metadata.json") {
-		t.Errorf("expected last item to be metadata.json, got %s", manifest.Items[5].Href)
+		t.Errorf("expected item[5] to be metadata.json, got %s", manifest.Items[5].Href)
 	}
 }
 

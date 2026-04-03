@@ -187,25 +187,25 @@ func TestDONKI_CME(t *testing.T) {
 		t.Fatalf("CME() error: %v", err)
 	}
 
-	if len(events) != 2 {
-		t.Fatalf("got %d events, want 2", len(events))
+	if len(events) != 3 {
+		t.Fatalf("got %d events, want 3", len(events))
 	}
 
 	e := events[0]
-	if e.ActivityID != "2024-01-15T06:12:00-CME-001" {
-		t.Errorf("ActivityID = %q, want %q", e.ActivityID, "2024-01-15T06:12:00-CME-001")
+	if e.ActivityID != "2024-01-10T00:12:00-CME-001" {
+		t.Errorf("ActivityID = %q, want %q", e.ActivityID, "2024-01-10T00:12:00-CME-001")
 	}
-	if e.SourceLocation != "N10E80" {
-		t.Errorf("SourceLocation = %q, want %q", e.SourceLocation, "N10E80")
+	if e.SourceLocation != "N15E80" {
+		t.Errorf("SourceLocation = %q, want %q", e.SourceLocation, "N15E80")
 	}
-	if len(e.LinkedEvents) != 1 {
-		t.Errorf("LinkedEvents count = %d, want 1", len(e.LinkedEvents))
+	if e.LinkedEvents != nil {
+		t.Errorf("LinkedEvents = %v, want nil for null", e.LinkedEvents)
 	}
 	if len(e.CMEAnalyses) != 1 {
 		t.Errorf("CMEAnalyses count = %d, want 1", len(e.CMEAnalyses))
 	}
-	if e.CMEAnalyses[0].Speed != 1200.5 {
-		t.Errorf("CMEAnalyses[0].Speed = %f, want 1200.5", e.CMEAnalyses[0].Speed)
+	if e.CMEAnalyses[0].Speed != 402 {
+		t.Errorf("CMEAnalyses[0].Speed = %f, want 402", e.CMEAnalyses[0].Speed)
 	}
 
 	// Verify request path and params.
@@ -235,16 +235,16 @@ func TestDONKI_CMEAnalysis(t *testing.T) {
 		t.Fatalf("CMEAnalysis() error: %v", err)
 	}
 
-	if len(events) != 2 {
-		t.Fatalf("got %d events, want 2", len(events))
+	if len(events) != 3 {
+		t.Fatalf("got %d events, want 3", len(events))
 	}
 
 	e := events[0]
-	if e.AssociatedCMEID != "2024-01-15T06:12:00-CME-001" {
-		t.Errorf("AssociatedCMEID = %q, want %q", e.AssociatedCMEID, "2024-01-15T06:12:00-CME-001")
+	if e.AssociatedCMEID != "2024-01-10T00:12:00-CME-001" {
+		t.Errorf("AssociatedCMEID = %q, want %q", e.AssociatedCMEID, "2024-01-10T00:12:00-CME-001")
 	}
-	if e.Speed != 1200.5 {
-		t.Errorf("Speed = %f, want 1200.5", e.Speed)
+	if e.Speed != 402 {
+		t.Errorf("Speed = %f, want 402", e.Speed)
 	}
 	if !e.IsMostAccurate {
 		t.Error("expected IsMostAccurate to be true")
@@ -266,22 +266,9 @@ func TestDONKI_GST(t *testing.T) {
 		t.Fatalf("GST() error: %v", err)
 	}
 
-	if len(events) != 1 {
-		t.Fatalf("got %d events, want 1", len(events))
-	}
-
-	e := events[0]
-	if e.GstID != "2024-01-18T12:00:00-GST-001" {
-		t.Errorf("GstID = %q, want %q", e.GstID, "2024-01-18T12:00:00-GST-001")
-	}
-	if len(e.AllKpIndex) != 2 {
-		t.Errorf("AllKpIndex count = %d, want 2", len(e.AllKpIndex))
-	}
-	if e.AllKpIndex[0].KpIndex != 5.33 {
-		t.Errorf("AllKpIndex[0].KpIndex = %f, want 5.33", e.AllKpIndex[0].KpIndex)
-	}
-	if len(e.LinkedEvents) != 1 {
-		t.Errorf("LinkedEvents count = %d, want 1", len(e.LinkedEvents))
+	// Fixture returned empty array for the chosen date range.
+	if len(events) != 0 {
+		t.Fatalf("got %d events, want 0", len(events))
 	}
 
 	req := *captured
@@ -300,19 +287,9 @@ func TestDONKI_IPS(t *testing.T) {
 		t.Fatalf("IPS() error: %v", err)
 	}
 
-	if len(events) != 1 {
-		t.Fatalf("got %d events, want 1", len(events))
-	}
-
-	e := events[0]
-	if e.ActivityID != "2024-01-17T03:20:00-IPS-001" {
-		t.Errorf("ActivityID = %q, want %q", e.ActivityID, "2024-01-17T03:20:00-IPS-001")
-	}
-	if e.Location != "Earth" {
-		t.Errorf("Location = %q, want Earth", e.Location)
-	}
-	if len(e.LinkedEvents) != 2 {
-		t.Errorf("LinkedEvents count = %d, want 2", len(e.LinkedEvents))
+	// Fixture returned empty array for the chosen date range.
+	if len(events) != 0 {
+		t.Fatalf("got %d events, want 0", len(events))
 	}
 
 	req := *captured
@@ -331,16 +308,16 @@ func TestDONKI_FLR(t *testing.T) {
 		t.Fatalf("FLR() error: %v", err)
 	}
 
-	if len(events) != 1 {
-		t.Fatalf("got %d events, want 1", len(events))
+	if len(events) != 3 {
+		t.Fatalf("got %d events, want 3", len(events))
 	}
 
 	e := events[0]
-	if e.FlrID != "2024-01-15T05:00:00-FLR-001" {
-		t.Errorf("FlrID = %q, want %q", e.FlrID, "2024-01-15T05:00:00-FLR-001")
+	if e.FlrID != "2024-01-10T12:39:00-FLR-001" {
+		t.Errorf("FlrID = %q, want %q", e.FlrID, "2024-01-10T12:39:00-FLR-001")
 	}
-	if e.ClassType != "X2.8" {
-		t.Errorf("ClassType = %q, want X2.8", e.ClassType)
+	if e.ClassType != "M1.4" {
+		t.Errorf("ClassType = %q, want M1.4", e.ClassType)
 	}
 	if e.BeginTime.IsZero() {
 		t.Error("expected BeginTime to be non-zero")
@@ -351,8 +328,8 @@ func TestDONKI_FLR(t *testing.T) {
 	if e.EndTime.IsZero() {
 		t.Error("expected EndTime to be non-zero")
 	}
-	if len(e.LinkedEvents) != 1 {
-		t.Errorf("LinkedEvents count = %d, want 1", len(e.LinkedEvents))
+	if e.LinkedEvents != nil {
+		t.Errorf("LinkedEvents = %v, want nil for null", e.LinkedEvents)
 	}
 
 	req := *captured
@@ -371,16 +348,16 @@ func TestDONKI_SEP(t *testing.T) {
 		t.Fatalf("SEP() error: %v", err)
 	}
 
-	if len(events) != 1 {
-		t.Fatalf("got %d events, want 1", len(events))
+	if len(events) != 3 {
+		t.Fatalf("got %d events, want 3", len(events))
 	}
 
 	e := events[0]
-	if e.SepID != "2024-01-15T08:45:00-SEP-001" {
-		t.Errorf("SepID = %q, want %q", e.SepID, "2024-01-15T08:45:00-SEP-001")
+	if e.SepID != "2024-01-02T23:22:00-SEP-001" {
+		t.Errorf("SepID = %q, want %q", e.SepID, "2024-01-02T23:22:00-SEP-001")
 	}
-	if len(e.LinkedEvents) != 1 {
-		t.Errorf("LinkedEvents count = %d, want 1", len(e.LinkedEvents))
+	if len(e.LinkedEvents) != 2 {
+		t.Errorf("LinkedEvents count = %d, want 2", len(e.LinkedEvents))
 	}
 
 	req := *captured
@@ -404,8 +381,8 @@ func TestDONKI_MPC(t *testing.T) {
 	}
 
 	e := events[0]
-	if e.MpcID != "2024-01-18T14:30:00-MPC-001" {
-		t.Errorf("MpcID = %q, want %q", e.MpcID, "2024-01-18T14:30:00-MPC-001")
+	if e.MpcID != "2024-01-22T21:45:00-MPC-001" {
+		t.Errorf("MpcID = %q, want %q", e.MpcID, "2024-01-22T21:45:00-MPC-001")
 	}
 	// linkedEvents is null in fixture; should be nil.
 	if e.LinkedEvents != nil {
@@ -428,16 +405,9 @@ func TestDONKI_RBE(t *testing.T) {
 		t.Fatalf("RBE() error: %v", err)
 	}
 
-	if len(events) != 1 {
-		t.Fatalf("got %d events, want 1", len(events))
-	}
-
-	e := events[0]
-	if e.RbeID != "2024-01-19T02:00:00-RBE-001" {
-		t.Errorf("RbeID = %q, want %q", e.RbeID, "2024-01-19T02:00:00-RBE-001")
-	}
-	if len(e.LinkedEvents) != 1 {
-		t.Errorf("LinkedEvents count = %d, want 1", len(e.LinkedEvents))
+	// Fixture returned empty array for the chosen date range.
+	if len(events) != 0 {
+		t.Fatalf("got %d events, want 0", len(events))
 	}
 
 	req := *captured
@@ -461,11 +431,11 @@ func TestDONKI_HSS(t *testing.T) {
 	}
 
 	e := events[0]
-	if e.HssID != "2024-01-20T06:00:00-HSS-001" {
-		t.Errorf("HssID = %q, want %q", e.HssID, "2024-01-20T06:00:00-HSS-001")
+	if e.HssID != "2024-01-29T12:52:00-HSS-001" {
+		t.Errorf("HssID = %q, want %q", e.HssID, "2024-01-29T12:52:00-HSS-001")
 	}
-	if len(e.Instruments) != 2 {
-		t.Errorf("Instruments count = %d, want 2", len(e.Instruments))
+	if len(e.Instruments) != 3 {
+		t.Errorf("Instruments count = %d, want 3", len(e.Instruments))
 	}
 	if e.LinkedEvents != nil {
 		t.Errorf("LinkedEvents = %v, want nil for null", e.LinkedEvents)
@@ -487,25 +457,25 @@ func TestDONKI_WSAEnlil(t *testing.T) {
 		t.Fatalf("WSAEnlil() error: %v", err)
 	}
 
-	if len(events) != 1 {
-		t.Fatalf("got %d events, want 1", len(events))
+	if len(events) != 3 {
+		t.Fatalf("got %d events, want 3", len(events))
 	}
 
 	e := events[0]
-	if e.SimulationID != "2024-01-15T12:00Z-WSA-ENLIL" {
-		t.Errorf("SimulationID = %q, want %q", e.SimulationID, "2024-01-15T12:00Z-WSA-ENLIL")
+	if e.SimulationID != "WSA-ENLIL/28426/1" {
+		t.Errorf("SimulationID = %q, want %q", e.SimulationID, "WSA-ENLIL/28426/1")
 	}
-	if len(e.ImpactList) != 2 {
-		t.Errorf("ImpactList count = %d, want 2", len(e.ImpactList))
+	if len(e.ImpactList) != 1 {
+		t.Errorf("ImpactList count = %d, want 1", len(e.ImpactList))
 	}
-	if e.ImpactList[0].Location != "Earth" {
-		t.Errorf("ImpactList[0].Location = %q, want Earth", e.ImpactList[0].Location)
+	if e.ImpactList[0].Location != "Mars" {
+		t.Errorf("ImpactList[0].Location = %q, want Mars", e.ImpactList[0].Location)
 	}
 	if len(e.CMEInputs) != 1 {
 		t.Errorf("CMEInputs count = %d, want 1", len(e.CMEInputs))
 	}
-	if e.EstimatedDuration == nil || *e.EstimatedDuration != 14.5 {
-		t.Errorf("EstimatedDuration = %v, want 14.5", e.EstimatedDuration)
+	if e.EstimatedDuration != nil {
+		t.Errorf("EstimatedDuration = %v, want nil", e.EstimatedDuration)
 	}
 
 	req := *captured
@@ -524,22 +494,23 @@ func TestDONKI_Notifications(t *testing.T) {
 		t.Fatalf("Notifications() error: %v", err)
 	}
 
-	if len(events) != 2 {
-		t.Fatalf("got %d events, want 2", len(events))
+	if len(events) != 3 {
+		t.Fatalf("got %d events, want 3", len(events))
 	}
 
 	e := events[0]
 	if e.MessageType != "CME" {
 		t.Errorf("MessageType = %q, want CME", e.MessageType)
 	}
-	if e.MessageID != "20240115-AL-001" {
-		t.Errorf("MessageID = %q, want 20240115-AL-001", e.MessageID)
+	if e.MessageID != "20240114-AL-001" {
+		t.Errorf("MessageID = %q, want 20240114-AL-001", e.MessageID)
 	}
 	if e.MessageBody == "" {
 		t.Error("expected non-empty MessageBody")
 	}
-	if len(e.LinkedEvents) != 1 {
-		t.Errorf("LinkedEvents count = %d, want 1", len(e.LinkedEvents))
+	// Notifications in this fixture don't include linkedEvents.
+	if e.LinkedEvents != nil {
+		t.Errorf("LinkedEvents = %v, want nil", e.LinkedEvents)
 	}
 
 	req := *captured

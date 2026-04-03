@@ -232,26 +232,26 @@ func TestSSDCloseApproach(t *testing.T) {
 
 	// Verify first record.
 	r := results[0]
-	if r.Designation != "(2024 AA)" {
-		t.Errorf("Designation: got %q, want %q", r.Designation, "(2024 AA)")
+	if r.Designation != "2025 GL" {
+		t.Errorf("Designation: got %q, want %q", r.Designation, "2025 GL")
 	}
-	if r.Distance != 0.0412 {
-		t.Errorf("Distance: got %v, want %v", r.Distance, 0.0412)
+	if r.Distance != 0.0250935962624078 {
+		t.Errorf("Distance: got %v, want %v", r.Distance, 0.0250935962624078)
 	}
-	if r.VRelative != 12.34 {
-		t.Errorf("VRelative: got %v, want %v", r.VRelative, 12.34)
+	if r.VRelative != 6.36946573423658 {
+		t.Errorf("VRelative: got %v, want %v", r.VRelative, 6.36946573423658)
 	}
 
-	// Verify Apophis record (last).
+	// Verify last record.
 	r = results[2]
-	if r.Designation != "99942 Apophis" {
-		t.Errorf("Designation: got %q, want %q", r.Designation, "99942 Apophis")
+	if r.Designation != "2023 DZ2" {
+		t.Errorf("Designation: got %q, want %q", r.Designation, "2023 DZ2")
 	}
-	if r.Distance != 0.000254 {
-		t.Errorf("Distance: got %v, want %v", r.Distance, 0.000254)
+	if r.Distance != 0.00676762046379765 {
+		t.Errorf("Distance: got %v, want %v", r.Distance, 0.00676762046379765)
 	}
-	if r.AbsMagnitude != 19.7 {
-		t.Errorf("AbsMagnitude: got %v, want %v", r.AbsMagnitude, 19.7)
+	if r.AbsMagnitude != 24.28 {
+		t.Errorf("AbsMagnitude: got %v, want %v", r.AbsMagnitude, 24.28)
 	}
 
 	// Verify no api_key in request.
@@ -304,28 +304,28 @@ func TestSSDFireball(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(results) != 2 {
-		t.Fatalf("expected 2 results, got %d", len(results))
+	if len(results) != 3 {
+		t.Fatalf("expected 3 results, got %d", len(results))
 	}
 
 	r := results[0]
-	if r.Date != "2025-03-15 08:23:45" {
-		t.Errorf("Date: got %q, want %q", r.Date, "2025-03-15 08:23:45")
+	if r.Date != "2026-04-01 23:59:35" {
+		t.Errorf("Date: got %q, want %q", r.Date, "2026-04-01 23:59:35")
 	}
-	if r.Energy != 1.2 {
-		t.Errorf("Energy: got %v, want %v", r.Energy, 1.2)
+	if r.Energy != 2.2 {
+		t.Errorf("Energy: got %v, want %v", r.Energy, 2.2)
 	}
-	if r.Lat != 36.5 {
-		t.Errorf("Lat: got %v, want %v", r.Lat, 36.5)
+	if r.Lat != 57.9 {
+		t.Errorf("Lat: got %v, want %v", r.Lat, 57.9)
 	}
 	if r.LatDir != "N" {
 		t.Errorf("LatDir: got %q, want %q", r.LatDir, "N")
 	}
-	if r.Altitude != 25.0 {
-		t.Errorf("Altitude: got %v, want %v", r.Altitude, 25.0)
+	if r.Altitude != 37.0 {
+		t.Errorf("Altitude: got %v, want %v", r.Altitude, 37.0)
 	}
-	if r.Velocity != 18.5 {
-		t.Errorf("Velocity: got %v, want %v", r.Velocity, 18.5)
+	if r.Velocity != 37.3 {
+		t.Errorf("Velocity: got %v, want %v", r.Velocity, 37.3)
 	}
 
 	// Verify req-loc=true always sent.
@@ -505,33 +505,33 @@ func TestSSDSentry(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(results) != 2 {
-		t.Fatalf("expected 2 results, got %d", len(results))
+	if len(results) != 3 {
+		t.Fatalf("expected 3 results, got %d", len(results))
 	}
 
 	r := results[0]
-	if r.Designation != "99942" {
-		t.Errorf("Designation: got %q, want %q", r.Designation, "99942")
+	if r.Designation != "1979 XB" {
+		t.Errorf("Designation: got %q, want %q", r.Designation, "1979 XB")
 	}
-	if r.Fullname != "99942 Apophis (2004 MN4)" {
-		t.Errorf("Fullname: got %q, want %q", r.Fullname, "99942 Apophis (2004 MN4)")
+	if r.Fullname != "(1979 XB)" {
+		t.Errorf("Fullname: got %q, want %q", r.Fullname, "(1979 XB)")
 	}
-	if r.NImpacts != 2 {
-		t.Errorf("NImpacts: got %d, want %d", r.NImpacts, 2)
+	if r.NImpacts != 4 {
+		t.Errorf("NImpacts: got %d, want %d", r.NImpacts, 4)
 	}
-	if r.IP != "4.4e-10" {
-		t.Errorf("IP: got %q, want %q", r.IP, "4.4e-10")
+	if r.IP != "8.515158e-07" {
+		t.Errorf("IP: got %q, want %q", r.IP, "8.515158e-07")
 	}
-	if r.Diameter != "0.370" {
-		t.Errorf("Diameter: got %q, want %q", r.Diameter, "0.370")
+	if r.Diameter != "0.66" {
+		t.Errorf("Diameter: got %q, want %q", r.Diameter, "0.66")
 	}
 
 	r2 := results[1]
-	if r2.Designation != "2024 YR4" {
-		t.Errorf("Designation: got %q, want %q", r2.Designation, "2024 YR4")
+	if r2.Designation != "2022 KK2" {
+		t.Errorf("Designation: got %q, want %q", r2.Designation, "2022 KK2")
 	}
-	if r2.NImpacts != 1 {
-		t.Errorf("NImpacts: got %d, want %d", r2.NImpacts, 1)
+	if r2.NImpacts != 33 {
+		t.Errorf("NImpacts: got %d, want %d", r2.NImpacts, 33)
 	}
 }
 
@@ -574,8 +574,8 @@ func TestSSDSBDB(t *testing.T) {
 	}
 
 	// Orbital elements as array.
-	if len(sb.Orbit.Elements) != 6 {
-		t.Fatalf("expected 6 orbital elements, got %d", len(sb.Orbit.Elements))
+	if len(sb.Orbit.Elements) != 11 {
+		t.Fatalf("expected 11 orbital elements, got %d", len(sb.Orbit.Elements))
 	}
 	e := sb.Orbit.Elements[0]
 	if e.Name != "e" {
@@ -584,8 +584,8 @@ func TestSSDSBDB(t *testing.T) {
 	if e.Title != "eccentricity" {
 		t.Errorf("Element[0].Title: got %q, want %q", e.Title, "eccentricity")
 	}
-	if e.Value != "0.1914" {
-		t.Errorf("Element[0].Value: got %q, want %q", e.Value, "0.1914")
+	if e.Value != "0.191" {
+		t.Errorf("Element[0].Value: got %q, want %q", e.Value, "0.191")
 	}
 	if e.Units != nil {
 		t.Errorf("Element[0].Units: expected nil (dimensionless), got %v", *e.Units)
@@ -601,19 +601,19 @@ func TestSSDSBDB(t *testing.T) {
 	if sb.Orbit.Source != "JPL" {
 		t.Errorf("Orbit.Source: got %q, want %q", sb.Orbit.Source, "JPL")
 	}
-	if sb.Orbit.NObs != 5134 {
-		t.Errorf("Orbit.NObs: got %d, want %d", sb.Orbit.NObs, 5134)
+	if sb.Orbit.NObs != 7370 {
+		t.Errorf("Orbit.NObs: got %d, want %d", sb.Orbit.NObs, 7370)
 	}
 	if sb.Orbit.ConditionCode != "0" {
 		t.Errorf("Orbit.ConditionCode: got %q, want %q", sb.Orbit.ConditionCode, "0")
 	}
 
 	// Element helper.
-	if sb.Element("e") != "0.1914" {
-		t.Errorf("Element('e'): got %q, want %q", sb.Element("e"), "0.1914")
+	if sb.Element("e") != "0.191" {
+		t.Errorf("Element('e'): got %q, want %q", sb.Element("e"), "0.191")
 	}
-	if sb.Element("a") != "0.9224" {
-		t.Errorf("Element('a'): got %q, want %q", sb.Element("a"), "0.9224")
+	if sb.Element("a") != "0.922" {
+		t.Errorf("Element('a'): got %q, want %q", sb.Element("a"), "0.922")
 	}
 	if sb.Element("nonexistent") != "" {
 		t.Errorf("Element('nonexistent'): expected empty, got %q", sb.Element("nonexistent"))

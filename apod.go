@@ -57,7 +57,7 @@ func (v *todaysAPOD) update(apod Image) {
 
 var (
 	defaultClient     *Client
-	defaultClientOnce sync.Once
+	defaultClientOnce = &sync.Once{}
 )
 
 // getDefaultClient returns a lazily-initialized shared Client.

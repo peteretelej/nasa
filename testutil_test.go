@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -34,6 +35,30 @@ func loadFixture(t *testing.T, name string) []byte {
 
 func oversizedText() string {
 	return oversizedResponseText
+}
+
+// setDefaultClientForTest replaces the package-level defaultClient singleton
+// with c, so that APODToday / RandomAPOD / ApodImage use a test-controlled
+// client. The original client and sync.Once are restored when the test ends.
+//
+// Must not be used with t.Parallel(); mutates package-level state.
+func setDefaultClientForTest(t *testing.T, c *Client) {
+	t.Helper()
+
+	origClient := defaultClient
+	origOnce := defaultClientOnce
+
+	// Set the mock client and replace the Once with an exhausted instance
+	// so getDefaultClient() returns c without re-initialising.
+	defaultClient = c
+	done := &sync.Once{}
+	done.Do(func() {}) // exhaust it
+	defaultClientOnce = done
+
+	t.Cleanup(func() {
+		defaultClient = origClient
+		defaultClientOnce = origOnce
+	})
 }
 
 // assertErrorType asserts that err is of type T using errors.As.

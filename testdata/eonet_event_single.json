@@ -1,28 +1,31 @@
 {
-  "id": "EONET_6354",
-  "title": "Wildfire - Los Angeles, California",
-  "description": "A large wildfire near Los Angeles.",
-  "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_6354",
-  "closed": null,
   "categories": [
     {
       "id": "wildfires",
       "title": "Wildfires"
     }
   ],
-  "sources": [
-    {
-      "id": "InciWeb",
-      "url": "https://inciweb.wildfire.gov/incident-information/caanf-palisades"
-    }
-  ],
+  "closed": null,
+  "description": null,
   "geometry": [
     {
-      "date": "2026-01-07T18:00:00Z",
-      "type": "Point",
-      "coordinates": [-118.52, 34.05],
-      "magnitudeValue": null,
-      "magnitudeUnit": ""
+      "coordinates": [
+        -92.6888328,
+        45.7153853
+      ],
+      "date": "2026-04-02T11:26:00Z",
+      "magnitudeUnit": "acres",
+      "magnitudeValue": 655.7,
+      "type": "Point"
     }
-  ]
+  ],
+  "id": "EONET_19203",
+  "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_19203",
+  "sources": [
+    {
+      "id": "IRWIN",
+      "url": "https://irwin.doi.gov/observer/incidents/eabb9fb3-1d6f-4c28-bd48-f0046d869592"
+    }
+  ],
+  "title": "rx-12_ 13_ 14 Prescribed Fire, Burnett, Wisconsin"
 }

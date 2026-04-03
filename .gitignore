@@ -1,8 +1,20 @@
+# Environment and secrets
 .env
-docker-launch.sh
-_docs/
-dist/
 
+# Legacy scripts
+docker-launch.sh
+
+# Build output
+dist/
+*.exe
+
+# Go binaries (one per cmd/ entry)
 /nasa
 /nasa-mcp
-*.exe
+/nasa-wallpapers
+/update-testdata
+
+# Test and coverage artifacts
+*.out
+coverage.*
+*.test
