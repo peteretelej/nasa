@@ -16,11 +16,20 @@ go mod download
 bash scripts/setup.sh  # installs pre-push hook
 ```
 
+The pre-push hook depends only on Go. Its first lint run may download `golangci-lint` `v2.11.4` via `go run`.
+
 ## Running Tests
 
 Unit tests use fixtures in `testdata/` and do not call live APIs:
 
 ```bash
+go test ./...
+```
+
+Run the same pre-submit checks that CI and the pre-push hook use:
+
+```bash
+go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4 run ./...
 go test ./...
 ```
 
@@ -33,14 +42,14 @@ Run integration tests (requires a `NASA_API_KEY` environment variable):
 ## Linting
 
 ```bash
-golangci-lint run ./...
+go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4 run ./...
 ```
 
 ## Pull Request Guidelines
 
 - Describe the change and why it is needed
 - Include tests for new functionality
-- Run `go test ./...` and `golangci-lint run ./...` before submitting
+- Run `go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4 run ./...` and `go test ./...` before submitting
 - Keep commits focused on a single change
 
 ## Code Style

@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
+lint_cmd=(go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4 run ./...)
+
 echo "Running golangci-lint..."
-golangci-lint run ./...
+echo "First run may download golangci-lint v2.11.4 via go run."
+"${lint_cmd[@]}"
 echo "Running tests..."
 go test ./...
