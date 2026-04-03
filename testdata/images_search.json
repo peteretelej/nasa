@@ -1,0 +1,59 @@
+{
+  "collection": {
+    "items": [
+      {
+        "data": [
+          {
+            "nasa_id": "PIA12345",
+            "title": "Apollo 11 Lunar Module",
+            "description": "The Apollo 11 Lunar Module Eagle in lunar orbit.",
+            "media_type": "image",
+            "center": "JSC",
+            "date_created": "1969-07-20T00:00:00Z",
+            "keywords": ["Apollo", "Moon", "Lunar Module"],
+            "photographer": "NASA",
+            "location": "Moon"
+          }
+        ],
+        "links": [
+          {
+            "href": "https://images-assets.nasa.gov/image/PIA12345/PIA12345~thumb.jpg",
+            "rel": "preview",
+            "render": "image"
+          }
+        ],
+        "href": "https://images-assets.nasa.gov/image/PIA12345/collection.json"
+      },
+      {
+        "data": [
+          {
+            "nasa_id": "KSC-20200530-PH-SPX01",
+            "title": "SpaceX Demo-2 Launch",
+            "description": "SpaceX Crew Dragon launches on Demo-2 mission.",
+            "media_type": "video",
+            "center": "KSC",
+            "date_created": "2020-05-30T00:00:00Z",
+            "keywords": ["SpaceX", "Crew Dragon", "Demo-2"]
+          }
+        ],
+        "links": [
+          {
+            "href": "https://images-assets.nasa.gov/video/KSC-20200530-PH-SPX01/KSC-20200530-PH-SPX01~thumb.jpg",
+            "rel": "preview",
+            "render": "image"
+          }
+        ],
+        "href": "https://images-assets.nasa.gov/video/KSC-20200530-PH-SPX01/collection.json"
+      }
+    ],
+    "metadata": {
+      "total_hits": 1542
+    },
+    "links": [
+      {
+        "href": "http://images-api.nasa.gov/search?q=apollo&page=2",
+        "rel": "next"
+      }
+    ]
+  }
+}

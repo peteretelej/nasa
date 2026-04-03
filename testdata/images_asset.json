@@ -1,0 +1,28 @@
+{
+  "collection": {
+    "items": [
+      {
+        "href": "https://images-assets.nasa.gov/image/PIA12345/PIA12345~orig.jpg"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/image/PIA12345/PIA12345~large.jpg"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/image/PIA12345/PIA12345~medium.jpg"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/image/PIA12345/PIA12345~small.jpg"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/image/PIA12345/PIA12345~thumb.jpg"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/image/PIA12345/metadata.json"
+      }
+    ],
+    "metadata": {
+      "total_hits": 6
+    },
+    "links": []
+  }
+}
