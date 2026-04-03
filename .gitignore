@@ -1,3 +1,7 @@
 .env
 docker-launch.sh
 _docs/
+
+/nasa
+/nasa-mcp
+*.exe
