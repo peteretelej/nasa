@@ -67,20 +67,9 @@ func getDefaultClient() *Client {
 	return defaultClient
 }
 
-// RandomAPOD returns an Astronomy Picture of the Day based on a random date
-// Picks any image shared between the last 2 years
-func RandomAPOD() (*Image, error) {
-	c := getDefaultClient()
-	imgs, err := c.APOD.Random(context.Background(), 1)
-	if err != nil {
-		return nil, err
-	}
-	return apodToImage(imgs[0]), nil
-}
-
-// apodToImage converts an APODImage to the legacy Image type.
-// Phase 3 will replace this with a proper helper in compat.go.
-func apodToImage(a *APODImage) *Image {
+// apodImageToImage converts an APODImage to the legacy Image type.
+// The conversion is lossy: MediaType, Copyright, ThumbnailURL are dropped.
+func apodImageToImage(a *APODImage) *Image {
 	return &Image{
 		Date:        a.Date.Format(dateFormat),
 		Title:       a.Title,
@@ -89,6 +78,20 @@ func apodToImage(a *APODImage) *Image {
 		Explanation: a.Explanation,
 		ApodDate:    a.Date,
 	}
+}
+
+// RandomAPOD returns an Astronomy Picture of the Day based on a random date
+// Picks any image shared between the last 2 years
+func RandomAPOD() (*Image, error) {
+	c := getDefaultClient()
+	imgs, err := c.APOD.Random(context.Background(), 1)
+	if err != nil {
+		return nil, err
+	}
+	if len(imgs) == 0 {
+		return nil, fmt.Errorf("nasa: APOD random returned no results")
+	}
+	return apodImageToImage(imgs[0]), nil
 }
 
 // APODToday returns today's APOD, from cache if possible, fetches fresh if not
@@ -104,18 +107,16 @@ func APODToday() (*Image, error) {
 	}
 
 	c := getDefaultClient()
-	img, err := c.APOD.Today(context.Background())
+	apodImg, err := c.APOD.Today(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
-	legacy := apodToImage(img)
-
-	// Cache today's result
-	if time.Now().Format(dateFormat) == img.Date.Format(dateFormat) {
-		tAPOD.update(*legacy)
+	img := apodImageToImage(apodImg)
+	if time.Now().Format(dateFormat) == img.Date {
+		tAPOD.update(*img)
 	}
-	return legacy, nil
+	return img, nil
 }
 
 // ApodImage returns the NASA Astronomy Picture of the Day
@@ -125,16 +126,14 @@ func ApodImage(t time.Time) (*Image, error) {
 	}
 
 	c := getDefaultClient()
-	img, err := c.APOD.Get(context.Background(), t)
+	apodImg, err := c.APOD.Get(context.Background(), t)
 	if err != nil {
 		return nil, err
 	}
 
-	legacy := apodToImage(img)
-
-	// Cache if it's today
-	if time.Now().Format(dateFormat) == img.Date.Format(dateFormat) {
-		tAPOD.update(*legacy)
+	img := apodImageToImage(apodImg)
+	if time.Now().Format(dateFormat) == img.Date {
+		tAPOD.update(*img)
 	}
-	return legacy, nil
+	return img, nil
 }

@@ -3,6 +3,7 @@ package nasa
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -98,59 +99,94 @@ func NeoFeed(start, end time.Time) (*NeoList, error) {
 	if err != nil {
 		return nil, err
 	}
-	return neoFeedToNeoList(feed, start, end), nil
+	return neoFeedToNeoList(feed, start.Format(dateFormat), end.Format(dateFormat)), nil
 }
 
 // neoFeedToNeoList converts a *NEOFeed to a *NeoList for backward compatibility.
-// This is a minimal inline conversion; Phase 3 will replace it with complete field mapping.
-func neoFeedToNeoList(f *NEOFeed, start, end time.Time) *NeoList {
+func neoFeedToNeoList(f *NEOFeed, start, end string) *NeoList {
 	nl := &NeoList{
-		Start:        start.Format(dateFormat),
-		End:          end.Format(dateFormat),
+		Start:        start,
+		End:          end,
 		ElementCount: int64(f.ElementCount),
 	}
 	nl.Links.Self = f.Links.Self
 	nl.Links.Next = f.Links.Next
 	nl.Links.Prev = f.Links.Prev
-
-	nl.NearEarthObjects = make(map[string][]Asteroid, len(f.NearEarthObjects))
+	nl.NearEarthObjects = make(map[string][]Asteroid)
 	for date, neos := range f.NearEarthObjects {
-		asteroids := make([]Asteroid, 0, len(neos))
-		for _, neo := range neos {
-			a := Asteroid{
-				ID:                   neo.NeoReferenceID,
-				Name:                 neo.Name,
-				JPLURL:               neo.JPLURL,
-				AbsoluteMagnitude:    neo.AbsoluteMagnitude,
-				PotentiallyHazardous: neo.IsPotentiallyHazardous,
-			}
-			// Map estimated diameter.
-			a.EstimatedDiameter.Kilometers = diameter{Min: neo.EstimatedDiameter.Kilometers.Min, Max: neo.EstimatedDiameter.Kilometers.Max}
-			a.EstimatedDiameter.Meters = diameter{Min: neo.EstimatedDiameter.Meters.Min, Max: neo.EstimatedDiameter.Meters.Max}
-			a.EstimatedDiameter.Miles = diameter{Min: neo.EstimatedDiameter.Miles.Min, Max: neo.EstimatedDiameter.Miles.Max}
-			a.EstimatedDiameter.Feet = diameter{Min: neo.EstimatedDiameter.Feet.Min, Max: neo.EstimatedDiameter.Feet.Max}
-
-			// Map close approach data.
-			for _, ca := range neo.CloseApproachData {
-				cad := closeApproachData{
-					CloseApproachDate:      ca.CloseApproachDate,
-					EpochDateCloseApproach: ca.EpochDateCloseApproach.Time().UnixMilli(),
-					OrbitingBody:           ca.OrbitingBody,
-				}
-				cad.RelativeVelocity.KilometersPerSecond = fmt.Sprintf("%g", float64(ca.RelativeVelocity.KilometersPerSecond))
-				cad.RelativeVelocity.KilometersPerHour = fmt.Sprintf("%g", float64(ca.RelativeVelocity.KilometersPerHour))
-				cad.RelativeVelocity.MilesPerHour = fmt.Sprintf("%g", float64(ca.RelativeVelocity.MilesPerHour))
-				cad.MissDistance.Astronomical = fmt.Sprintf("%g", float64(ca.MissDistance.Astronomical))
-				cad.MissDistance.Lunar = fmt.Sprintf("%g", float64(ca.MissDistance.Lunar))
-				cad.MissDistance.Kilometers = fmt.Sprintf("%g", float64(ca.MissDistance.Kilometers))
-				cad.MissDistance.Miles = fmt.Sprintf("%g", float64(ca.MissDistance.Miles))
-				a.CloseApproachData = append(a.CloseApproachData, cad)
-			}
-
-			asteroids = append(asteroids, a)
+		asteroids := make([]Asteroid, len(neos))
+		for i, neo := range neos {
+			asteroids[i] = neoToAsteroid(neo)
 		}
 		nl.NearEarthObjects[date] = asteroids
 	}
-
 	return nl
+}
+
+// neoToAsteroid converts a *NearEarthObject to the legacy Asteroid type.
+// The conversion is lossy: the old type has fewer fields and different types.
+func neoToAsteroid(neo *NearEarthObject) Asteroid {
+	a := Asteroid{
+		// Asteroid.ID json tag is "neo_reference_id", so map from NeoReferenceID
+		ID:                   neo.NeoReferenceID,
+		Name:                 neo.Name,
+		JPLURL:               neo.JPLURL,
+		AbsoluteMagnitude:    neo.AbsoluteMagnitude,
+		PotentiallyHazardous: neo.IsPotentiallyHazardous,
+	}
+	a.Links.Self = "" // NearEarthObject intentionally omits per-asteroid links
+
+	// Diameter
+	a.EstimatedDiameter.Kilometers = diameter(neo.EstimatedDiameter.Kilometers)
+	a.EstimatedDiameter.Meters = diameter(neo.EstimatedDiameter.Meters)
+	a.EstimatedDiameter.Miles = diameter(neo.EstimatedDiameter.Miles)
+	a.EstimatedDiameter.Feet = diameter(neo.EstimatedDiameter.Feet)
+
+	// Close approach data - convert StringFloat64 back to string
+	for _, ca := range neo.CloseApproachData {
+		cad := closeApproachData{
+			CloseApproachDate:      ca.CloseApproachDate,
+			EpochDateCloseApproach: ca.EpochDateCloseApproach.Time().UnixMilli(),
+			OrbitingBody:           ca.OrbitingBody,
+		}
+		cad.RelativeVelocity.KilometersPerSecond = formatSF(ca.RelativeVelocity.KilometersPerSecond)
+		cad.RelativeVelocity.KilometersPerHour = formatSF(ca.RelativeVelocity.KilometersPerHour)
+		cad.RelativeVelocity.MilesPerHour = formatSF(ca.RelativeVelocity.MilesPerHour)
+		cad.MissDistance.Astronomical = formatSF(ca.MissDistance.Astronomical)
+		cad.MissDistance.Lunar = formatSF(ca.MissDistance.Lunar)
+		cad.MissDistance.Kilometers = formatSF(ca.MissDistance.Kilometers)
+		cad.MissDistance.Miles = formatSF(ca.MissDistance.Miles)
+		a.CloseApproachData = append(a.CloseApproachData, cad)
+	}
+
+	// Orbital data
+	if neo.OrbitalData != nil {
+		od := neo.OrbitalData
+		a.OrbitalData.OrbitID = od.OrbitID
+		a.OrbitalData.OrbitDeterminationDate = od.OrbitDeterminationDate
+		// Old struct has "OrbitUncertainity" (typo) - must preserve
+		a.OrbitalData.OrbitUncertainity = od.OrbitUncertainty
+		a.OrbitalData.MinimumOrbitIntersection = od.MinimumOrbitIntersection
+		a.OrbitalData.JupiterTisserandInvariant = od.JupiterTisserandInvariant
+		a.OrbitalData.EpochOsculation = od.EpochOsculation
+		a.OrbitalData.Eccentricity = od.Eccentricity
+		a.OrbitalData.Inclination = od.Inclination
+		a.OrbitalData.SemiMajorAxis = od.SemiMajorAxis
+		a.OrbitalData.AscendingNodeLongitude = od.AscendingNodeLongitude
+		a.OrbitalData.OrbitalPeriod = od.OrbitalPeriod
+		a.OrbitalData.PerihelionDistance = od.PerihelionDistance
+		a.OrbitalData.PerihelionArgument = od.PerihelionArgument
+		a.OrbitalData.AphelionDistance = od.AphelionDistance
+		a.OrbitalData.PerihelionTime = od.PerihelionTime
+		a.OrbitalData.MeanAnomaly = od.MeanAnomaly
+		a.OrbitalData.MeanMotion = od.MeanMotion
+		a.OrbitalData.Equinox = od.Equinox
+	}
+
+	return a
+}
+
+// formatSF converts StringFloat64 back to string for old types.
+func formatSF(sf StringFloat64) string {
+	return strconv.FormatFloat(float64(sf), 'f', -1, 64)
 }
