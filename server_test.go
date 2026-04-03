@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -17,6 +18,14 @@ type httpTestList struct {
 }
 
 func TestHandleIndex(t *testing.T) {
+	// Prime cache so APODToday() returns immediately without HTTP call
+	tAPOD.update(Image{
+		URL:   "https://example.com/test.jpg",
+		HDURL: "https://example.com/test_hd.jpg",
+		Title: "Test APOD",
+		Date:  time.Now().Format("2006-01-02"),
+	})
+
 	testList := []httpTestList{
 		{"GET", "/", http.StatusOK, "#explanation"},
 		{"GET", "/abcd", http.StatusNotFound, ""},
@@ -47,6 +56,10 @@ func TestHandleIndex(t *testing.T) {
 }
 
 func TestRandomHandler(t *testing.T) {
+	if os.Getenv("NASA_API_KEY") == "" && os.Getenv("NASAKEY") == "" {
+		t.Skip("requires NASA_API_KEY or NASAKEY env var")
+	}
+
 	testList := []httpTestList{
 		{"GET", "/abcd", http.StatusNotFound, ""},
 		{"GET", "/random-apod/abcd", http.StatusNotFound, ""},

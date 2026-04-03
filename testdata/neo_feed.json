@@ -1,0 +1,64 @@
+{
+  "links": {
+    "self": "http://api.nasa.gov/neo/rest/v1/feed?start_date=2024-01-15&end_date=2024-01-15",
+    "next": "",
+    "prev": ""
+  },
+  "element_count": 1,
+  "near_earth_objects": {
+    "2024-01-15": [
+      {
+        "links": {"self": ""},
+        "neo_reference_id": "3542519",
+        "name": "(2010 PK9)",
+        "nasa_jpl_url": "https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=3542519",
+        "absolute_magnitude_h": 21.4,
+        "estimated_diameter": {
+          "kilometers": {"estimated_diameter_min": 0.1, "estimated_diameter_max": 0.2},
+          "meters": {"estimated_diameter_min": 100, "estimated_diameter_max": 200},
+          "miles": {"estimated_diameter_min": 0.06, "estimated_diameter_max": 0.12},
+          "feet": {"estimated_diameter_min": 300, "estimated_diameter_max": 600}
+        },
+        "is_potentially_hazardous_asteroid": false,
+        "close_approach_data": [
+          {
+            "close_approach_date": "2024-01-15",
+            "epoch_date_close_approach": 1705276800000,
+            "relative_velocity": {
+              "kilometers_per_second": "15.23",
+              "kilometers_per_hour": "54828.0",
+              "miles_per_hour": "34065.0"
+            },
+            "miss_distance": {
+              "astronomical": "0.2",
+              "lunar": "77.8",
+              "kilometers": "29917458",
+              "miles": "18590000"
+            },
+            "orbiting_body": "Earth"
+          }
+        ],
+        "orbital_data": {
+          "orbit_id": "1",
+          "orbit_determination_date": "2024-01-10",
+          "orbit_uncertainty": "0",
+          "minimum_orbit_intersection": "0.01",
+          "jupiter_tisserand_invariant": "5.2",
+          "epoch_osculation": "2460400.5",
+          "eccentricity": "0.3",
+          "inclination": "10.5",
+          "semi_major_axis": "1.2",
+          "ascending_node_longitude": "200.0",
+          "orbital_period": "450.0",
+          "perihelion_distance": "0.84",
+          "perihelion_argument": "100.0",
+          "aphelion_distance": "1.56",
+          "perihelion_time": "2460350.5",
+          "mean_anomaly": "50.0",
+          "mean_motion": "0.8",
+          "equinox": "J2000"
+        }
+      }
+    ]
+  }
+}

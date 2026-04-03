@@ -1,25 +1,11 @@
 package nasa
 
 import (
-	"encoding/json"
-	"errors"
+	"context"
 	"fmt"
-	"io"
-	"math/rand"
-	"net/http"
-	"net/url"
-	"os"
 	"sync"
 	"time"
 )
-
-var nasaKey = os.Getenv("NASAKEY")
-
-func init() {
-	if nasaKey == "" {
-		nasaKey = "DEMO_KEY"
-	}
-}
 
 // APIKEYMissing is the message displayed if a custom API Key is not defined
 const APIKEYMissing = `Currently using the demo API Key DEMO_KEY. Apply for an API key at https://api.nasa.gov/index.html#apply-for-an-api-key
@@ -50,15 +36,6 @@ About:
 `, ni.Title, ni.Date, ni.URL, ni.HDURL, ni.Explanation)
 }
 
-// RandomAPOD returns an Astronomy Picture of the Day based on a random date
-// Picks any image shared between the last 2 years
-func RandomAPOD() (*Image, error) {
-	days := 2 * 365 // Any day in last 2 years
-	randDaysOld := time.Duration(rand.Intn(days))
-	t := time.Now().Add(-(time.Hour * 24 * randDaysOld))
-	return ApodImage(t)
-}
-
 // caches todays APOD
 type todaysAPOD struct {
 	mu   sync.RWMutex // protects the following
@@ -75,6 +52,28 @@ func (v *todaysAPOD) update(apod Image) {
 	v.mu.Unlock()
 }
 
+var (
+	defaultClient     *Client
+	defaultClientOnce sync.Once
+)
+
+// getDefaultClient returns a lazily-initialized shared Client.
+// All convenience wrappers share this client (and its rate limiter),
+// so rate limiting actually works across calls.
+func getDefaultClient() *Client {
+	defaultClientOnce.Do(func() {
+		defaultClient = NewClient()
+	})
+	return defaultClient
+}
+
+// RandomAPOD returns an Astronomy Picture of the Day based on a random date
+// Picks any image shared between the last 2 years
+func RandomAPOD() (*Image, error) {
+	c := getDefaultClient()
+	return c.APOD.Random(context.Background())
+}
+
 // APODToday returns today's APOD, from cache if possible, fetches fresh if not
 func APODToday() (*Image, error) {
 	d := time.Now().Format("2006-01-02")
@@ -83,58 +82,38 @@ func APODToday() (*Image, error) {
 	cacheddate, apod := tAPOD.date, tAPOD.apod
 	tAPOD.mu.RUnlock()
 
-	if cacheddate != d || apod == nil {
-		return ApodImage(time.Now())
+	if cacheddate == d && apod != nil {
+		return apod, nil
 	}
-	return apod, nil
+
+	c := getDefaultClient()
+	img, err := c.APOD.Today(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	// Cache today's result
+	if time.Now().Format("2006-01-02") == img.Date {
+		tAPOD.update(*img)
+	}
+	return img, nil
 }
 
 // ApodImage returns the NASA Astronomy Picture of the Day
 func ApodImage(t time.Time) (*Image, error) {
-	var today bool
 	if t.After(time.Now()) {
 		t = time.Now()
 	}
-	date := t.Format("2006-01-02")
-	today = time.Now().Format("2006-01-02") == date
-	u, err := url.Parse(APODEndpoint)
+
+	c := getDefaultClient()
+	img, err := c.APOD.Get(context.Background(), t)
 	if err != nil {
 		return nil, err
 	}
-	q := u.Query()
-	q.Set("api_key", nasaKey)
-	if !today {
-		q.Add("date", date)
+
+	// Cache if it's today
+	if time.Now().Format("2006-01-02") == img.Date {
+		tAPOD.update(*img)
 	}
-	u.RawQuery = q.Encode()
-	req, err := http.NewRequest("GET", u.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-	client := &http.Client{Timeout: time.Second * 20}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("unable to connect to NASA API, %v", err)
-	}
-	defer func() { _ = resp.Body.Close() }()
-	dat, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	_ = resp.Body.Close()
-	var ni Image
-	err = json.Unmarshal(dat, &ni)
-	if err != nil {
-		return nil, err
-	}
-	if ni.URL == "" && ni.HDURL == "" {
-		return nil, errors.New("NASA APOD API is returned an invalid response, may be down temporarily")
-	}
-	if t, err := time.Parse("2006-01-02", ni.Date); err == nil {
-		ni.ApodDate = t
-	}
-	if today {
-		tAPOD.update(ni)
-	}
-	return &ni, nil
+	return img, nil
 }

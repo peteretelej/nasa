@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "OVER_RATE_LIMIT",
+    "message": "You have exceeded your rate limit. Try again later or contact us for a higher rate limit."
+  }
+}

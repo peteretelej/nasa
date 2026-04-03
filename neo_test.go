@@ -1,58 +1,41 @@
 package nasa
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
 )
 
-func TestNeoFeed(t *testing.T) {
-	type neotests struct {
-		startText, endText string
-		nl                 *NeoList
-		err                error
+func TestNEOServiceFeedViaFixture(t *testing.T) {
+	fixture, err := os.ReadFile("testdata/neo_feed.json")
+	if err != nil {
+		t.Fatalf("reading fixture: %v", err)
 	}
-	var tests = []neotests{
-		{
-			startText: "2017-05-11",
-			endText:   "2017-05-12",
-			nl:        &NeoList{ElementCount: 1},
-		},
-		{
-			startText: "1000-05-11",
-			endText:   "1000-05-12",
-			nl:        &NeoList{ElementCount: 0},
-		},
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(fixture)
+	}))
+	defer ts.Close()
+
+	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"))
+	start := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
+	end := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
+
+	nl, err := c.NEO.Feed(context.Background(), start, end)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
-
-	for _, v := range tests {
-		start, err := time.Parse("2006-01-02", v.startText)
-		if err != nil {
-			t.Fatal(err)
-		}
-		end, err := time.Parse("2006-01-02", v.endText)
-		if err != nil {
-			t.Fatal(err)
-		}
-		nl, err := NeoFeed(start, end)
-		if err != v.err {
-			t.Errorf("NeoFeed returned wrong error got %v, want %v", err, v.err)
-		}
-		if nl == nil {
-			if v.nl != nil {
-				t.Errorf("NeoFeed returned NeoList when %v was expected", nil)
-			}
-			continue
-		}
-		if v.nl.ElementCount == 0 && nl.ElementCount != v.nl.ElementCount {
-			t.Errorf("NeoFeed returned wrong element count got %d, want %d", nl.ElementCount, v.nl.ElementCount)
-		}
-		if v.nl.ElementCount > 0 && nl.ElementCount < v.nl.ElementCount {
-			t.Errorf("NeoFeed returned wrong element count got %d, want >1", nl.ElementCount)
-		}
-
-		if !strings.Contains(nl.String(), "Near Earth Objects From:") {
-			t.Errorf("NeoFeed return an invalid neolist, not valid NeoList stringer")
-		}
+	if nl == nil {
+		t.Fatal("expected non-nil NeoList")
+	}
+	if nl.ElementCount < 1 {
+		t.Errorf("expected ElementCount >= 1, got %d", nl.ElementCount)
+	}
+	if !strings.Contains(nl.String(), "Near Earth Objects From:") {
+		t.Error("NeoList.String() should contain 'Near Earth Objects From:'")
 	}
 }

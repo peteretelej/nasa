@@ -1,11 +1,8 @@
 package nasa
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -96,38 +93,6 @@ Link: %s
 // NeoFeed returns a list of of asteroids based on their closest approach date to earth
 // Limits time to start and end times specified
 func NeoFeed(start, end time.Time) (*NeoList, error) {
-	u, err := url.Parse(NeoEndpoint)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse neo endpoint")
-	}
-	startdate, enddate := start.Format("2006-01-02"), end.Format("2006-01-02")
-	q := u.Query()
-	q.Set("api_key", nasaKey)
-	q.Add("start_date", startdate)
-	q.Add("end_date", enddate)
-	u.RawQuery = q.Encode()
-	req, err := http.NewRequest("GET", u.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-	cl := &http.Client{Timeout: time.Second * 20}
-	resp, err := cl.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-	dat, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	_ = resp.Body.Close()
-	var nl NeoList
-
-	err = json.Unmarshal(dat, &nl)
-	if err != nil {
-		return nil, err
-	}
-	nl.Start = startdate
-	nl.End = enddate
-	return &nl, nil
+	c := getDefaultClient()
+	return c.NEO.Feed(context.Background(), start, end)
 }

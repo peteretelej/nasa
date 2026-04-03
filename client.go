@@ -19,6 +19,10 @@ type Client struct {
 	userAgent   string
 	rps         float64 // rate in requests per second, used during construction
 	rpsSet      bool    // true if WithRateLimit was explicitly called
+
+	// Services
+	APOD *APODService
+	NEO  *NEOService
 }
 
 // Option configures a Client.
@@ -85,6 +89,10 @@ func NewClient(opts ...Option) *Client {
 
 	// Create rate limiter with final keys and rate.
 	c.rateLimiter = newRateLimiter(c.rps, c.apiKeys)
+
+	// Wire services.
+	c.APOD = &APODService{client: c}
+	c.NEO = &NEOService{client: c}
 
 	return c
 }
