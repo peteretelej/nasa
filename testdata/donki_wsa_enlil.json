@@ -1,0 +1,36 @@
+[
+  {
+    "simulationID": "2024-01-15T12:00Z-WSA-ENLIL",
+    "modelCompletionTime": "2024-01-15T16:00:00Z",
+    "au": 2.0,
+    "cmeInputs": [
+      {
+        "cmeStartTime": "2024-01-15T06:12Z",
+        "latitude": 10.0,
+        "longitude": 80.0,
+        "speed": 1200.5,
+        "halfAngle": 42.0,
+        "time21_5": "2024-01-15T14:30:00",
+        "isMostAccurate": true,
+        "levelOfData": 2,
+        "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/CMEAnalysis/29002",
+        "note": "Full halo event"
+      }
+    ],
+    "estimatedShockArrivalTime": "2024-01-18T04:00Z",
+    "estimatedDuration": 14.5,
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/WSA-ENLIL/29200",
+    "impactList": [
+      {
+        "isGlancingBlow": false,
+        "location": "Earth",
+        "arrivalTime": "2024-01-18T04:00Z"
+      },
+      {
+        "isGlancingBlow": true,
+        "location": "Mars",
+        "arrivalTime": "2024-01-19T18:00Z"
+      }
+    ]
+  }
+]

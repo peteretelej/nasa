@@ -1,0 +1,28 @@
+[
+  {
+    "time21_5": "2024-01-15T14:30:00",
+    "latitude": 10.0,
+    "longitude": 80.0,
+    "halfAngle": 42.0,
+    "speed": 1200.5,
+    "type": "S",
+    "isMostAccurate": true,
+    "note": "Full halo event",
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/CMEAnalysis/29002",
+    "enlilList": [],
+    "associatedCMEID": "2024-01-15T06:12:00-CME-001"
+  },
+  {
+    "time21_5": "2024-01-16T20:00Z",
+    "latitude": -25.0,
+    "longitude": -60.0,
+    "halfAngle": 30.0,
+    "speed": 800.0,
+    "type": "C",
+    "isMostAccurate": false,
+    "note": "",
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/CMEAnalysis/29011",
+    "enlilList": [],
+    "associatedCMEID": "2024-01-16T18:48:00-CME-001"
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "hssID": "2024-01-20T06:00:00-HSS-001",
+    "eventTime": "2024-01-20T06:00:00",
+    "instruments": [
+      {"displayName": "DSCOVR: PLASMAG"},
+      {"displayName": "ACE: SWEPAM"}
+    ],
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/HSS/29140",
+    "linkedEvents": null
+  }
+]

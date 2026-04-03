@@ -1,0 +1,20 @@
+[
+  {
+    "messageType": "CME",
+    "messageID": "20240115-AL-001",
+    "messageURL": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/Alert/29300",
+    "messageIssueTime": "2024-01-15T07:30:00Z",
+    "messageBody": "## Activity ID: 2024-01-15T06:12:00-CME-001\n\nA halo CME was observed beginning at 2024-01-15T06:12Z.",
+    "linkedEvents": [
+      {"activityID": "2024-01-15T06:12:00-CME-001"}
+    ]
+  },
+  {
+    "messageType": "FLR",
+    "messageID": "20240115-AL-002",
+    "messageURL": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/Alert/29301",
+    "messageIssueTime": "2024-01-15T06:00Z",
+    "messageBody": "## Solar Flare of Class X2.8\n\nBegin: 2024-01-15T05:00Z Peak: 2024-01-15T05:28Z",
+    "linkedEvents": null
+  }
+]

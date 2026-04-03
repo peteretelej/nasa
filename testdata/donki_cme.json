@@ -1,0 +1,47 @@
+[
+  {
+    "activityID": "2024-01-15T06:12:00-CME-001",
+    "catalog": "M2M_CATALOG",
+    "startTime": "2024-01-15T06:12Z",
+    "sourceLocation": "N10E80",
+    "activeRegionNum": 13536,
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/CME/29001",
+    "note": "Halo CME observed in LASCO C2/C3 and STEREO-A COR2.",
+    "instruments": [
+      {"displayName": "SOHO: LASCO/C2"},
+      {"displayName": "SOHO: LASCO/C3"}
+    ],
+    "cmeAnalyses": [
+      {
+        "time21_5": "2024-01-15T14:30:00",
+        "latitude": 10.0,
+        "longitude": 80.0,
+        "halfAngle": 42.0,
+        "speed": 1200.5,
+        "type": "S",
+        "isMostAccurate": true,
+        "note": "Full halo event",
+        "levelOfData": 2,
+        "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/CMEAnalysis/29002",
+        "enlilList": []
+      }
+    ],
+    "linkedEvents": [
+      {"activityID": "2024-01-15T05:00:00-FLR-001"}
+    ]
+  },
+  {
+    "activityID": "2024-01-16T18:48:00-CME-001",
+    "catalog": "M2M_CATALOG",
+    "startTime": "2024-01-16T18:48:00Z",
+    "sourceLocation": "S25W60",
+    "activeRegionNum": 13537,
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/CME/29010",
+    "note": "",
+    "instruments": [
+      {"displayName": "STEREO-A: SECCHI/COR2"}
+    ],
+    "cmeAnalyses": [],
+    "linkedEvents": null
+  }
+]

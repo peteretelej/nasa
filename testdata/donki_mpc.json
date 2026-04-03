@@ -1,0 +1,11 @@
+[
+  {
+    "mpcID": "2024-01-18T14:30:00-MPC-001",
+    "eventTime": "2024-01-18T14:30:00Z",
+    "instruments": [
+      {"displayName": "GOES-16: MAG"}
+    ],
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/MPC/29120",
+    "linkedEvents": null
+  }
+]

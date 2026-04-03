@@ -1,0 +1,13 @@
+[
+  {
+    "rbeID": "2024-01-19T02:00:00-RBE-001",
+    "eventTime": "2024-01-19T02:00Z",
+    "instruments": [
+      {"displayName": "GOES-16: SEISS >2 MeV"}
+    ],
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/RBE/29130",
+    "linkedEvents": [
+      {"activityID": "2024-01-18T12:00:00-GST-001"}
+    ]
+  }
+]

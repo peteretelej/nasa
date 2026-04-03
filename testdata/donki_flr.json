@@ -1,0 +1,18 @@
+[
+  {
+    "flrID": "2024-01-15T05:00:00-FLR-001",
+    "instruments": [
+      {"displayName": "GOES-16: EXIS 1.0-8.0"}
+    ],
+    "beginTime": "2024-01-15T05:00Z",
+    "peakTime": "2024-01-15T05:28:00",
+    "endTime": "2024-01-15T06:00:00Z",
+    "classType": "X2.8",
+    "sourceLocation": "S17W29",
+    "activeRegionNum": 13536,
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/FLR/29000",
+    "linkedEvents": [
+      {"activityID": "2024-01-15T06:12:00-CME-001"}
+    ]
+  }
+]

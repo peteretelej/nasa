@@ -1,0 +1,13 @@
+[
+  {
+    "sepID": "2024-01-15T08:45:00-SEP-001",
+    "eventTime": "2024-01-15T08:45Z",
+    "instruments": [
+      {"displayName": "GOES-16: SEISS >10 MeV"}
+    ],
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/SEP/29030",
+    "linkedEvents": [
+      {"activityID": "2024-01-15T06:12:00-CME-001"}
+    ]
+  }
+]
