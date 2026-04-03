@@ -40,13 +40,13 @@ Flags:
 	hasRandom := *randomFlag
 
 	if hasDate && hasRange {
-		fatal("--date and --start/--end are mutually exclusive")
+		fatal("apod: --date and --start/--end are mutually exclusive")
 	}
 	if hasRandom && (hasDate || hasRange) {
-		fatal("--random and --date/--start/--end are mutually exclusive")
+		fatal("apod: --random and --date/--start/--end are mutually exclusive")
 	}
 	if *countFlag != 1 && !hasRandom {
-		fatal("--count can only be used with --random")
+		fatal("apod: --count can only be used with --random")
 	}
 
 	key := getAPIKey(*apiKeyFlag)
@@ -72,11 +72,11 @@ Flags:
 	case hasRange:
 		start, err := time.Parse("2006-01-02", *startFlag)
 		if err != nil {
-			fatal("invalid --start date: %v", err)
+			fatal("apod: invalid --start date, expected YYYY-MM-DD")
 		}
 		end, err := time.Parse("2006-01-02", *endFlag)
 		if err != nil {
-			fatal("invalid --end date: %v", err)
+			fatal("apod: invalid --end date, expected YYYY-MM-DD")
 		}
 		apods, err := client.APOD.GetRange(ctx, start, end)
 		if err != nil {
@@ -95,7 +95,7 @@ Flags:
 	case hasDate:
 		date, err := time.Parse("2006-01-02", *dateFlag)
 		if err != nil {
-			fatal("invalid --date: %v", err)
+			fatal("apod: invalid --date, expected YYYY-MM-DD")
 		}
 		apod, err := client.APOD.Get(ctx, date)
 		if err != nil {

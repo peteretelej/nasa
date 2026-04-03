@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"math"
 	"os"
 	"strings"
@@ -14,7 +15,7 @@ import (
 
 func donkiCmd(args []string) {
 	if len(args) == 0 {
-		donkiUsage()
+		donkiUsage(os.Stderr)
 		os.Exit(1)
 	}
 	switch args[0] {
@@ -41,16 +42,16 @@ func donkiCmd(args []string) {
 	case "notifications":
 		donkiNotificationsCmd(args[1:])
 	case "--help", "-help", "-h":
-		donkiUsage()
+		donkiUsage(os.Stdout)
 	default:
 		fmt.Fprintf(os.Stderr, "nasa donki: unknown command %q\n\n", args[0])
-		donkiUsage()
+		donkiUsage(os.Stderr)
 		os.Exit(1)
 	}
 }
 
-func donkiUsage() {
-	fmt.Fprintf(os.Stderr, `Usage: nasa donki <command> [flags]
+func donkiUsage(w io.Writer) {
+	fmt.Fprintf(w, `Usage: nasa donki <command> [flags]
 
 Commands:
   cme             Coronal Mass Ejections
@@ -96,14 +97,14 @@ func parseDonkiFlags(name string, args []string) (start, end time.Time, jsonOut 
 		var err error
 		start, err = time.Parse("2006-01-02", *startStr)
 		if err != nil {
-			fatal("invalid --start date: %v", err)
+			fatal("donki %s: invalid --start date, expected YYYY-MM-DD", name)
 		}
 	}
 	if *endStr != "" {
 		var err error
 		end, err = time.Parse("2006-01-02", *endStr)
 		if err != nil {
-			fatal("invalid --end date: %v", err)
+			fatal("donki %s: invalid --end date, expected YYYY-MM-DD", name)
 		}
 	}
 
@@ -175,14 +176,14 @@ func donkiCMEAnalysisCmd(args []string) {
 		var err error
 		start, err = time.Parse("2006-01-02", *startStr)
 		if err != nil {
-			fatal("invalid --start date: %v", err)
+			fatal("donki cme-analysis: invalid --start date, expected YYYY-MM-DD")
 		}
 	}
 	if *endStr != "" {
 		var err error
 		end, err = time.Parse("2006-01-02", *endStr)
 		if err != nil {
-			fatal("invalid --end date: %v", err)
+			fatal("donki cme-analysis: invalid --end date, expected YYYY-MM-DD")
 		}
 	}
 
@@ -294,14 +295,14 @@ func donkiIPSCmd(args []string) {
 		var err error
 		start, err = time.Parse("2006-01-02", *startStr)
 		if err != nil {
-			fatal("invalid --start date: %v", err)
+			fatal("donki ips: invalid --start date, expected YYYY-MM-DD")
 		}
 	}
 	if *endStr != "" {
 		var err error
 		end, err = time.Parse("2006-01-02", *endStr)
 		if err != nil {
-			fatal("invalid --end date: %v", err)
+			fatal("donki ips: invalid --end date, expected YYYY-MM-DD")
 		}
 	}
 
@@ -586,14 +587,14 @@ func donkiNotificationsCmd(args []string) {
 		var err error
 		start, err = time.Parse("2006-01-02", *startStr)
 		if err != nil {
-			fatal("invalid --start date: %v", err)
+			fatal("donki notifications: invalid --start date, expected YYYY-MM-DD")
 		}
 	}
 	if *endStr != "" {
 		var err error
 		end, err = time.Parse("2006-01-02", *endStr)
 		if err != nil {
-			fatal("invalid --end date: %v", err)
+			fatal("donki notifications: invalid --end date, expected YYYY-MM-DD")
 		}
 	}
 

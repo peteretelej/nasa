@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -13,7 +14,7 @@ import (
 
 func eonetCmd(args []string) {
 	if len(args) == 0 {
-		eonetUsage()
+		eonetUsage(os.Stderr)
 		os.Exit(1)
 	}
 	switch args[0] {
@@ -26,16 +27,16 @@ func eonetCmd(args []string) {
 	case "sources":
 		eonetSourcesCmd(args[1:])
 	case "--help", "-help", "-h":
-		eonetUsage()
+		eonetUsage(os.Stdout)
 	default:
 		fmt.Fprintf(os.Stderr, "nasa eonet: unknown command %q\n\n", args[0])
-		eonetUsage()
+		eonetUsage(os.Stderr)
 		os.Exit(1)
 	}
 }
 
-func eonetUsage() {
-	fmt.Fprintf(os.Stderr, `Usage: nasa eonet <command> [flags]
+func eonetUsage(w io.Writer) {
+	fmt.Fprintf(w, `Usage: nasa eonet <command> [flags]
 
 Commands:
   events       List natural events
@@ -93,14 +94,14 @@ Flags:
 	if *startFlag != "" {
 		t, err := time.Parse("2006-01-02", *startFlag)
 		if err != nil {
-			fatal("invalid --start date: %v", err)
+			fatal("eonet events: invalid --start date, expected YYYY-MM-DD")
 		}
 		opts = append(opts, nasa.EONETWithStart(t))
 	}
 	if *endFlag != "" {
 		t, err := time.Parse("2006-01-02", *endFlag)
 		if err != nil {
-			fatal("invalid --end date: %v", err)
+			fatal("eonet events: invalid --end date, expected YYYY-MM-DD")
 		}
 		opts = append(opts, nasa.EONETWithEnd(t))
 	}

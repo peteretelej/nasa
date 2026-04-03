@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"sort"
 	"strings"
@@ -13,7 +14,7 @@ import (
 
 func imagesCmd(args []string) {
 	if len(args) == 0 {
-		imagesUsage()
+		imagesUsage(os.Stderr)
 		os.Exit(1)
 	}
 	switch args[0] {
@@ -26,16 +27,16 @@ func imagesCmd(args []string) {
 	case "captions":
 		imagesCaptionsCmd(args[1:])
 	case "--help", "-help", "-h":
-		imagesUsage()
+		imagesUsage(os.Stdout)
 	default:
 		fmt.Fprintf(os.Stderr, "nasa images: unknown command %q\n\n", args[0])
-		imagesUsage()
+		imagesUsage(os.Stderr)
 		os.Exit(1)
 	}
 }
 
-func imagesUsage() {
-	fmt.Fprintf(os.Stderr, `Usage: nasa images <command> [flags]
+func imagesUsage(w io.Writer) {
+	fmt.Fprintf(w, `Usage: nasa images <command> [flags]
 
 Commands:
   search      Search the NASA Image and Video Library

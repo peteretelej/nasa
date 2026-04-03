@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"sort"
 	"time"
@@ -13,7 +14,7 @@ import (
 
 func neoCmd(args []string) {
 	if len(args) == 0 {
-		neoUsage()
+		neoUsage(os.Stderr)
 		os.Exit(1)
 	}
 	switch args[0] {
@@ -24,16 +25,16 @@ func neoCmd(args []string) {
 	case "browse":
 		neoBrowseCmd(args[1:])
 	case "--help", "-help", "-h":
-		neoUsage()
+		neoUsage(os.Stdout)
 	default:
 		fmt.Fprintf(os.Stderr, "nasa neo: unknown command %q\n\n", args[0])
-		neoUsage()
+		neoUsage(os.Stderr)
 		os.Exit(1)
 	}
 }
 
-func neoUsage() {
-	fmt.Fprintf(os.Stderr, `Usage: nasa neo <command> [flags]
+func neoUsage(w io.Writer) {
+	fmt.Fprintf(w, `Usage: nasa neo <command> [flags]
 
 Commands:
   feed      List near-Earth objects by date range
@@ -72,7 +73,7 @@ Flags:
 		var err error
 		start, err = time.Parse("2006-01-02", *startFlag)
 		if err != nil {
-			fatal("invalid --start date: %v", err)
+			fatal("neo feed: invalid --start date, expected YYYY-MM-DD")
 		}
 	}
 	end := start.Add(7 * 24 * time.Hour)
@@ -80,7 +81,7 @@ Flags:
 		var err error
 		end, err = time.Parse("2006-01-02", *endFlag)
 		if err != nil {
-			fatal("invalid --end date: %v", err)
+			fatal("neo feed: invalid --end date, expected YYYY-MM-DD")
 		}
 	}
 

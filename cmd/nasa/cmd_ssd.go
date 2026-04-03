@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 
 func ssdCmd(args []string) {
 	if len(args) == 0 {
-		ssdUsage()
+		ssdUsage(os.Stderr)
 		os.Exit(1)
 	}
 	switch args[0] {
@@ -29,16 +30,16 @@ func ssdCmd(args []string) {
 	case "sbdb":
 		ssdSBDBCmd(args[1:])
 	case "--help", "-help", "-h":
-		ssdUsage()
+		ssdUsage(os.Stdout)
 	default:
 		fmt.Fprintf(os.Stderr, "nasa ssd: unknown command %q\n\n", args[0])
-		ssdUsage()
+		ssdUsage(os.Stderr)
 		os.Exit(1)
 	}
 }
 
-func ssdUsage() {
-	fmt.Fprintf(os.Stderr, `Usage: nasa ssd <command> [flags]
+func ssdUsage(w io.Writer) {
+	fmt.Fprintf(w, `Usage: nasa ssd <command> [flags]
 
 Commands:
   cad         Close Approach Data
@@ -79,14 +80,14 @@ Flags:
 	if *dateMin != "" {
 		t, err := time.Parse("2006-01-02", *dateMin)
 		if err != nil {
-			fatal("invalid --date-min: %v", err)
+			fatal("ssd cad: invalid --date-min, expected YYYY-MM-DD")
 		}
 		opts = append(opts, nasa.CADWithDateMin(t))
 	}
 	if *dateMax != "" {
 		t, err := time.Parse("2006-01-02", *dateMax)
 		if err != nil {
-			fatal("invalid --date-max: %v", err)
+			fatal("ssd cad: invalid --date-max, expected YYYY-MM-DD")
 		}
 		opts = append(opts, nasa.CADWithDateMax(t))
 	}
@@ -155,14 +156,14 @@ Flags:
 	if *dateMin != "" {
 		t, err := time.Parse("2006-01-02", *dateMin)
 		if err != nil {
-			fatal("invalid --date-min: %v", err)
+			fatal("ssd fireball: invalid --date-min, expected YYYY-MM-DD")
 		}
 		opts = append(opts, nasa.FireballWithDateMin(t))
 	}
 	if *dateMax != "" {
 		t, err := time.Parse("2006-01-02", *dateMax)
 		if err != nil {
-			fatal("invalid --date-max: %v", err)
+			fatal("ssd fireball: invalid --date-max, expected YYYY-MM-DD")
 		}
 		opts = append(opts, nasa.FireballWithDateMax(t))
 	}
