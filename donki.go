@@ -350,14 +350,186 @@ type Notification struct {
 	LinkedEvents     []LinkedEvent `json:"linkedEvents"`
 }
 
-// --- Helpers ---
+// --- Option types ---
 
-// Compile-time references to suppress unused warnings until Phase 2 adds
-// the API methods that call these helpers.
-var (
-	_ = donkiParams
-	_ = donkiGet[CMEEvent]
-)
+// CMEAnalysisOption configures optional query parameters for the CMEAnalysis
+// method. Use the With* constructors to create options.
+type CMEAnalysisOption func(url.Values)
+
+// WithMostAccurateOnly filters CME analysis results to only the most accurate
+// entry per CME event when true. The DONKI API defaults to true.
+func WithMostAccurateOnly(v bool) CMEAnalysisOption {
+	return func(params url.Values) {
+		params.Set("mostAccurateOnly", strconv.FormatBool(v))
+	}
+}
+
+// WithCompleteEntryOnly filters CME analysis results to only entries with
+// complete data when true. The DONKI API defaults to true.
+func WithCompleteEntryOnly(v bool) CMEAnalysisOption {
+	return func(params url.Values) {
+		params.Set("completeEntryOnly", strconv.FormatBool(v))
+	}
+}
+
+// WithSpeed sets the minimum speed (km/s) lower-limit filter for CME analysis
+// results. The min parameter sets the lower bound; max is accepted for
+// forward-compatibility but the DONKI API currently only supports a lower
+// limit (defaults to 0).
+func WithSpeed(min, max float64) CMEAnalysisOption {
+	return func(params url.Values) {
+		params.Set("speed", strconv.FormatFloat(min, 'f', -1, 64))
+	}
+}
+
+// WithHalfAngle sets the minimum half-angle (degrees) lower-limit filter for
+// CME analysis results. The min parameter sets the lower bound; max is accepted
+// for forward-compatibility but the DONKI API currently only supports a lower
+// limit (defaults to 0).
+func WithHalfAngle(min, max float64) CMEAnalysisOption {
+	return func(params url.Values) {
+		params.Set("halfAngle", strconv.FormatFloat(min, 'f', -1, 64))
+	}
+}
+
+// WithCatalog filters CME analysis results by catalog name. Common values are
+// "ALL", "M2M_CATALOG", "SWPC_ANNEX_CME_CATALOG", and "SEPVAL_CME_CATALOG".
+// The DONKI API defaults to "ALL".
+func WithCatalog(catalog string) CMEAnalysisOption {
+	return func(params url.Values) {
+		params.Set("catalog", catalog)
+	}
+}
+
+// IPSOption configures optional query parameters for the IPS method.
+// Use the With* constructors to create options.
+type IPSOption func(url.Values)
+
+// WithLocation filters interplanetary shock results by observer location.
+// Common values are "Earth", "Mars", "MESSENGER", "STEREO A", "STEREO B".
+// The DONKI API defaults to "ALL".
+func WithLocation(loc string) IPSOption {
+	return func(params url.Values) {
+		params.Set("location", loc)
+	}
+}
+
+// WithIPSCatalog filters interplanetary shock results by catalog name.
+// Common values are "ALL", "M2M_CATALOG", "WINSLOW_MESSENGER_ICME_CATALOG".
+// The DONKI API defaults to "ALL".
+func WithIPSCatalog(catalog string) IPSOption {
+	return func(params url.Values) {
+		params.Set("catalog", catalog)
+	}
+}
+
+// --- API methods ---
+
+// CME retrieves Coronal Mass Ejection events from the DONKI API.
+// When start is the zero value, defaults to 30 days ago. When end is the zero
+// value, defaults to today. The DONKI API returns all results in a single
+// response.
+func (s *DONKIService) CME(ctx context.Context, start, end time.Time) ([]*CMEEvent, error) {
+	return donkiGet[CMEEvent](ctx, s, "/DONKI/CME", donkiParams(start, end))
+}
+
+// CMEAnalysis retrieves CME analysis entries from the DONKI API, with optional
+// filtering by accuracy, completeness, speed, half-angle, and catalog.
+// When start is the zero value, defaults to 30 days ago. When end is the zero
+// value, defaults to today. The DONKI API returns all results in a single
+// response.
+func (s *DONKIService) CMEAnalysis(ctx context.Context, start, end time.Time, opts ...CMEAnalysisOption) ([]*CMEAnalysis, error) {
+	params := donkiParams(start, end)
+	for _, o := range opts {
+		o(params)
+	}
+	return donkiGet[CMEAnalysis](ctx, s, "/DONKI/CMEAnalysis", params)
+}
+
+// GST retrieves Geomagnetic Storm events from the DONKI API.
+// When start is the zero value, defaults to 30 days ago. When end is the zero
+// value, defaults to today. The DONKI API returns all results in a single
+// response.
+func (s *DONKIService) GST(ctx context.Context, start, end time.Time) ([]*GSTEvent, error) {
+	return donkiGet[GSTEvent](ctx, s, "/DONKI/GST", donkiParams(start, end))
+}
+
+// IPS retrieves Interplanetary Shock events from the DONKI API, with optional
+// filtering by location and catalog.
+// When start is the zero value, defaults to 30 days ago. When end is the zero
+// value, defaults to today. The DONKI API returns all results in a single
+// response.
+func (s *DONKIService) IPS(ctx context.Context, start, end time.Time, opts ...IPSOption) ([]*IPSEvent, error) {
+	params := donkiParams(start, end)
+	for _, o := range opts {
+		o(params)
+	}
+	return donkiGet[IPSEvent](ctx, s, "/DONKI/IPS", params)
+}
+
+// FLR retrieves Solar Flare events from the DONKI API.
+// When start is the zero value, defaults to 30 days ago. When end is the zero
+// value, defaults to today. The DONKI API returns all results in a single
+// response.
+func (s *DONKIService) FLR(ctx context.Context, start, end time.Time) ([]*FLREvent, error) {
+	return donkiGet[FLREvent](ctx, s, "/DONKI/FLR", donkiParams(start, end))
+}
+
+// SEP retrieves Solar Energetic Particle events from the DONKI API.
+// When start is the zero value, defaults to 30 days ago. When end is the zero
+// value, defaults to today. The DONKI API returns all results in a single
+// response.
+func (s *DONKIService) SEP(ctx context.Context, start, end time.Time) ([]*SEPEvent, error) {
+	return donkiGet[SEPEvent](ctx, s, "/DONKI/SEP", donkiParams(start, end))
+}
+
+// MPC retrieves Magnetopause Crossing events from the DONKI API.
+// When start is the zero value, defaults to 30 days ago. When end is the zero
+// value, defaults to today. The DONKI API returns all results in a single
+// response.
+func (s *DONKIService) MPC(ctx context.Context, start, end time.Time) ([]*MPCEvent, error) {
+	return donkiGet[MPCEvent](ctx, s, "/DONKI/MPC", donkiParams(start, end))
+}
+
+// RBE retrieves Radiation Belt Enhancement events from the DONKI API.
+// When start is the zero value, defaults to 30 days ago. When end is the zero
+// value, defaults to today. The DONKI API returns all results in a single
+// response.
+func (s *DONKIService) RBE(ctx context.Context, start, end time.Time) ([]*RBEEvent, error) {
+	return donkiGet[RBEEvent](ctx, s, "/DONKI/RBE", donkiParams(start, end))
+}
+
+// HSS retrieves High Speed Stream events from the DONKI API.
+// When start is the zero value, defaults to 30 days ago. When end is the zero
+// value, defaults to today. The DONKI API returns all results in a single
+// response.
+func (s *DONKIService) HSS(ctx context.Context, start, end time.Time) ([]*HSSEvent, error) {
+	return donkiGet[HSSEvent](ctx, s, "/DONKI/HSS", donkiParams(start, end))
+}
+
+// WSAEnlil retrieves WSA-Enlil simulation results from the DONKI API.
+// When start is the zero value, defaults to 30 days ago. When end is the zero
+// value, defaults to today. The DONKI API returns all results in a single
+// response.
+func (s *DONKIService) WSAEnlil(ctx context.Context, start, end time.Time) ([]*WSAEnlilEvent, error) {
+	return donkiGet[WSAEnlilEvent](ctx, s, "/DONKI/WSAEnlilSimulations", donkiParams(start, end))
+}
+
+// Notifications retrieves DONKI notification messages, optionally filtered by
+// type. When notificationType is non-empty, only notifications of that type are
+// returned. Common values are "all", "FLR", "SEP", "CME", "IPS", "MPC", "GST",
+// "RBE", and "report". When start is the zero value, defaults to 30 days ago.
+// When end is the zero value, defaults to today. The DONKI API returns all
+// results in a single response.
+func (s *DONKIService) Notifications(ctx context.Context, start, end time.Time, notificationType string) ([]*Notification, error) {
+	params := donkiParams(start, end)
+	if notificationType != "" {
+		params.Set("type", notificationType)
+	}
+	return donkiGet[Notification](ctx, s, "/DONKI/notifications", params)
+}
+
+// --- Helpers ---
 
 // donkiParams builds the standard startDate/endDate query parameters for DONKI
 // API requests. When start is zero, it defaults to 30 days ago. When end is
