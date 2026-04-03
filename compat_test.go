@@ -25,7 +25,7 @@ func TestAPODGet_Wrapper(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(data)
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST_KEY"))
 	date := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
@@ -57,7 +57,7 @@ func TestAPODTodayWithKey_Wrapper(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(data)
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST_KEY"))
 	img, err := c.APOD.Today(context.Background())
@@ -84,7 +84,7 @@ func TestNEOFeedWithKey_Wrapper(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(data)
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST_KEY"))
 	start := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)

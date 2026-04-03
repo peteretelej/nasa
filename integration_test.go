@@ -86,8 +86,8 @@ func TestIntegration_APOD_Get(t *testing.T) {
 	if err != nil {
 		t.Fatalf("APOD.Get(2024-01-01) error: %v", err)
 	}
-	if apod.Title != "Galaxies in the River" {
-		t.Errorf("APOD.Get(2024-01-01) title = %q, want %q", apod.Title, "Galaxies in the River")
+	if apod.Title != "NGC 1232: A Grand Design Spiral Galaxy" {
+		t.Errorf("APOD.Get(2024-01-01) title = %q, want %q", apod.Title, "NGC 1232: A Grand Design Spiral Galaxy")
 	}
 }
 

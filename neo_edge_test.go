@@ -26,7 +26,7 @@ func TestNEOFeed_EmptyStringFloatHandling(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(fixture)
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"))
 	start := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
@@ -102,7 +102,7 @@ func TestNEOFeed_HTTPLinkFixupNested(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(fixture)
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"))
 	start := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)

@@ -29,7 +29,7 @@ func TestNEOService_Feed(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(fixture)
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"))
 	start := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
@@ -89,7 +89,7 @@ func TestNEOService_Feed_DateValidation(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("HTTP request should not have been made for invalid date range")
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"))
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -108,7 +108,7 @@ func TestNEOService_Feed_InvalidRange(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("HTTP request should not have been made for start > end")
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"))
 	start := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
@@ -136,7 +136,7 @@ func TestNEOService_Get(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(fixture)
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"))
 	neo, err := c.NEO.Get(context.Background(), "2021277")
@@ -185,7 +185,7 @@ func TestNEOService_Get_EmptyID(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("HTTP request should not have been made for empty ID")
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"))
 	_, err := c.NEO.Get(context.Background(), "")
@@ -215,7 +215,7 @@ func TestNEOService_Browse(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(fixture)
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"))
 	browse, err := c.NEO.Browse(context.Background(), 0, 2)
@@ -331,7 +331,7 @@ func TestNEOService_Feed_APIError(t *testing.T) {
 		w.WriteHeader(http.StatusTooManyRequests)
 		w.Write([]byte(`{"error":{"message":"rate limit exceeded"}}`))
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"))
 	start := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)

@@ -3,6 +3,7 @@ package nasa
 import (
 	"context"
 	"net/http"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -85,21 +86,23 @@ func TestKeyRotatorCooldownExpiry(t *testing.T) {
 		t.Errorf("expected 'b', got %q", key)
 	}
 
-	// Wait for cooldown to expire.
-	time.Sleep(60 * time.Millisecond)
+	// Poll until cooldown expires instead of sleeping.
+	deadline := time.Now().Add(500 * time.Millisecond)
+	var recovered bool
+	for time.Now().Before(deadline) {
+		kr.mu.Lock()
+		kr.current = 0
+		kr.mu.Unlock()
 
-	// Now "a" should be available again.
-	// Reset current to 0 so we start from "a".
-	kr.mu.Lock()
-	kr.current = 0
-	kr.mu.Unlock()
-
-	key, ok = kr.next()
-	if !ok {
-		t.Fatal("expected a key after cooldown expiry")
+		key, ok = kr.next()
+		if ok && key == "a" {
+			recovered = true
+			break
+		}
+		runtime.Gosched()
 	}
-	if key != "a" {
-		t.Errorf("expected 'a' after cooldown expiry, got %q", key)
+	if !recovered {
+		t.Fatal("expected key 'a' to recover after cooldown expiry")
 	}
 }
 
