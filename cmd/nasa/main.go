@@ -1,100 +1,65 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"log"
+	"io"
 	"os"
-	"time"
-
-	"github.com/peteretelej/nasa"
 )
 
-// subcommands and flags
-var (
-	apodCommand = flag.NewFlagSet("apod", flag.ExitOnError)
-	apodDate    = apodCommand.String("date", "", "APOD on a particular date YYYY-MM-DD")
-
-	neoCommand = flag.NewFlagSet("neo", flag.ExitOnError)
-	neoStart   = neoCommand.String("start", "", "NEO start date YYYY-MM-DD")
-	neoEnd     = neoCommand.String("end", "", "NEO end date YYYY-MM-DD")
-
-	webCommand = flag.NewFlagSet("web", flag.ExitOnError)
-	webListen  = webCommand.String("listen", ":8080", "http web server address")
-)
-
-func init() {
-	if os.Getenv("NASAKEY") == "" {
-		fmt.Print(nasa.APIKEYMissing)
-	}
-}
+var version = "dev"
 
 func main() {
-	flag.Parse()
-	if len(os.Args) == 1 {
-		os.Args = append(os.Args, "apod")
+	// Handle global flags before subcommand dispatch.
+	// --version: print version and exit 0
+	// --help or -h: print usage and exit 0
+	// No args: print usage and exit 1
+
+	if len(os.Args) < 2 {
+		printUsage(os.Stderr)
+		os.Exit(1)
 	}
 
 	switch os.Args[1] {
+	case "--version", "-version":
+		fmt.Println(version)
+		return
+	case "--help", "-help", "-h":
+		printUsage(os.Stdout)
+		return
 	case "apod":
-		t := time.Now()
-		if len(os.Args) > 2 {
-			_ = apodCommand.Parse(os.Args[2:]) // exits on error
-		}
-		if *apodDate != "" {
-			var err error
-			t, err = time.Parse("2006-01-02", *apodDate)
-			if err != nil {
-				fmt.Printf("nasa apod: invalid -date, should use format YYYY-MM-DD\n")
-				os.Exit(1)
-			}
-		}
-		apod, err := nasa.ApodImage(t)
-		if err != nil {
-			fmt.Printf("unable to get apod: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Println(apod)
+		apodCmd(os.Args[2:])
 	case "neo":
-		if len(os.Args) > 2 {
-			_ = neoCommand.Parse(os.Args[2:]) //exits on error
-		}
-		start, end := *neoStart, *neoEnd
-		today := time.Now().Format("2006-01-02")
-		if start == "" {
-			start = today
-		}
-		if end == "" {
-			end = today
-		}
-		st, err := time.Parse("2006-01-02", start)
-		if err != nil {
-			fmt.Printf("nasa neo: invalid -start date, should be YYYY-MM-DD\n")
-			os.Exit(1)
-		}
-		et, err := time.Parse("2006-01-02", end)
-		if err != nil {
-			fmt.Printf("nasa neo: invalid -end date, should be YYYY-MM-DD\n")
-			os.Exit(1)
-		}
-		nl, err := nasa.NeoFeed(st, et)
-		if err != nil {
-			fmt.Printf("nasa neo: %v", err)
-			os.Exit(1)
-		}
-		fmt.Println(nl)
-	case "web":
-		if len(os.Args) > 2 {
-			_ = webCommand.Parse(os.Args[2:]) //exits on error
-		}
-		svr, err := nasa.NewServer(*webListen)
-		if err != nil {
-			fmt.Printf("failed to launch webserver: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("nasa web: launching http server at %s\n", svr.Addr)
-		if err := svr.ListenAndServe(); err != nil {
-			log.Fatalf("server crashed: %v", err)
-		}
+		neoCmd(os.Args[2:])
+	case "donki":
+		donkiCmd(os.Args[2:])
+	case "images":
+		imagesCmd(os.Args[2:])
+	case "ssd":
+		ssdCmd(os.Args[2:])
+	case "eonet":
+		eonetCmd(os.Args[2:])
+	default:
+		fmt.Fprintf(os.Stderr, "nasa: unknown command %q\n\n", os.Args[1])
+		printUsage(os.Stderr)
+		os.Exit(1)
 	}
+}
+
+func printUsage(w io.Writer) {
+	fmt.Fprintf(w, `Usage: nasa <command> [flags]
+
+Commands:
+  apod      Astronomy Picture of the Day
+  neo       Near-Earth Object Web Service
+  donki     Space Weather (DONKI)
+  images    NASA Image and Video Library
+  ssd       Small-Body Database (SSD/CNEOS)
+  eonet     Earth Observatory Natural Event Tracker
+
+Global flags:
+  --version   Print version and exit
+  --help      Show this help message
+
+Use "nasa <command> --help" for more information about a command.
+`)
 }

@@ -1,0 +1,11 @@
+[Unit]
+After=network.target
+Description=Nasa Wallpapers
+
+[Service]
+# PATH TO nasa-wallpapers binary (e.g. go build -o /usr/local/bin/nasa-wallpapers ./examples/wallpaper/)
+ExecStart=/usr/local/bin/nasa-wallpapers
+Environment=NASA_API_KEY=YOUR_NASA_API_KEY XDG_CURRENT_DESKTOP=Unity
+
+[Install]
+WantedBy=multi-user.target
