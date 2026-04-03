@@ -62,4 +62,4 @@ go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4 run ./...
 ## Notes
 
 - GitHub Pages must be enabled in repo settings (Settings > Pages > Source > GitHub Actions) for docs deployment.
-- After this work merges, `v1.0.0` will be tagged on `main`, making the module indexable on [pkg.go.dev](https://pkg.go.dev/github.com/peteretelej/nasa).
+- Tagged releases on `main` make the module indexable on [pkg.go.dev](https://pkg.go.dev/github.com/peteretelej/nasa). See [docs/release-checklist.md](docs/release-checklist.md) for the release process.
