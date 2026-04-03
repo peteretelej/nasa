@@ -1,0 +1,40 @@
+{
+  "collection": {
+    "items": [
+      {
+        "data": [
+          {
+            "nasa_id": "PIA67890",
+            "title": "Mars Perseverance Rover",
+            "description": "Perseverance rover on the surface of Mars.",
+            "media_type": "image",
+            "center": "JPL",
+            "date_created": "2021-02-18T00:00:00Z",
+            "keywords": ["Mars", "Perseverance", "Rover"]
+          }
+        ],
+        "links": [
+          {
+            "href": "https://images-assets.nasa.gov/image/PIA67890/PIA67890~thumb.jpg",
+            "rel": "preview",
+            "render": "image"
+          }
+        ],
+        "href": "https://images-assets.nasa.gov/image/PIA67890/collection.json"
+      }
+    ],
+    "metadata": {
+      "total_hits": 250
+    },
+    "links": [
+      {
+        "href": "http://images-api.nasa.gov/search?q=mars&page=3",
+        "rel": "next"
+      },
+      {
+        "href": "http://images-api.nasa.gov/search?q=mars&page=1",
+        "rel": "prev"
+      }
+    ]
+  }
+}
