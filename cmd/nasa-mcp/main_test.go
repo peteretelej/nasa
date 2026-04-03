@@ -115,8 +115,10 @@ func TestToolsList(t *testing.T) {
 }
 
 func TestToolsCall(t *testing.T) {
+	// Call nasa_neo_get without required asteroid_id to get an error result
+	// without needing a live API client.
 	req := makeRequest(3, "tools/call", map[string]any{
-		"name":      "nasa_apod",
+		"name":      "nasa_neo_get",
 		"arguments": map[string]any{},
 	})
 
@@ -128,7 +130,7 @@ func TestToolsCall(t *testing.T) {
 		t.Fatalf("unexpected error: %+v", resp.Error)
 	}
 
-	// The result is a ToolResult; re-marshal to inspect.
+	// The result is a ToolResult with isError true (missing required param).
 	b, err := json.Marshal(resp.Result)
 	if err != nil {
 		t.Fatalf("marshal result: %v", err)
@@ -142,6 +144,9 @@ func TestToolsCall(t *testing.T) {
 	}
 	if tr.Content[0].Type != "text" {
 		t.Errorf("expected content type text, got %s", tr.Content[0].Type)
+	}
+	if !tr.IsError {
+		t.Error("expected isError true for missing required param")
 	}
 }
 
@@ -184,6 +189,63 @@ func TestNotificationNoResponse(t *testing.T) {
 	resp := handleMessage(req, nil)
 	if resp != nil {
 		t.Fatalf("expected nil response for notification, got %+v", resp)
+	}
+}
+
+func TestAllToolsRegistered(t *testing.T) {
+	req := makeRequest(10, "tools/list", map[string]any{})
+
+	resp := handleMessage(req, nil)
+	if resp == nil {
+		t.Fatal("expected response, got nil")
+	}
+	if resp.Error != nil {
+		t.Fatalf("unexpected error: %+v", resp.Error)
+	}
+
+	m := resultMap(t, resp)
+	toolsRaw, ok := m["tools"].([]any)
+	if !ok {
+		t.Fatal("tools missing or not an array")
+	}
+
+	expectedNames := []string{
+		"nasa_apod",
+		"nasa_apod_range",
+		"nasa_neo_feed",
+		"nasa_neo_get",
+		"nasa_donki_cme",
+		"nasa_donki_gst",
+		"nasa_donki_flr",
+		"nasa_donki_sep",
+		"nasa_donki_notifications",
+		"nasa_images_search",
+		"nasa_ssd_cad",
+		"nasa_ssd_fireball",
+		"nasa_eonet_events",
+	}
+
+	if len(toolsRaw) != len(expectedNames) {
+		t.Fatalf("expected %d tools, got %d", len(expectedNames), len(toolsRaw))
+	}
+
+	nameSet := make(map[string]bool)
+	for _, raw := range toolsRaw {
+		tool, ok := raw.(map[string]any)
+		if !ok {
+			t.Fatal("tool entry is not an object")
+		}
+		name, ok := tool["name"].(string)
+		if !ok {
+			t.Fatal("tool missing name string")
+		}
+		nameSet[name] = true
+	}
+
+	for _, expected := range expectedNames {
+		if !nameSet[expected] {
+			t.Errorf("missing expected tool: %s", expected)
+		}
 	}
 }
 
