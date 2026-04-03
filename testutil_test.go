@@ -5,8 +5,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 )
+
+var oversizedResponseText = strings.Repeat("x", (1<<20)+1024)
 
 // setupMockServer creates an httptest.Server with the given handler and returns
 // a Client configured to use it. The server is automatically closed when the
@@ -27,6 +30,10 @@ func loadFixture(t *testing.T, name string) []byte {
 		t.Fatalf("loadFixture(%q): %v", name, err)
 	}
 	return data
+}
+
+func oversizedText() string {
+	return oversizedResponseText
 }
 
 // assertErrorType asserts that err is of type T using errors.As.

@@ -2,6 +2,7 @@ package nasa
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -348,5 +349,64 @@ func TestEONETAuthWithoutKey(t *testing.T) {
 	apiKey := req.URL.Query().Get("api_key")
 	if apiKey != "" {
 		t.Errorf("expected no api_key param for DEMO_KEY, got %q", apiKey)
+	}
+}
+
+func TestEONETUsesRotatingClientKeys(t *testing.T) {
+	var gotKeys []string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotKeys = append(gotKeys, r.URL.Query().Get("api_key"))
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = fmt.Fprint(w, `{"title":"events","events":[]}`)
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(WithAPIKeys([]string{"key1", "key2"}), WithRateLimit(1000))
+	c.rateLimiter.keys.keys = []string{"key1", "key2"}
+	c.rateLimiter.keys.current = 0
+	svc := &EONETService{client: c, baseURL: ts.URL, apiKey: c.apiKeys[0]}
+
+	for range 4 {
+		if _, err := svc.Events(context.Background()); err != nil {
+			t.Fatalf("Events() error: %v", err)
+		}
+	}
+
+	want := []string{"key1", "key2", "key1", "key2"}
+	if len(gotKeys) != len(want) {
+		t.Fatalf("expected %d requests, got %d", len(want), len(gotKeys))
+	}
+	for i, wantKey := range want {
+		if gotKeys[i] != wantKey {
+			t.Fatalf("request %d used key %q, want %q", i+1, gotKeys[i], wantKey)
+		}
+	}
+}
+
+func TestEONETEventUsesRotatingClientKeys(t *testing.T) {
+	var gotKeys []string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotKeys = append(gotKeys, r.URL.Query().Get("api_key"))
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = fmt.Fprint(w, `{"id":"EONET_1","title":"test"}`)
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(WithAPIKeys([]string{"key1", "key2"}), WithRateLimit(1000))
+	c.rateLimiter.keys.keys = []string{"key1", "key2"}
+	c.rateLimiter.keys.current = 0
+	svc := &EONETService{client: c, baseURL: ts.URL, apiKey: c.apiKeys[0]}
+
+	for range 3 {
+		if _, err := svc.Event(context.Background(), "EONET_1"); err != nil {
+			t.Fatalf("Event() error: %v", err)
+		}
+	}
+
+	want := []string{"key1", "key2", "key1"}
+	for i, wantKey := range want {
+		if gotKeys[i] != wantKey {
+			t.Fatalf("request %d used key %q, want %q", i+1, gotKeys[i], wantKey)
+		}
 	}
 }

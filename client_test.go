@@ -11,6 +11,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
 func TestNewClientDefaults(t *testing.T) {
@@ -264,6 +266,58 @@ func TestGet429AllKeysLimited(t *testing.T) {
 	var rlErr *RateLimitError
 	if !errors.As(err, &rlErr) {
 		t.Errorf("expected RateLimitError, got %T: %v", err, err)
+	}
+}
+
+func TestGet429RetryReEntersRateLimiter(t *testing.T) {
+	var requestKeys []string
+	var requestCount atomic.Int32
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestKeys = append(requestKeys, r.URL.Query().Get("api_key"))
+
+		if requestCount.Add(1) == 1 {
+			w.Header().Set("Retry-After", "1")
+			w.WriteHeader(http.StatusTooManyRequests)
+			_, _ = w.Write([]byte(`{"error":{"message":"rate limited"}}`))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"title":"success"}`))
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(
+		WithBaseURL(ts.URL),
+		WithAPIKeys([]string{"key1", "key2"}),
+		WithRateLimit(1000),
+	)
+	c.rateLimiter.keys.keys = []string{"key1", "key2"}
+	c.rateLimiter.keys.current = 0
+	c.rateLimiter.limiter = rate.NewLimiter(rate.Every(250*time.Millisecond), 1)
+	if !c.rateLimiter.limiter.Allow() {
+		t.Fatal("expected to consume initial burst token")
+	}
+
+	start := time.Now()
+	resp, err := c.get(context.Background(), "/test", nil, true)
+	if err != nil {
+		t.Fatalf("expected success after retry, got error: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if requestCount.Load() != 2 {
+		t.Fatalf("expected 2 requests, got %d", requestCount.Load())
+	}
+	if requestKeys[0] != "key1" || requestKeys[1] != "key2" {
+		t.Fatalf("unexpected key order: %v", requestKeys)
+	}
+
+	elapsed := time.Since(start)
+	if elapsed < 450*time.Millisecond {
+		t.Fatalf("total time = %v, want two limiter waits across retry", elapsed)
 	}
 }
 

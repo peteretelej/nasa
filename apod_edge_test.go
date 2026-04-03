@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -138,5 +140,53 @@ func TestAPODRandom_CountZero(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "count must be at least 1") {
 		t.Errorf("error = %q, should mention count constraint", err.Error())
+	}
+}
+
+func TestAPODGet_TimezoneEdgeUsesSameDateForValidationAndWire(t *testing.T) {
+	loc := time.FixedZone("east", 2*60*60)
+	date := time.Date(1995, 6, 16, 0, 30, 0, 0, loc)
+
+	var gotDate string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotDate = r.URL.Query().Get("date")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(loadFixture(t, "apod_single.json"))
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST_KEY"), WithRateLimit(1000))
+	if _, err := c.APOD.Get(context.Background(), date); err != nil {
+		t.Fatalf("Get() should accept the same wire date it sends, got error: %v", err)
+	}
+
+	if gotDate != "1995-06-16" {
+		t.Fatalf("wire date = %q, want 1995-06-16", gotDate)
+	}
+}
+
+func TestAPODGetRange_TimezoneEdgeUsesSameDatesForValidationAndWire(t *testing.T) {
+	loc := time.FixedZone("east", 2*60*60)
+	start := time.Date(1995, 6, 16, 0, 30, 0, 0, loc)
+	end := time.Date(1995, 6, 17, 0, 30, 0, 0, loc)
+
+	var gotQuery url.Values
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotQuery = r.URL.Query()
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(loadFixture(t, "apod_range.json"))
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST_KEY"), WithRateLimit(1000))
+	if _, err := c.APOD.GetRange(context.Background(), start, end); err != nil {
+		t.Fatalf("GetRange() should validate against the same dates it sends, got error: %v", err)
+	}
+
+	if gotQuery.Get("start_date") != "1995-06-16" {
+		t.Fatalf("start_date = %q, want 1995-06-16", gotQuery.Get("start_date"))
+	}
+	if gotQuery.Get("end_date") != "1995-06-17" {
+		t.Fatalf("end_date = %q, want 1995-06-17", gotQuery.Get("end_date"))
 	}
 }

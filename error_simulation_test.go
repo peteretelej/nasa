@@ -3,6 +3,7 @@ package nasa
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -174,4 +175,220 @@ func TestServiceError_EmptyBody200(t *testing.T) {
 		!strings.Contains(strings.ToLower(errMsg), "eof") {
 		t.Errorf("expected JSON/unmarshal error, got %q", errMsg)
 	}
+}
+
+func assertExplicitBodyLimitError(t *testing.T, err error) {
+	t.Helper()
+	if err == nil {
+		t.Fatal("expected explicit size-limit error for oversized successful response body")
+	}
+	lower := strings.ToLower(err.Error())
+	if !strings.Contains(lower, "too large") &&
+		!strings.Contains(lower, "size limit") &&
+		!strings.Contains(lower, "body limit") {
+		t.Fatalf("error = %q, want explicit size-limit error", err.Error())
+	}
+}
+
+func TestOversizedSuccessBodies_APOD(t *testing.T) {
+	single := fmt.Sprintf(`{"date":"2024-01-15","title":"%s","explanation":"ok","url":"https://example.com/image.jpg","media_type":"image","service_version":"v1"}`,
+		oversizedText())
+	rangeBody := "[" + single + "]"
+
+	t.Run("Today", func(t *testing.T) {
+		c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(single))
+		})
+		_, err := c.APOD.Today(context.Background())
+		assertExplicitBodyLimitError(t, err)
+	})
+
+	t.Run("Get", func(t *testing.T) {
+		c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(single))
+		})
+		_, err := c.APOD.Get(context.Background(), time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC))
+		assertExplicitBodyLimitError(t, err)
+	})
+
+	t.Run("GetRange", func(t *testing.T) {
+		c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(rangeBody))
+		})
+		_, err := c.APOD.GetRange(context.Background(), time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC), time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC))
+		assertExplicitBodyLimitError(t, err)
+	})
+
+	t.Run("Random", func(t *testing.T) {
+		c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(rangeBody))
+		})
+		_, err := c.APOD.Random(context.Background(), 1)
+		assertExplicitBodyLimitError(t, err)
+	})
+}
+
+func TestOversizedSuccessBodies_NEO(t *testing.T) {
+	neoObject := fmt.Sprintf(`{"id":"1","neo_reference_id":"1","name":"%s","nasa_jpl_url":"https://example.com/neo/1","absolute_magnitude_h":1,"estimated_diameter":{"kilometers":{"estimated_diameter_min":1,"estimated_diameter_max":2},"meters":{"estimated_diameter_min":1,"estimated_diameter_max":2},"miles":{"estimated_diameter_min":1,"estimated_diameter_max":2},"feet":{"estimated_diameter_min":1,"estimated_diameter_max":2}},"is_potentially_hazardous_asteroid":false,"close_approach_data":[],"is_sentry_object":false}`,
+		oversizedText())
+	feedBody := fmt.Sprintf(`{"links":{"self":"http://api.nasa.gov/neo/rest/v1/feed"},"element_count":1,"near_earth_objects":{"2024-01-15":[%s]}}`, neoObject)
+	browseBody := fmt.Sprintf(`{"links":{"self":"http://api.nasa.gov/neo/rest/v1/neo/browse"},"page":{"size":1,"total_elements":1,"total_pages":1,"number":0},"near_earth_objects":[%s]}`, neoObject)
+
+	t.Run("Feed", func(t *testing.T) {
+		c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(feedBody))
+		})
+		_, err := c.NEO.Feed(context.Background(), time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC), time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC))
+		assertExplicitBodyLimitError(t, err)
+	})
+
+	t.Run("Get", func(t *testing.T) {
+		c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(neoObject))
+		})
+		_, err := c.NEO.Get(context.Background(), "1")
+		assertExplicitBodyLimitError(t, err)
+	})
+
+	t.Run("Browse", func(t *testing.T) {
+		c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(browseBody))
+		})
+		_, err := c.NEO.Browse(context.Background(), 0, 1)
+		assertExplicitBodyLimitError(t, err)
+	})
+}
+
+func TestOversizedSuccessBodies_DONKI(t *testing.T) {
+	body := fmt.Sprintf(`[{"activityID":"CME-1","catalog":"test","startTime":"2024-01-15T12:00Z","sourceLocation":"%s","link":"https://example.com/cme","instruments":[],"cmeAnalyses":[],"linkedEvents":[]}]`, oversizedText())
+	c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(body))
+	})
+
+	_, err := c.DONKI.CME(context.Background(), time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC), time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC))
+	assertExplicitBodyLimitError(t, err)
+}
+
+func TestOversizedSuccessBodies_EONET(t *testing.T) {
+	eventsBody := fmt.Sprintf(`{"title":"events","events":[{"id":"E1","title":"%s","categories":[],"sources":[],"geometry":[]}]}`,
+		oversizedText())
+	eventBody := fmt.Sprintf(`{"id":"E1","title":"%s","categories":[],"sources":[],"geometry":[]}`,
+		oversizedText())
+
+	t.Run("Events", func(t *testing.T) {
+		c := NewClient(WithAPIKey("TEST_KEY"), WithRateLimit(1000))
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(eventsBody))
+		}))
+		t.Cleanup(ts.Close)
+		svc := &EONETService{client: c, baseURL: ts.URL, apiKey: "TEST_KEY"}
+		_, err := svc.Events(context.Background())
+		assertExplicitBodyLimitError(t, err)
+	})
+
+	t.Run("Event", func(t *testing.T) {
+		c := NewClient(WithAPIKey("TEST_KEY"), WithRateLimit(1000))
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(eventBody))
+		}))
+		t.Cleanup(ts.Close)
+		svc := &EONETService{client: c, baseURL: ts.URL, apiKey: "TEST_KEY"}
+		_, err := svc.Event(context.Background(), "E1")
+		assertExplicitBodyLimitError(t, err)
+	})
+}
+
+func TestOversizedSuccessBodies_Images(t *testing.T) {
+	searchBody := fmt.Sprintf(`{"collection":{"items":[{"data":[{"nasa_id":"PIA12345","title":"%s","media_type":"image","date_created":"1969-07-20T00:00:00Z"}],"href":"https://example.com/collection.json","links":[{"href":"https://example.com/thumb.jpg","rel":"preview"}]}],"metadata":{"total_hits":1},"links":[]}}`, oversizedText())
+	assetBody := fmt.Sprintf(`{"collection":{"items":[{"href":"https://example.com/%s.jpg"}],"metadata":{"total_hits":1},"links":[]}}`, oversizedText())
+	metadataBody := fmt.Sprintf(`{"title":"%s"}`, oversizedText())
+
+	t.Run("Search", func(t *testing.T) {
+		c := NewClient(WithAPIKey("TEST_KEY"), WithRateLimit(1000))
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(searchBody))
+		}))
+		t.Cleanup(ts.Close)
+		svc := &ImageService{client: c, baseURL: ts.URL}
+		_, err := svc.Search(context.Background(), "apollo")
+		assertExplicitBodyLimitError(t, err)
+	})
+
+	t.Run("Asset", func(t *testing.T) {
+		c := NewClient(WithAPIKey("TEST_KEY"), WithRateLimit(1000))
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(assetBody))
+		}))
+		t.Cleanup(ts.Close)
+		svc := &ImageService{client: c, baseURL: ts.URL}
+		_, err := svc.Asset(context.Background(), "PIA12345")
+		assertExplicitBodyLimitError(t, err)
+	})
+
+	t.Run("Metadata", func(t *testing.T) {
+		c := NewClient(WithAPIKey("TEST_KEY"), WithRateLimit(1000))
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(metadataBody))
+		}))
+		t.Cleanup(ts.Close)
+		svc := &ImageService{client: c, baseURL: ts.URL}
+		_, err := svc.Metadata(context.Background(), "PIA12345")
+		assertExplicitBodyLimitError(t, err)
+	})
+
+	t.Run("Captions", func(t *testing.T) {
+		c := NewClient(WithAPIKey("TEST_KEY"), WithRateLimit(1000))
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			_, _ = w.Write([]byte(oversizedText()))
+		}))
+		t.Cleanup(ts.Close)
+		svc := &ImageService{client: c, baseURL: ts.URL}
+		_, err := svc.Captions(context.Background(), "VIDEO-1")
+		assertExplicitBodyLimitError(t, err)
+	})
+}
+
+func TestOversizedSuccessBodies_SSD(t *testing.T) {
+	columnarBody := fmt.Sprintf(`{"signature":{"source":"test","version":"1"},"count":1,"fields":["des","dist"],"data":[["%s","0.1"]]}`,
+		oversizedText())
+	listBody := fmt.Sprintf(`{"signature":{"source":"test","version":"1"},"count":1,"data":[{"des":"%s","fullname":"object","orbit_id":"1","h":"1","min_dv":{"dv":"1","dur":1},"min_dur":{"dv":"1","dur":1},"n_via_traj":1,"occ":"0","obs_flag":"Y"}]}`,
+		oversizedText())
+
+	t.Run("CloseApproach", func(t *testing.T) {
+		c := NewClient(WithAPIKey("TEST_KEY"), WithRateLimit(1000))
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(columnarBody))
+		}))
+		t.Cleanup(ts.Close)
+		svc := &SSDService{client: c, baseURL: ts.URL}
+		_, err := svc.CloseApproach(context.Background())
+		assertExplicitBodyLimitError(t, err)
+	})
+
+	t.Run("NHATS", func(t *testing.T) {
+		c := NewClient(WithAPIKey("TEST_KEY"), WithRateLimit(1000))
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(listBody))
+		}))
+		t.Cleanup(ts.Close)
+		svc := &SSDService{client: c, baseURL: ts.URL}
+		_, err := svc.NHATS(context.Background())
+		assertExplicitBodyLimitError(t, err)
+	})
 }

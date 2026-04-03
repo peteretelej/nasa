@@ -2,8 +2,10 @@ package nasa
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -150,5 +152,73 @@ func TestNEOFeed_HTTPLinkFixupNested(t *testing.T) {
 		if a.JPLURL == "" {
 			t.Errorf("asteroid %s: expected non-empty JPLURL", a.ID)
 		}
+	}
+}
+
+func TestNEOFeed_TimezoneEdgeUsesSameDatesForValidationAndWire(t *testing.T) {
+	loc := time.FixedZone("east", 2*60*60)
+	start := time.Date(2024, 1, 1, 0, 30, 0, 0, loc)
+	end := time.Date(2024, 1, 7, 0, 30, 0, 0, loc)
+
+	var gotQuery url.Values
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotQuery = r.URL.Query()
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(loadFixture(t, "neo_feed.json"))
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"), WithRateLimit(1000))
+	if _, err := c.NEO.Feed(context.Background(), start, end); err != nil {
+		t.Fatalf("Feed() should validate against the same dates it sends, got error: %v", err)
+	}
+
+	if gotQuery.Get("start_date") != "2024-01-01" {
+		t.Fatalf("start_date = %q, want 2024-01-01", gotQuery.Get("start_date"))
+	}
+	if gotQuery.Get("end_date") != "2024-01-08" {
+		t.Fatalf("end_date = %q, want 2024-01-08", gotQuery.Get("end_date"))
+	}
+}
+
+func TestNEOFeed_RejectsWireDateRangePastSevenDays(t *testing.T) {
+	loc := time.FixedZone("east", 2*60*60)
+	start := time.Date(2024, 1, 1, 0, 30, 0, 0, loc)
+	end := time.Date(2024, 1, 8, 0, 30, 0, 0, loc)
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Fatal("HTTP request should not be made when wire dates exceed 7 days")
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"), WithRateLimit(1000))
+	_, err := c.NEO.Feed(context.Background(), start, end)
+	if err == nil {
+		t.Fatal("expected error for wire date range > 7 days")
+	}
+	if !strings.Contains(err.Error(), "exceeds 7 days") {
+		t.Fatalf("error = %q, want range validation message", err.Error())
+	}
+}
+
+func TestNEOGet_EscapesCraftedAsteroidID(t *testing.T) {
+	craftedID := "2024/AB?x=1#frag"
+	var gotPath string
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.EscapedPath()
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = fmt.Fprint(w, `{"id":"2024/AB?x=1#frag","name":"crafted","close_approach_data":[]}`)
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST"), WithRateLimit(1000))
+	if _, err := c.NEO.Get(context.Background(), craftedID); err != nil {
+		t.Fatalf("Get() error: %v", err)
+	}
+
+	wantPath := "/neo/rest/v1/neo/" + url.PathEscape(craftedID)
+	if gotPath != wantPath {
+		t.Fatalf("escaped path = %q, want %q", gotPath, wantPath)
 	}
 }
