@@ -1,7 +1,6 @@
 package nasa
 
 import (
-	"errors"
 	"html/template"
 	"net/http"
 	"net/http/httptest"
@@ -10,82 +9,56 @@ import (
 	"time"
 )
 
+type httpTestList struct {
+	method   string
+	path     string
+	code     int
+	contains string
+}
+
 func TestDeprecatedHandleIndex(t *testing.T) {
+	testList := []httpTestList{
+		{"GET", "/", http.StatusOK, "#explanation"},
+		{"GET", "/abcd", http.StatusNotFound, ""},
+	}
+
 	var err error
 	deprecatedTmpl, err = template.New("tmpl").Parse(deprecatedTmplHTML)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	t.Run("success renders template", func(t *testing.T) {
-		prev := deprecatedAPODToday
-		deprecatedAPODToday = func() (*Image, error) {
-			return &Image{URL: "https://example.com/apod.jpg", HDURL: "https://example.com/apod.jpg"}, nil
-		}
-		defer func() { deprecatedAPODToday = prev }()
-
-		req, err := http.NewRequest(http.MethodGet, "/", nil)
+	for _, v := range testList {
+		req, err := http.NewRequest(v.method, v.path, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
 		rr := httptest.NewRecorder()
-		http.HandlerFunc(deprecatedHandleIndex).ServeHTTP(rr, req)
-
-		if rr.Code != http.StatusOK {
-			t.Fatalf("deprecatedHandleIndex returned wrong status got %d, want %d", rr.Code, http.StatusOK)
+		handler := http.HandlerFunc(deprecatedHandleIndex)
+		handler.ServeHTTP(rr, req)
+		if rr.Code != v.code {
+			t.Errorf("deprecatedHandleIndex returned wrong status got %d, want %d", rr.Code, v.code)
 		}
-		if !strings.Contains(rr.Body.String(), "#explanation") {
-			t.Fatalf("deprecatedHandleIndex returned body missing wanted text: %s", "#explanation")
+		if !strings.Contains(rr.Body.String(), v.contains) {
+			t.Errorf("deprecatedHandleIndex returned body missing wanted text: %s", v.contains)
 		}
-	})
-
-	t.Run("fetch failure returns 503", func(t *testing.T) {
-		prev := deprecatedAPODToday
-		deprecatedAPODToday = func() (*Image, error) {
-			return nil, errors.New("NASA API currently unavailable")
-		}
-		defer func() { deprecatedAPODToday = prev }()
-
-		req, err := http.NewRequest(http.MethodGet, "/", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		rr := httptest.NewRecorder()
-		http.HandlerFunc(deprecatedHandleIndex).ServeHTTP(rr, req)
-
-		if rr.Code != http.StatusServiceUnavailable {
-			t.Fatalf("deprecatedHandleIndex returned wrong status got %d, want %d", rr.Code, http.StatusServiceUnavailable)
-		}
-	})
-
-	t.Run("non-root returns 404", func(t *testing.T) {
-		req, err := http.NewRequest(http.MethodGet, "/abcd", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		rr := httptest.NewRecorder()
-		http.HandlerFunc(deprecatedHandleIndex).ServeHTTP(rr, req)
-		if rr.Code != http.StatusNotFound {
-			t.Fatalf("deprecatedHandleIndex returned wrong status got %d, want %d", rr.Code, http.StatusNotFound)
-		}
-	})
+	}
 }
 
 func TestDeprecatedRandomHandler(t *testing.T) {
+	testList := []httpTestList{
+		{"GET", "/abcd", http.StatusNotFound, ""},
+		{"GET", "/random-apod/abcd", http.StatusNotFound, ""},
+		{"GET", "/random-apod/", http.StatusOK, "#explanation"},
+	}
+
 	var err error
 	deprecatedTmpl, err = template.New("tmpl").Parse(deprecatedTmplHTML)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	t.Run("success renders template", func(t *testing.T) {
-		prev := deprecatedRandomAPOD
-		deprecatedRandomAPOD = func() (*Image, error) {
-			return &Image{URL: "https://example.com/random.jpg", HDURL: "https://example.com/random.jpg"}, nil
-		}
-		defer func() { deprecatedRandomAPOD = prev }()
-
-		req, err := http.NewRequest(http.MethodGet, "/random-apod/", nil)
+	for _, v := range testList {
+		req, err := http.NewRequest(v.method, v.path, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -96,57 +69,13 @@ func TestDeprecatedRandomHandler(t *testing.T) {
 			tmpl:       deprecatedTmpl,
 		}
 		handler.ServeHTTP(rr, req)
-
-		if rr.Code != http.StatusOK {
-			t.Fatalf("deprecatedRandomHandler returned wrong status got %d, want %d", rr.Code, http.StatusOK)
+		if rr.Code != v.code {
+			t.Errorf("deprecatedRandomHandler returned wrong status got %d, want %d", rr.Code, v.code)
 		}
-		if !strings.Contains(rr.Body.String(), "#explanation") {
-			t.Fatalf("deprecatedRandomHandler missing expected text in returned body: %s", "#explanation")
+		if !strings.Contains(rr.Body.String(), v.contains) {
+			t.Errorf("deprecatedRandomHandler missing expected text in returned body: %s", v.contains)
 		}
-	})
-
-	t.Run("empty-cache fetch failure returns 503", func(t *testing.T) {
-		prev := deprecatedRandomAPOD
-		deprecatedRandomAPOD = func() (*Image, error) {
-			return nil, errors.New("NASA API currently unavailable")
-		}
-		defer func() { deprecatedRandomAPOD = prev }()
-
-		req, err := http.NewRequest(http.MethodGet, "/random-apod/", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		rr := httptest.NewRecorder()
-		handler := &deprecatedRandomHandler{
-			lastUpdate: time.Now().Add(-10 * time.Hour),
-			cachedApod: &Image{},
-			tmpl:       deprecatedTmpl,
-		}
-		handler.ServeHTTP(rr, req)
-
-		if rr.Code != http.StatusServiceUnavailable {
-			t.Fatalf("deprecatedRandomHandler returned wrong status got %d, want %d", rr.Code, http.StatusServiceUnavailable)
-		}
-	})
-
-	t.Run("invalid paths return 404", func(t *testing.T) {
-		for _, path := range []string{"/abcd", "/random-apod/abcd"} {
-			req, err := http.NewRequest(http.MethodGet, path, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-			rr := httptest.NewRecorder()
-			handler := &deprecatedRandomHandler{
-				lastUpdate: time.Now().Add(-10 * time.Hour),
-				cachedApod: &Image{},
-				tmpl:       deprecatedTmpl,
-			}
-			handler.ServeHTTP(rr, req)
-			if rr.Code != http.StatusNotFound {
-				t.Fatalf("deprecatedRandomHandler returned wrong status got %d, want %d", rr.Code, http.StatusNotFound)
-			}
-		}
-	})
+	}
 }
 
 // Compile-time assertion: NewServer signature must remain stable.

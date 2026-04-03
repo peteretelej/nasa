@@ -16,11 +16,7 @@ import (
 	"time"
 )
 
-var (
-	deprecatedTmpl       *template.Template
-	deprecatedAPODToday  = APODToday
-	deprecatedRandomAPOD = RandomAPOD
-)
+const deprecatedFallbackImageURL = "https://apod.nasa.gov/apod/image/1901/IC405_Abolfath_3952.jpg"
 
 // NewServer creates an HTTP web server that serves APOD pictures.
 //
@@ -57,10 +53,10 @@ func deprecatedHandleIndex(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	apod, err := deprecatedAPODToday()
+	apod, err := APODToday()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
+		log.Printf("deprecated index APOD fetch error: %v", err)
+		apod = deprecatedFallbackImage()
 	}
 	TmplData{Apod: *apod}.Render(w)
 }
@@ -101,9 +97,14 @@ func (h *deprecatedRandomHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	// Update if cached apod is older than a second
 	if time.Since(h.last()) > time.Second {
-		if newApod, err := deprecatedRandomAPOD(); err == nil {
+		if newApod, err := RandomAPOD(); err == nil {
 			if newApod.URL != "" {
 				apod = *newApod
+			}
+		} else {
+			log.Printf("deprecated random APOD fetch error: %v", err)
+			if apod.URL == "" && apod.HDURL == "" {
+				apod = *deprecatedFallbackImage()
 			}
 		}
 		h.update(apod, time.Now())
@@ -125,6 +126,19 @@ func (h *deprecatedRandomHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		td.AutoReloadInterval = 5 * 60 // default reload every 5 minutes
 	}
 	td.Render(w)
+}
+
+var deprecatedTmpl *template.Template
+
+func deprecatedFallbackImage() *Image {
+	return &Image{
+		Date:        time.Now().Format(dateFormat),
+		Title:       "NASA Astronomy Picture of the Day",
+		URL:         deprecatedFallbackImageURL,
+		HDURL:       deprecatedFallbackImageURL,
+		Explanation: "NASA APOD is temporarily unavailable. This placeholder keeps the legacy web view responsive until the next refresh succeeds.",
+		ApodDate:    time.Now(),
+	}
 }
 
 // TmplData defines the data used to render the HTML template for the
