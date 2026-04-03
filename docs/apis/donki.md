@@ -41,8 +41,8 @@ func (s *DONKIService) Notifications(ctx context.Context, start, end time.Time, 
 ```go
 nasa.WithMostAccurateOnly(true)   // filter to most accurate entries
 nasa.WithCompleteEntryOnly(true)  // filter to complete entries
-nasa.WithSpeed(min, max)          // filter by speed (km/s)
-nasa.WithHalfAngle(min, max)      // filter by half-angle (degrees)
+nasa.WithSpeed(min)               // minimum speed (km/s)
+nasa.WithHalfAngle(min)           // minimum half-angle (degrees)
 nasa.WithCatalog("M2M_CATALOG")   // filter by catalog
 ```
 
@@ -139,7 +139,7 @@ func main() {
 	analyses, err := client.DONKI.CMEAnalysis(
 		context.Background(), start, end,
 		nasa.WithMostAccurateOnly(true),
-		nasa.WithSpeed(500, 0),
+		nasa.WithSpeed(500),
 	)
 	if err != nil {
 		log.Fatal(err)

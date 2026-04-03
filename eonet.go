@@ -6,7 +6,6 @@ package nasa
 import (
 	"context"
 	"encoding/json"
-	"io"
 	"net/url"
 	"strconv"
 	"time"
@@ -18,7 +17,6 @@ import (
 type EONETService struct {
 	client  *Client
 	baseURL string
-	apiKey  string
 }
 
 // --- Response envelope types (internal) ---
@@ -151,8 +149,8 @@ func EONETWithCategory(cat string) EONETOption {
 // EONET works without auth but has a separate rate pool; sending DEMO_KEY
 // provides no benefit.
 func (s *EONETService) addAuth(params url.Values) {
-	if s.apiKey != "" && s.apiKey != "DEMO_KEY" {
-		params.Set("api_key", s.apiKey)
+	if key, ok := s.client.selectAPIKey(true); ok {
+		params.Set("api_key", key)
 	}
 }
 
@@ -172,7 +170,7 @@ func (s *EONETService) Events(ctx context.Context, opts ...EONETOption) ([]*EONE
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +197,7 @@ func (s *EONETService) Event(ctx context.Context, eventID string) (*EONETEvent, 
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +217,7 @@ func (s *EONETService) Categories(ctx context.Context) ([]*EONETCategory, error)
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +241,7 @@ func (s *EONETService) Sources(ctx context.Context) ([]*EONETSource, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}

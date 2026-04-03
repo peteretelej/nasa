@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
 	"strconv"
 	"strings"
@@ -141,7 +140,7 @@ func (s *ImageService) Search(ctx context.Context, query string, opts ...ImageSe
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +205,7 @@ func (s *ImageService) Asset(ctx context.Context, nasaID string) (*AssetManifest
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +238,7 @@ func (s *ImageService) Metadata(ctx context.Context, nasaID string) (map[string]
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +262,7 @@ func (s *ImageService) Captions(ctx context.Context, nasaID string) (string, err
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return "", err
 	}

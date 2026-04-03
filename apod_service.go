@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
 	"time"
 )
@@ -26,6 +25,11 @@ const dateFormat = "2006-01-02"
 
 // apodEarliestDate is the earliest date for which an APOD entry exists.
 var apodEarliestDate = time.Date(1995, 6, 16, 0, 0, 0, 0, time.UTC)
+
+func startOfDay(t time.Time) time.Time {
+	year, month, day := t.Date()
+	return time.Date(year, month, day, 0, 0, 0, 0, t.Location())
+}
 
 // APODImage represents a single Astronomy Picture of the Day entry.
 type APODImage struct {
@@ -95,7 +99,7 @@ func (s *APODService) Today(ctx context.Context) (*APODImage, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -110,19 +114,21 @@ func (s *APODService) Today(ctx context.Context) (*APODImage, error) {
 // Get retrieves the APOD for a specific date. The date must be between
 // June 16, 1995 (the first APOD) and today.
 func (s *APODService) Get(ctx context.Context, date time.Time) (*APODImage, error) {
-	truncated := date.Truncate(24 * time.Hour)
+	normalized := startOfDay(date)
+	normalizedDate := normalized.Format(dateFormat)
+	earliestDate := apodEarliestDate.Format(dateFormat)
 
-	if truncated.Before(apodEarliestDate) {
+	if normalizedDate < earliestDate {
 		return nil, fmt.Errorf("nasa: date %s is before the earliest APOD (%s)",
-			date.Format(dateFormat), apodEarliestDate.Format(dateFormat))
+			normalizedDate, earliestDate)
 	}
-	today := time.Now().Truncate(24 * time.Hour)
-	if truncated.After(today) {
-		return nil, fmt.Errorf("nasa: date %s is in the future", date.Format(dateFormat))
+	todayDate := startOfDay(time.Now().In(normalized.Location())).Format(dateFormat)
+	if normalizedDate > todayDate {
+		return nil, fmt.Errorf("nasa: date %s is in the future", normalizedDate)
 	}
 
 	params := url.Values{}
-	params.Set("date", date.Format(dateFormat))
+	params.Set("date", normalizedDate)
 	params.Set("thumbs", "true")
 
 	resp, err := s.client.get(ctx, "/planetary/apod", params, true)
@@ -131,7 +137,7 @@ func (s *APODService) Get(ctx context.Context, date time.Time) (*APODImage, erro
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -146,25 +152,28 @@ func (s *APODService) Get(ctx context.Context, date time.Time) (*APODImage, erro
 // GetRange retrieves APOD entries for a date range (inclusive). Both dates
 // must be within the valid APOD range and start must not be after end.
 func (s *APODService) GetRange(ctx context.Context, start, end time.Time) ([]*APODImage, error) {
-	startTrunc := start.Truncate(24 * time.Hour)
-	endTrunc := end.Truncate(24 * time.Hour)
+	startDay := startOfDay(start)
+	endDay := startOfDay(end)
+	startDate := startDay.Format(dateFormat)
+	endDate := endDay.Format(dateFormat)
+	earliestDate := apodEarliestDate.Format(dateFormat)
 
-	if startTrunc.After(endTrunc) {
+	if startDate > endDate {
 		return nil, fmt.Errorf("nasa: start date %s is after end date %s",
-			start.Format(dateFormat), end.Format(dateFormat))
+			startDate, endDate)
 	}
-	if startTrunc.Before(apodEarliestDate) {
+	if startDate < earliestDate {
 		return nil, fmt.Errorf("nasa: start date %s is before the earliest APOD (%s)",
-			start.Format(dateFormat), apodEarliestDate.Format(dateFormat))
+			startDate, earliestDate)
 	}
-	today := time.Now().Truncate(24 * time.Hour)
-	if endTrunc.After(today) {
-		return nil, fmt.Errorf("nasa: end date %s is in the future", end.Format(dateFormat))
+	todayDate := startOfDay(time.Now().In(endDay.Location())).Format(dateFormat)
+	if endDate > todayDate {
+		return nil, fmt.Errorf("nasa: end date %s is in the future", endDate)
 	}
 
 	params := url.Values{}
-	params.Set("start_date", start.Format(dateFormat))
-	params.Set("end_date", end.Format(dateFormat))
+	params.Set("start_date", startDate)
+	params.Set("end_date", endDate)
 	params.Set("thumbs", "true")
 
 	resp, err := s.client.get(ctx, "/planetary/apod", params, true)
@@ -173,7 +182,7 @@ func (s *APODService) GetRange(ctx context.Context, start, end time.Time) ([]*AP
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +208,7 @@ func (s *APODService) Random(ctx context.Context, count int) ([]*APODImage, erro
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}

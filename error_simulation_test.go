@@ -182,10 +182,7 @@ func assertExplicitBodyLimitError(t *testing.T, err error) {
 	if err == nil {
 		t.Fatal("expected explicit size-limit error for oversized successful response body")
 	}
-	lower := strings.ToLower(err.Error())
-	if !strings.Contains(lower, "too large") &&
-		!strings.Contains(lower, "size limit") &&
-		!strings.Contains(lower, "body limit") {
+	if err.Error() != "nasa: response body exceeds 1048576 bytes" {
 		t.Fatalf("error = %q, want explicit size-limit error", err.Error())
 	}
 }
@@ -290,7 +287,7 @@ func TestOversizedSuccessBodies_EONET(t *testing.T) {
 			_, _ = w.Write([]byte(eventsBody))
 		}))
 		t.Cleanup(ts.Close)
-		svc := &EONETService{client: c, baseURL: ts.URL, apiKey: "TEST_KEY"}
+		svc := &EONETService{client: c, baseURL: ts.URL}
 		_, err := svc.Events(context.Background())
 		assertExplicitBodyLimitError(t, err)
 	})
@@ -302,7 +299,7 @@ func TestOversizedSuccessBodies_EONET(t *testing.T) {
 			_, _ = w.Write([]byte(eventBody))
 		}))
 		t.Cleanup(ts.Close)
-		svc := &EONETService{client: c, baseURL: ts.URL, apiKey: "TEST_KEY"}
+		svc := &EONETService{client: c, baseURL: ts.URL}
 		_, err := svc.Event(context.Background(), "E1")
 		assertExplicitBodyLimitError(t, err)
 	})

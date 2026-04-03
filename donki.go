@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -375,21 +374,17 @@ func WithCompleteEntryOnly(v bool) CMEAnalysisOption {
 	}
 }
 
-// WithSpeed sets the minimum speed (km/s) lower-limit filter for CME analysis
-// results. The min parameter sets the lower bound; max is accepted for
-// forward-compatibility but the DONKI API currently only supports a lower
-// limit (defaults to 0).
-func WithSpeed(min, max float64) CMEAnalysisOption {
+// WithSpeed sets the minimum speed (km/s) lower-bound filter for CME analysis
+// results. The DONKI API only accepts a lower bound.
+func WithSpeed(min float64) CMEAnalysisOption {
 	return func(params url.Values) {
 		params.Set("speed", strconv.FormatFloat(min, 'f', -1, 64))
 	}
 }
 
-// WithHalfAngle sets the minimum half-angle (degrees) lower-limit filter for
-// CME analysis results. The min parameter sets the lower bound; max is accepted
-// for forward-compatibility but the DONKI API currently only supports a lower
-// limit (defaults to 0).
-func WithHalfAngle(min, max float64) CMEAnalysisOption {
+// WithHalfAngle sets the minimum half-angle (degrees) lower-bound filter for
+// CME analysis results. The DONKI API only accepts a lower bound.
+func WithHalfAngle(min float64) CMEAnalysisOption {
 	return func(params url.Values) {
 		params.Set("halfAngle", strconv.FormatFloat(min, 'f', -1, 64))
 	}
@@ -561,7 +556,7 @@ func donkiGet[T any](ctx context.Context, s *DONKIService, path string, params u
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}

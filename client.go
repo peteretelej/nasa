@@ -107,21 +107,48 @@ func NewClient(opts ...Option) *Client {
 	c.DONKI = &DONKIService{client: c}
 	c.Images = &ImageService{client: c, baseURL: "https://images-api.nasa.gov"}
 	c.SSD = &SSDService{client: c, baseURL: "https://ssd-api.jpl.nasa.gov"}
-	c.EONET = &EONETService{client: c, baseURL: "https://eonet.gsfc.nasa.gov/api/v3", apiKey: c.apiKeys[0]}
+	c.EONET = &EONETService{client: c, baseURL: "https://eonet.gsfc.nasa.gov/api/v3"}
 
 	return c
+}
+
+// selectAPIKey returns the next client key for a request.
+// When requireReal is true, DEMO_KEY is treated as no key and cooldown state is
+// ignored so external services like EONET keep their separate request path.
+func (c *Client) selectAPIKey(requireReal bool) (string, bool) {
+	if c.rateLimiter == nil || c.rateLimiter.keys == nil {
+		return "", false
+	}
+
+	if !requireReal {
+		return c.rateLimiter.keys.next()
+	}
+
+	kr := c.rateLimiter.keys
+	kr.mu.Lock()
+	defer kr.mu.Unlock()
+
+	n := len(kr.keys)
+	if n == 0 {
+		return "", false
+	}
+
+	for i := 0; i < n; i++ {
+		idx := (kr.current + i) % n
+		key := kr.keys[idx]
+		kr.current = (idx + 1) % n
+		if key != "" && key != "DEMO_KEY" {
+			return key, true
+		}
+	}
+
+	return "", false
 }
 
 // get performs a GET request to the given API path with optional query params.
 // If authenticated is true, the request waits for the rate limiter and injects
 // an API key. On 429 responses, it retries with the next available key.
 func (c *Client) get(ctx context.Context, path string, params url.Values, authenticated bool) (*http.Response, error) {
-	if authenticated {
-		if err := c.rateLimiter.wait(ctx); err != nil {
-			return nil, err
-		}
-	}
-
 	// Try each key (for authenticated requests).
 	attempts := 1
 	if authenticated && len(c.apiKeys) > 0 {
@@ -130,10 +157,16 @@ func (c *Client) get(ctx context.Context, path string, params url.Values, authen
 
 	var lastErr error
 	for i := 0; i < attempts; i++ {
+		if authenticated {
+			if err := c.rateLimiter.wait(ctx); err != nil {
+				return nil, err
+			}
+		}
+
 		reqParams := cloneValues(params)
 
 		if authenticated {
-			key, ok := c.rateLimiter.keys.next()
+			key, ok := c.selectAPIKey(false)
 			if !ok {
 				retryAfter := c.shortestCooldown()
 				return nil, &RateLimitError{Err: &Error{

@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
 	"strconv"
 	"strings"
@@ -216,20 +215,38 @@ type NEOService struct {
 	client *Client
 }
 
+func neoFeedStartDate(t time.Time) string {
+	return startOfDay(t).Format(dateFormat)
+}
+
+func neoFeedEndDate(t time.Time) string {
+	end := startOfDay(t)
+	if t.Hour() != 0 || t.Minute() != 0 || t.Second() != 0 || t.Nanosecond() != 0 {
+		end = end.AddDate(0, 0, 1)
+	}
+	return end.Format(dateFormat)
+}
+
 // Feed retrieves near-earth objects for a date range (max 7 days).
 func (s *NEOService) Feed(ctx context.Context, start, end time.Time) (*NEOFeed, error) {
-	startDate := start.Format(dateFormat)
-	endDate := end.Format(dateFormat)
+	startDate := neoFeedStartDate(start)
+	endDate := neoFeedEndDate(end)
+	startWire, err := time.Parse(dateFormat, startDate)
+	if err != nil {
+		return nil, err
+	}
+	endWire, err := time.Parse(dateFormat, endDate)
+	if err != nil {
+		return nil, err
+	}
 
-	// Validate start <= end using truncated civil dates.
-	startTrunc := start.Truncate(24 * time.Hour)
-	endTrunc := end.Truncate(24 * time.Hour)
-	if startTrunc.After(endTrunc) {
+	// Validate against the same dates that are sent on the wire.
+	if startWire.After(endWire) {
 		return nil, fmt.Errorf("nasa: start date %s is after end date %s", startDate, endDate)
 	}
 
 	// Validate range <= 7 days.
-	if endTrunc.Sub(startTrunc) > 7*24*time.Hour {
+	if endWire.Sub(startWire) > 7*24*time.Hour {
 		return nil, fmt.Errorf("nasa: date range exceeds 7 days (%s to %s)", startDate, endDate)
 	}
 
@@ -243,7 +260,7 @@ func (s *NEOService) Feed(ctx context.Context, start, end time.Time) (*NEOFeed, 
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +283,7 @@ func (s *NEOService) Get(ctx context.Context, asteroidID string) (*NearEarthObje
 		return nil, fmt.Errorf("nasa: asteroid ID must not be empty")
 	}
 
-	path := "/neo/rest/v1/neo/" + asteroidID
+	path := "/neo/rest/v1/neo/" + url.PathEscape(asteroidID)
 
 	resp, err := s.client.get(ctx, path, nil, true)
 	if err != nil {
@@ -274,7 +291,7 @@ func (s *NEOService) Get(ctx context.Context, asteroidID string) (*NearEarthObje
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -306,7 +323,7 @@ func (s *NEOService) Browse(ctx context.Context, page, size int) (*NEOBrowse, er
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}

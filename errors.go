@@ -11,6 +11,19 @@ import (
 	"time"
 )
 
+const maxResponseBodyBytes = 1 << 20
+
+func readResponseBody(r io.Reader) ([]byte, error) {
+	body, err := io.ReadAll(io.LimitReader(r, maxResponseBodyBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(body) > maxResponseBodyBytes {
+		return nil, fmt.Errorf("nasa: response body exceeds %d bytes", maxResponseBodyBytes)
+	}
+	return body, nil
+}
+
 // Error is the base error type for all NASA API errors. It carries the HTTP
 // status code, a human-readable message extracted from the response body, and
 // an optional RetryAfter duration for rate-limited responses.
@@ -71,7 +84,7 @@ func newError(resp *http.Response) error {
 	defer resp.Body.Close()
 
 	// Read body up to 1MB.
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, maxResponseBodyBytes))
 
 	msg := ""
 	// Try to extract message from JSON response body.

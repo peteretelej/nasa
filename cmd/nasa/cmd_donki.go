@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"math"
 	"os"
 	"strings"
 	"time"
@@ -195,10 +194,10 @@ func donkiCMEAnalysisCmd(args []string) {
 		opts = append(opts, nasa.WithCompleteEntryOnly(true))
 	}
 	if *speedFlag > 0 {
-		opts = append(opts, nasa.WithSpeed(*speedFlag, math.MaxFloat64))
+		opts = append(opts, nasa.WithSpeed(*speedFlag))
 	}
 	if *halfAngleFlag > 0 {
-		opts = append(opts, nasa.WithHalfAngle(*halfAngleFlag, math.MaxFloat64))
+		opts = append(opts, nasa.WithHalfAngle(*halfAngleFlag))
 	}
 	if *catalogFlag != "" {
 		opts = append(opts, nasa.WithCatalog(*catalogFlag))

@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -404,7 +403,7 @@ func (s *SSDService) CloseApproach(ctx context.Context, opts ...CADOption) ([]*C
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -437,7 +436,7 @@ func (s *SSDService) Fireball(ctx context.Context, opts ...FireballOption) ([]*F
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -469,7 +468,7 @@ func (s *SSDService) NHATS(ctx context.Context, opts ...NHATSOption) ([]*NHATSOb
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -503,7 +502,7 @@ func (s *SSDService) Scout(ctx context.Context, opts ...ScoutOption) ([]*ScoutOb
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -536,7 +535,7 @@ func (s *SSDService) Sentry(ctx context.Context, opts ...SentryOption) ([]*Sentr
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -569,7 +568,7 @@ func (s *SSDService) SBDB(ctx context.Context, designation string) (*SmallBody, 
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readResponseBody(resp.Body)
 	if err != nil {
 		return nil, err
 	}

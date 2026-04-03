@@ -27,7 +27,7 @@ func setupEONETTestServer(t *testing.T, fixturePath string) (*EONETService, **ht
 	}))
 	t.Cleanup(ts.Close)
 	c := NewClient(WithAPIKey("TEST_KEY"))
-	svc := &EONETService{client: c, baseURL: ts.URL, apiKey: "TEST_KEY"}
+	svc := &EONETService{client: c, baseURL: ts.URL}
 	return svc, &captured
 }
 
@@ -47,7 +47,7 @@ func setupEONETTestServerNoAuth(t *testing.T, fixturePath string) (*EONETService
 	}))
 	t.Cleanup(ts.Close)
 	c := NewClient(WithAPIKey("DEMO_KEY"))
-	svc := &EONETService{client: c, baseURL: ts.URL, apiKey: "DEMO_KEY"}
+	svc := &EONETService{client: c, baseURL: ts.URL}
 	return svc, &captured
 }
 
@@ -364,7 +364,7 @@ func TestEONETUsesRotatingClientKeys(t *testing.T) {
 	c := NewClient(WithAPIKeys([]string{"key1", "key2"}), WithRateLimit(1000))
 	c.rateLimiter.keys.keys = []string{"key1", "key2"}
 	c.rateLimiter.keys.current = 0
-	svc := &EONETService{client: c, baseURL: ts.URL, apiKey: c.apiKeys[0]}
+	svc := &EONETService{client: c, baseURL: ts.URL}
 
 	for range 4 {
 		if _, err := svc.Events(context.Background()); err != nil {
@@ -395,7 +395,7 @@ func TestEONETEventUsesRotatingClientKeys(t *testing.T) {
 	c := NewClient(WithAPIKeys([]string{"key1", "key2"}), WithRateLimit(1000))
 	c.rateLimiter.keys.keys = []string{"key1", "key2"}
 	c.rateLimiter.keys.current = 0
-	svc := &EONETService{client: c, baseURL: ts.URL, apiKey: c.apiKeys[0]}
+	svc := &EONETService{client: c, baseURL: ts.URL}
 
 	for range 3 {
 		if _, err := svc.Event(context.Background(), "EONET_1"); err != nil {

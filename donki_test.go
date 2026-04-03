@@ -554,8 +554,8 @@ func TestDONKI_CMEAnalysis_Options(t *testing.T) {
 
 	_, err := c.DONKI.CMEAnalysis(context.Background(), start, end,
 		WithMostAccurateOnly(true),
-		WithSpeed(500, 2000),
-		WithHalfAngle(10, 90),
+		WithSpeed(500),
+		WithHalfAngle(10),
 		WithCatalog("ALL"),
 	)
 	if err != nil {
