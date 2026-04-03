@@ -79,8 +79,8 @@ func TestEONETEvents(t *testing.T) {
 	if len(ev.Sources) != 1 || ev.Sources[0].ID != "InciWeb" {
 		t.Errorf("unexpected sources: %+v", ev.Sources)
 	}
-	if len(ev.Geometry) != 2 {
-		t.Fatalf("expected 2 geometry entries, got %d", len(ev.Geometry))
+	if len(ev.Geometry) != 3 {
+		t.Fatalf("expected 3 geometry entries, got %d", len(ev.Geometry))
 	}
 
 	// Second event: closed.
@@ -239,22 +239,42 @@ func TestEONETGeometry(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// First event: geometry without magnitude.
+	// First event, first geometry: Point without magnitude.
 	geo := events[0].Geometry[0]
 	if geo.Type != "Point" {
 		t.Errorf("expected Type=Point, got %s", geo.Type)
 	}
-	if len(geo.Coordinates) != 2 {
-		t.Fatalf("expected 2 coordinates, got %d", len(geo.Coordinates))
+	pt, err := geo.PointCoordinates()
+	if err != nil {
+		t.Fatalf("PointCoordinates: %v", err)
 	}
-	if geo.Coordinates[0] != -118.52 {
-		t.Errorf("expected lon=-118.52, got %f", geo.Coordinates[0])
+	if pt[0] != -118.52 {
+		t.Errorf("expected lon=-118.52, got %f", pt[0])
 	}
-	if geo.Coordinates[1] != 34.05 {
-		t.Errorf("expected lat=34.05, got %f", geo.Coordinates[1])
+	if pt[1] != 34.05 {
+		t.Errorf("expected lat=34.05, got %f", pt[1])
 	}
 	if geo.MagnitudeValue != nil {
 		t.Errorf("expected MagnitudeValue=nil, got %v", *geo.MagnitudeValue)
+	}
+
+	// First event, third geometry: Polygon.
+	polyGeo := events[0].Geometry[2]
+	if polyGeo.Type != "Polygon" {
+		t.Errorf("expected Type=Polygon, got %s", polyGeo.Type)
+	}
+	rings, err := polyGeo.PolygonCoordinates()
+	if err != nil {
+		t.Fatalf("PolygonCoordinates: %v", err)
+	}
+	if len(rings) != 1 {
+		t.Fatalf("expected 1 ring, got %d", len(rings))
+	}
+	if len(rings[0]) != 5 {
+		t.Fatalf("expected 5 points in ring, got %d", len(rings[0]))
+	}
+	if rings[0][0] != [2]float64{-118.55, 34.03} {
+		t.Errorf("unexpected first point: %v", rings[0][0])
 	}
 
 	// Second event: geometry with magnitude.

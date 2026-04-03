@@ -54,13 +54,37 @@ type EONETEvent struct {
 }
 
 // EONETGeometry represents a GeoJSON-style geometry entry for an event.
+// Coordinates is stored as json.RawMessage because the EONET API returns
+// Point coordinates as [lon, lat] and Polygon coordinates as [[[lon, lat], ...]].
+// Use PointCoordinates or PolygonCoordinates to extract typed values.
 // MagnitudeValue is nil when no magnitude data is available.
 type EONETGeometry struct {
-	Date           time.Time `json:"date"`
-	Type           string    `json:"type"`
-	Coordinates    []float64 `json:"coordinates"`
-	MagnitudeValue *float64  `json:"magnitudeValue"`
-	MagnitudeUnit  string    `json:"magnitudeUnit"`
+	Date           time.Time       `json:"date"`
+	Type           string          `json:"type"`
+	Coordinates    json.RawMessage `json:"coordinates"`
+	MagnitudeValue *float64        `json:"magnitudeValue"`
+	MagnitudeUnit  string          `json:"magnitudeUnit"`
+}
+
+// PointCoordinates returns the [lon, lat] coordinates for a Point geometry.
+// Returns an error if the coordinates cannot be parsed as a flat [lon, lat] pair.
+func (g *EONETGeometry) PointCoordinates() ([2]float64, error) {
+	var coords [2]float64
+	if err := json.Unmarshal(g.Coordinates, &coords); err != nil {
+		return coords, err
+	}
+	return coords, nil
+}
+
+// PolygonCoordinates returns the ring coordinates for a Polygon geometry.
+// A Polygon has one or more rings, each being a slice of [lon, lat] pairs.
+// Returns an error if the coordinates cannot be parsed as [][][2]float64.
+func (g *EONETGeometry) PolygonCoordinates() ([][][2]float64, error) {
+	var coords [][][2]float64
+	if err := json.Unmarshal(g.Coordinates, &coords); err != nil {
+		return nil, err
+	}
+	return coords, nil
 }
 
 // EONETCategory represents an EONET event category.
@@ -166,7 +190,7 @@ func (s *EONETService) Event(ctx context.Context, eventID string) (*EONETEvent, 
 	params := url.Values{}
 	s.addAuth(params)
 
-	resp, err := s.client.getExternal(ctx, s.baseURL, "events/"+eventID, params)
+	resp, err := s.client.getExternal(ctx, s.baseURL, "events/"+url.PathEscape(eventID), params)
 	if err != nil {
 		return nil, err
 	}

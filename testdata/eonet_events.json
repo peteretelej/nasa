@@ -35,6 +35,13 @@
           "coordinates": [-118.53, 34.06],
           "magnitudeValue": null,
           "magnitudeUnit": ""
+        },
+        {
+          "date": "2026-01-09T00:00:00Z",
+          "type": "Polygon",
+          "coordinates": [[[-118.55, 34.03], [-118.50, 34.03], [-118.50, 34.08], [-118.55, 34.08], [-118.55, 34.03]]],
+          "magnitudeValue": null,
+          "magnitudeUnit": ""
         }
       ]
     },
