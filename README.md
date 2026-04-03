@@ -120,5 +120,113 @@ nasa-wallpapers -cmd "myCustomCommand %s"
 
 
 
+## MCP Server
+
+The `nasa-mcp` binary is a [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server that exposes NASA APIs as tools for AI assistants. It communicates over stdio using JSON-RPC 2.0, letting clients like Claude Desktop, Claude Code, Cursor, and VS Code Copilot call NASA endpoints directly.
+
+### Build
+
+```bash
+go build -o nasa-mcp ./cmd/nasa-mcp/
+```
+
+### Install
+
+```bash
+go install github.com/peteretelej/nasa/cmd/nasa-mcp@latest
+```
+
+The `nasa-mcp` binary must be in your `PATH` for the configurations below to work.
+
+### Claude Desktop
+
+Add to your Claude Desktop configuration file:
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "nasa": {
+      "command": "nasa-mcp",
+      "env": { "NASA_API_KEY": "your-key" }
+    }
+  }
+}
+```
+
+### Claude Code
+
+Add to `.claude/mcp.json` or your Claude Code settings:
+
+```json
+{
+  "mcpServers": {
+    "nasa": {
+      "command": "nasa-mcp",
+      "env": { "NASA_API_KEY": "your-key" }
+    }
+  }
+}
+```
+
+### Cursor
+
+Go to Settings -> MCP Servers -> Add, or add to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "nasa": {
+      "command": "nasa-mcp",
+      "env": { "NASA_API_KEY": "your-key" }
+    }
+  }
+}
+```
+
+### VS Code (Copilot)
+
+Add to `.vscode/mcp.json` in your project:
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "nasa": {
+        "command": "nasa-mcp",
+        "env": { "NASA_API_KEY": "your-key" }
+      }
+    }
+  }
+}
+```
+
+### API Key
+
+Set `NASA_API_KEY` in the `env` block of your MCP configuration. Without a key, the server falls back to `DEMO_KEY`, which is limited to 30 requests per hour and 50 per day.
+
+Get a free API key at [api.nasa.gov](https://api.nasa.gov/).
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `nasa_apod` | Get Astronomy Picture of the Day |
+| `nasa_apod_range` | Get APOD for a date range |
+| `nasa_neo_feed` | Near-Earth objects for a date range |
+| `nasa_neo_get` | Get specific asteroid by ID |
+| `nasa_donki_cme` | Coronal mass ejections |
+| `nasa_donki_gst` | Geomagnetic storms |
+| `nasa_donki_flr` | Solar flares |
+| `nasa_donki_sep` | Solar energetic particles |
+| `nasa_donki_notifications` | DONKI event notifications |
+| `nasa_images_search` | Search NASA image library |
+| `nasa_ssd_cad` | Close approach data |
+| `nasa_ssd_fireball` | Fireball/bolide events |
+| `nasa_eonet_events` | Natural events (EONET) |
+
+
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa?ref=badge_large)

@@ -1,3 +1,14 @@
+// nasa-mcp is a Model Context Protocol (MCP) server that exposes NASA APIs
+// as tools for AI assistants. It communicates over stdio using JSON-RPC 2.0,
+// reading one JSON message per line from stdin and writing responses to stdout.
+// Diagnostic output goes to stderr.
+//
+// The server supports the MCP lifecycle (initialize, tools/list, tools/call)
+// and registers 13 tools covering APOD, NeoWs, DONKI, NASA Image Library,
+// SSD/CNEOS, and EONET APIs.
+//
+// Set the NASA_API_KEY environment variable to use a registered API key.
+// Without it, the server falls back to DEMO_KEY with reduced rate limits.
 package main
 
 import (
@@ -14,6 +25,7 @@ import (
 // JSON-RPC 2.0 types for the MCP protocol.
 
 // JSONRPCRequest represents an incoming JSON-RPC 2.0 request or notification.
+// The ID field is omitted for notifications (messages that expect no response).
 type JSONRPCRequest struct {
 	JSONRPC string          `json:"jsonrpc"`
 	ID      any             `json:"id,omitempty"`
@@ -22,6 +34,7 @@ type JSONRPCRequest struct {
 }
 
 // JSONRPCResponse represents an outgoing JSON-RPC 2.0 response.
+// Exactly one of Result or Error is set per the JSON-RPC spec.
 type JSONRPCResponse struct {
 	JSONRPC string    `json:"jsonrpc"`
 	ID      any       `json:"id,omitempty"`
@@ -29,39 +42,49 @@ type JSONRPCResponse struct {
 	Error   *RPCError `json:"error,omitempty"`
 }
 
-// RPCError represents a JSON-RPC 2.0 error object.
+// RPCError represents a JSON-RPC 2.0 error object returned for protocol-level
+// failures such as parse errors (-32700), invalid requests (-32600), or
+// unknown methods (-32601).
 type RPCError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
-// Tool describes an MCP tool for the tools/list response.
+// Tool describes an MCP tool for the tools/list response. The InputSchema
+// field is a JSON Schema object defining the tool's accepted parameters.
 type Tool struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	InputSchema any    `json:"inputSchema"`
 }
 
-// Content represents a content block in a tool result.
+// Content represents a content block in a tool result. Currently only
+// text content is used, but the MCP spec also supports image and resource types.
 type Content struct {
 	Type string `json:"type"`
 	Text string `json:"text,omitempty"`
 }
 
-// ToolResult is the result returned by a tool handler.
+// ToolResult is the result returned by a tool handler. When IsError is true,
+// the content describes what went wrong (e.g. invalid arguments, API failure).
 type ToolResult struct {
 	Content []Content `json:"content"`
 	IsError bool      `json:"isError,omitempty"`
 }
 
-// ToolDef pairs a tool definition with its handler function.
+// ToolDef pairs a tool definition with its handler function. The tools slice
+// in tools.go is the single source of truth for tool registration; it is used
+// by both tools/list (to report available tools) and tools/call (to dispatch).
 type ToolDef struct {
 	Tool    Tool
 	Handler func(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult
 }
 
-// handleMessage dispatches a JSON-RPC request to the appropriate handler.
-// Returns nil for notifications (no response expected).
+// handleMessage is the core dispatch function for the MCP server. It routes
+// JSON-RPC requests to the appropriate handler based on the method field:
+// "initialize" for the MCP handshake, "tools/list" for tool discovery, and
+// "tools/call" for tool execution. Returns nil for notifications (messages
+// with no ID that expect no response).
 func handleMessage(req JSONRPCRequest, client *nasa.Client) *JSONRPCResponse {
 	switch req.Method {
 	case "initialize":
@@ -100,7 +123,8 @@ func handleInitialize(req JSONRPCRequest) *JSONRPCResponse {
 	}
 }
 
-// handleToolsList returns the list of available tools.
+// handleToolsList returns the list of available tools and their input schemas
+// in the format expected by the MCP tools/list method.
 func handleToolsList(req JSONRPCRequest) *JSONRPCResponse {
 	list := make([]Tool, len(tools))
 	for i, td := range tools {
@@ -115,7 +139,9 @@ func handleToolsList(req JSONRPCRequest) *JSONRPCResponse {
 	}
 }
 
-// handleToolsCall looks up the named tool and calls its handler.
+// handleToolsCall looks up the named tool in the tools registry and calls its
+// handler with the provided arguments. Returns a JSON-RPC error if the tool
+// name is not found or the params are malformed.
 func handleToolsCall(req JSONRPCRequest, client *nasa.Client) *JSONRPCResponse {
 	var params struct {
 		Name      string         `json:"name"`

@@ -12,13 +12,17 @@ import (
 )
 
 // --- Shared helpers ---
+//
+// These functions provide common argument extraction, date parsing, and result
+// formatting used across all tool handlers.
 
-// formatLine returns "Label: value\n".
+// formatLine returns a "Label: value\n" string for building text output.
 func formatLine(label, value string) string {
 	return label + ": " + value + "\n"
 }
 
-// errorResult creates a ToolResult with isError: true.
+// errorResult creates a ToolResult with isError set to true. The format string
+// and args follow fmt.Sprintf conventions.
 func errorResult(format string, args ...any) *ToolResult {
 	return &ToolResult{
 		Content: []Content{{Type: "text", Text: "Error: " + fmt.Sprintf(format, args...)}},
@@ -26,19 +30,20 @@ func errorResult(format string, args ...any) *ToolResult {
 	}
 }
 
-// textResult creates a ToolResult with text content.
+// textResult creates a successful ToolResult containing a single text block.
 func textResult(text string) *ToolResult {
 	return &ToolResult{
 		Content: []Content{{Type: "text", Text: text}},
 	}
 }
 
-// parseDate parses a YYYY-MM-DD string to time.Time.
+// parseDate parses a YYYY-MM-DD string into a time.Time value.
 func parseDate(s string) (time.Time, error) {
 	return time.Parse("2006-01-02", s)
 }
 
-// getStringArg extracts a string from args map, returns "" if missing/wrong type.
+// getStringArg extracts a string value from the args map. Returns an empty
+// string if the key is missing or the value is not a string.
 func getStringArg(args map[string]any, key string) string {
 	v, ok := args[key]
 	if !ok {
@@ -51,7 +56,9 @@ func getStringArg(args map[string]any, key string) string {
 	return s
 }
 
-// getIntArg extracts an int from args map (JSON numbers come as float64).
+// getIntArg extracts an integer from the args map. JSON numbers arrive as
+// float64, so this performs the conversion. Returns (0, false) if the key is
+// missing or not a number.
 func getIntArg(args map[string]any, key string) (int, bool) {
 	v, ok := args[key]
 	if !ok {
@@ -64,7 +71,8 @@ func getIntArg(args map[string]any, key string) (int, bool) {
 	return int(f), true
 }
 
-// getFloatArg extracts a float64 from args map.
+// getFloatArg extracts a float64 from the args map. Returns (0, false) if the
+// key is missing or the value is not a number.
 func getFloatArg(args map[string]any, key string) (float64, bool) {
 	v, ok := args[key]
 	if !ok {
@@ -79,6 +87,8 @@ func getFloatArg(args map[string]any, key string) (float64, bool) {
 
 // --- APOD formatting ---
 
+// formatAPOD formats an APODImage into a human-readable text block with title,
+// date, explanation, and image URLs.
 func formatAPOD(img *nasa.APODImage) string {
 	var b strings.Builder
 	b.WriteString(formatLine("Title", img.Title))
@@ -93,6 +103,8 @@ func formatAPOD(img *nasa.APODImage) string {
 
 // --- Handler functions ---
 
+// handleAPOD handles the nasa_apod tool. It supports three modes: random
+// (when count is provided), specific date, or today's APOD (the default).
 func handleAPOD(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	if count, ok := getIntArg(args, "count"); ok {
 		imgs, err := client.APOD.Random(ctx, count)
@@ -128,6 +140,8 @@ func handleAPOD(ctx context.Context, args map[string]any, client *nasa.Client) *
 	return textResult(formatAPOD(img))
 }
 
+// handleAPODRange handles the nasa_apod_range tool. Both start_date and
+// end_date are required.
 func handleAPODRange(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	startStr := getStringArg(args, "start_date")
 	endStr := getStringArg(args, "end_date")
@@ -160,6 +174,8 @@ func handleAPODRange(ctx context.Context, args map[string]any, client *nasa.Clie
 	return textResult(b.String())
 }
 
+// handleNEOFeed handles the nasa_neo_feed tool. Returns near-Earth objects
+// for a date range of up to 7 days.
 func handleNEOFeed(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	startStr := getStringArg(args, "start_date")
 	if startStr == "" {
@@ -216,6 +232,8 @@ func handleNEOFeed(ctx context.Context, args map[string]any, client *nasa.Client
 	return textResult(b.String())
 }
 
+// handleNEOGet handles the nasa_neo_get tool. Returns detailed information
+// about a specific asteroid identified by its SPK-ID.
 func handleNEOGet(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	id := getStringArg(args, "asteroid_id")
 	if id == "" {
@@ -255,6 +273,8 @@ func handleNEOGet(ctx context.Context, args map[string]any, client *nasa.Client)
 	return textResult(b.String())
 }
 
+// handleDONKICME handles the nasa_donki_cme tool. Returns coronal mass
+// ejection events for an optional date range.
 func handleDONKICME(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	start, end := parseDONKIDates(args)
 
@@ -284,6 +304,8 @@ func handleDONKICME(ctx context.Context, args map[string]any, client *nasa.Clien
 	return textResult(b.String())
 }
 
+// handleDONKIGST handles the nasa_donki_gst tool. Returns geomagnetic storm
+// events with Kp index data.
 func handleDONKIGST(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	start, end := parseDONKIDates(args)
 
@@ -316,6 +338,8 @@ func handleDONKIGST(ctx context.Context, args map[string]any, client *nasa.Clien
 	return textResult(b.String())
 }
 
+// handleDONKIFLR handles the nasa_donki_flr tool. Returns solar flare events
+// with class, timing, and source location.
 func handleDONKIFLR(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	start, end := parseDONKIDates(args)
 
@@ -349,6 +373,8 @@ func handleDONKIFLR(ctx context.Context, args map[string]any, client *nasa.Clien
 	return textResult(b.String())
 }
 
+// handleDONKISEP handles the nasa_donki_sep tool. Returns solar energetic
+// particle events with instrument and linked event data.
 func handleDONKISEP(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	start, end := parseDONKIDates(args)
 
@@ -388,6 +414,8 @@ func handleDONKISEP(ctx context.Context, args map[string]any, client *nasa.Clien
 	return textResult(b.String())
 }
 
+// handleDONKINotifications handles the nasa_donki_notifications tool. Returns
+// space weather notifications, optionally filtered by type.
 func handleDONKINotifications(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	start, end := parseDONKIDates(args)
 	notifType := getStringArg(args, "type")
@@ -419,6 +447,8 @@ func handleDONKINotifications(ctx context.Context, args map[string]any, client *
 	return textResult(b.String())
 }
 
+// handleImagesSearch handles the nasa_images_search tool. Searches the NASA
+// Image and Video Library with optional media type and year filters.
 func handleImagesSearch(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	q := getStringArg(args, "q")
 	if q == "" {
@@ -462,6 +492,8 @@ func handleImagesSearch(ctx context.Context, args map[string]any, client *nasa.C
 	return textResult(b.String())
 }
 
+// handleSSDCAD handles the nasa_ssd_cad tool. Returns asteroid/comet close
+// approach data from JPL's SSD/CNEOS database.
 func handleSSDCAD(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	var opts []nasa.CADOption
 
@@ -512,6 +544,8 @@ func handleSSDCAD(ctx context.Context, args map[string]any, client *nasa.Client)
 	return textResult(b.String())
 }
 
+// handleSSDFireball handles the nasa_ssd_fireball tool. Returns fireball/bolide
+// event data with optional client-side energy filtering.
 func handleSSDFireball(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	var opts []nasa.FireballOption
 
@@ -575,6 +609,8 @@ func handleSSDFireball(ctx context.Context, args map[string]any, client *nasa.Cl
 	return textResult(b.String())
 }
 
+// handleEONETEvents handles the nasa_eonet_events tool. Returns natural events
+// from NASA's Earth Observatory Natural Event Tracker.
 func handleEONETEvents(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
 	var opts []nasa.EONETOption
 
@@ -624,6 +660,9 @@ func handleEONETEvents(ctx context.Context, args map[string]any, client *nasa.Cl
 
 // --- DONKI date helper ---
 
+// parseDONKIDates extracts optional start_date and end_date from args. Returns
+// zero-value times when dates are missing or unparseable, which the DONKI SDK
+// methods interpret as "use API defaults" (typically last 30 days).
 func parseDONKIDates(args map[string]any) (start, end time.Time) {
 	if s := getStringArg(args, "start_date"); s != "" {
 		if t, err := parseDate(s); err == nil {
@@ -640,7 +679,10 @@ func parseDONKIDates(args map[string]any) (start, end time.Time) {
 
 // --- Tool definitions ---
 
-// tools is the registry of all available MCP tools.
+// tools is the single source of truth for all MCP tools exposed by the server.
+// Each entry pairs a Tool (name, description, JSON Schema) with its handler
+// function. This slice is used by handleToolsList to report available tools
+// and by handleToolsCall to dispatch incoming tool requests.
 var tools = []ToolDef{
 	{
 		Tool: Tool{
