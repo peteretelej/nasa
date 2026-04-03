@@ -1,3 +1,6 @@
+// DONKI service types and methods for the Space Weather Database Of
+// Notifications, Knowledge, Information API.
+
 package nasa
 
 import (

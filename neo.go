@@ -1,3 +1,5 @@
+// Legacy NeoWs types, convenience functions, and conversion helpers.
+
 package nasa
 
 import (
@@ -8,7 +10,7 @@ import (
 	"time"
 )
 
-// NeoEndpoint defines the API Endpoint for NASA Neo Web service
+// NeoEndpoint is the NASA NeoWs Feed API endpoint URL.
 var NeoEndpoint = "https://api.nasa.gov/neo/rest/v1/feed"
 
 type diameter struct {
@@ -30,7 +32,8 @@ type closeApproachData struct {
 	OrbitingBody string `json:"orbiting_body"`
 }
 
-// Asteroid defines the structure of NASA Asteroids
+// Asteroid is the legacy type representing a near-earth object. New code
+// should use [NearEarthObject] via the [Client].NEO service instead.
 type Asteroid struct {
 	Links             struct{ Self string }
 	ID                string `json:"neo_reference_id"`
@@ -63,7 +66,8 @@ type Asteroid struct {
 	} `json:"orbital_data"`
 }
 
-// NeoList is the structure of the response returned by NeoWs Feed
+// NeoList is the legacy response type for the NeoWs Feed endpoint. New code
+// should use [NEOFeed] via the [Client].NEO service instead.
 type NeoList struct {
 	Links struct {
 		Self, Next, Prev string
@@ -91,8 +95,9 @@ Link: %s
 		nl.Start, nl.End, nl.ElementCount, nl.Links.Self, neos)
 }
 
-// NeoFeed returns a list of of asteroids based on their closest approach date to earth
-// Limits time to start and end times specified
+// NeoFeed returns near-earth objects for the given date range. It uses a
+// shared internal client that reads the API key from the environment. For
+// full control, use [Client].NEO.Feed.
 func NeoFeed(start, end time.Time) (*NeoList, error) {
 	c := getDefaultClient()
 	feed, err := c.NEO.Feed(context.Background(), start, end)

@@ -1,3 +1,5 @@
+// Convenience wrappers that accept an explicit API key for quick, one-off calls.
+
 package nasa
 
 import (
@@ -7,8 +9,8 @@ import (
 )
 
 // APODGet retrieves the APOD for a specific date using the given API key.
-// Convenience wrapper. For repeated use, prefer NewClient() to avoid creating
-// a new client per call.
+// The date must be in "YYYY-MM-DD" format. This is a convenience wrapper;
+// for repeated use, prefer [NewClient] to avoid creating a new client per call.
 func APODGet(apiKey string, date string) (*APODImage, error) {
 	t, err := time.Parse(dateFormat, date)
 	if err != nil {
@@ -18,17 +20,18 @@ func APODGet(apiKey string, date string) (*APODImage, error) {
 	return c.APOD.Get(context.Background(), t)
 }
 
-// APODTodayWithKey retrieves today's APOD using the given API key.
-// Convenience wrapper. For repeated use, prefer NewClient() to avoid creating
+// APODTodayWithKey retrieves today's APOD using the given API key. This is a
+// convenience wrapper; for repeated use, prefer [NewClient] to avoid creating
 // a new client per call.
 func APODTodayWithKey(apiKey string) (*APODImage, error) {
 	c := NewClient(WithAPIKey(apiKey))
 	return c.APOD.Today(context.Background())
 }
 
-// NEOFeedWithKey retrieves near-earth objects for a date range using the
-// given API key. Convenience wrapper. For repeated use, prefer NewClient()
-// to avoid creating a new client per call.
+// NEOFeedWithKey retrieves near-earth objects for a date range using the given
+// API key. Dates must be in "YYYY-MM-DD" format. This is a convenience
+// wrapper; for repeated use, prefer [NewClient] to avoid creating a new client
+// per call.
 func NEOFeedWithKey(apiKey string, startDate string, endDate string) (*NEOFeed, error) {
 	start, err := time.Parse(dateFormat, startDate)
 	if err != nil {

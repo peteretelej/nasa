@@ -1,3 +1,5 @@
+// NEO service types and methods for the Near Earth Object Web Service (NeoWs).
+
 package nasa
 
 import (

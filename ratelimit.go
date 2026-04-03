@@ -1,3 +1,5 @@
+// Token-bucket rate limiting with multi-key rotation and adaptive throttling.
+
 package nasa
 
 import (

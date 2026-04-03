@@ -1,3 +1,6 @@
+// Image and Video Library service types and methods
+// (images-api.nasa.gov).
+
 package nasa
 
 import (

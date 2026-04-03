@@ -1,3 +1,5 @@
+// Legacy APOD types and convenience functions for backward compatibility.
+
 package nasa
 
 import (
@@ -7,15 +9,16 @@ import (
 	"time"
 )
 
-// APIKEYMissing is the message displayed if a custom API Key is not defined
+// APIKEYMissing is the message displayed when no custom API key is configured.
 const APIKEYMissing = `Currently using the demo API Key DEMO_KEY. Apply for an API key at https://api.nasa.gov/index.html#apply-for-an-api-key
 Check out https://github.com/peteretelej/nasa/blob/master/README.md for more info.
 `
 
-// APODEndpoint is the NASA API APOD endpoint
+// APODEndpoint is the NASA APOD API endpoint URL.
 var APODEndpoint = "https://api.nasa.gov/planetary/apod"
 
-// Image defines the structure of NASA images
+// Image is the legacy APOD response type. New code should use [APODImage]
+// via the [Client].APOD service instead.
 type Image struct {
 	Date        string `json:"date"`
 	Title       string `json:"title"`
@@ -80,8 +83,9 @@ func apodImageToImage(a *APODImage) *Image {
 	}
 }
 
-// RandomAPOD returns an Astronomy Picture of the Day based on a random date
-// Picks any image shared between the last 2 years
+// RandomAPOD returns a random Astronomy Picture of the Day. It uses a shared
+// internal client that reads the API key from the environment. For full
+// control, use [Client].APOD.Random.
 func RandomAPOD() (*Image, error) {
 	c := getDefaultClient()
 	imgs, err := c.APOD.Random(context.Background(), 1)
@@ -94,7 +98,9 @@ func RandomAPOD() (*Image, error) {
 	return apodImageToImage(imgs[0]), nil
 }
 
-// APODToday returns today's APOD, from cache if possible, fetches fresh if not
+// APODToday returns today's Astronomy Picture of the Day, serving from cache
+// when available. It uses a shared internal client that reads the API key from
+// the environment. For full control, use [Client].APOD.Today.
 func APODToday() (*Image, error) {
 	d := time.Now().Format(dateFormat)
 
@@ -119,7 +125,9 @@ func APODToday() (*Image, error) {
 	return img, nil
 }
 
-// ApodImage returns the NASA Astronomy Picture of the Day
+// ApodImage returns the Astronomy Picture of the Day for the given date. It
+// uses a shared internal client that reads the API key from the environment.
+// For full control, use [Client].APOD.Get.
 func ApodImage(t time.Time) (*Image, error) {
 	if t.After(time.Now()) {
 		t = time.Now()

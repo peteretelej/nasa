@@ -1,3 +1,6 @@
+// EONET service types and methods for the Earth Observatory Natural Event
+// Tracker API.
+
 package nasa
 
 import (

@@ -1,3 +1,5 @@
+// Typed error hierarchy for NASA API responses.
+
 package nasa
 
 import (
@@ -9,7 +11,9 @@ import (
 	"time"
 )
 
-// Error is the base error type for NASA API errors.
+// Error is the base error type for all NASA API errors. It carries the HTTP
+// status code, a human-readable message extracted from the response body, and
+// an optional RetryAfter duration for rate-limited responses.
 type Error struct {
 	StatusCode int
 	Message    string
@@ -23,7 +27,9 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("nasa: %d: %s", e.StatusCode, http.StatusText(e.StatusCode))
 }
 
-// RateLimitError is returned when the API returns HTTP 429.
+// RateLimitError is returned when the API responds with HTTP 429 (Too Many
+// Requests). The embedded [Error] includes a RetryAfter hint when the server
+// provides one. Use errors.As to check for this type.
 type RateLimitError struct {
 	Err *Error
 }
@@ -31,7 +37,8 @@ type RateLimitError struct {
 func (e *RateLimitError) Error() string { return e.Err.Error() }
 func (e *RateLimitError) Unwrap() error { return e.Err }
 
-// AuthError is returned when the API returns HTTP 401 or 403.
+// AuthError is returned when the API responds with HTTP 401 (Unauthorized) or
+// 403 (Forbidden), typically indicating an invalid or missing API key.
 type AuthError struct {
 	Err *Error
 }
@@ -39,7 +46,8 @@ type AuthError struct {
 func (e *AuthError) Error() string { return e.Err.Error() }
 func (e *AuthError) Unwrap() error { return e.Err }
 
-// NotFoundError is returned when the API returns HTTP 404.
+// NotFoundError is returned when the API responds with HTTP 404, indicating
+// the requested resource does not exist (e.g., invalid date for APOD).
 type NotFoundError struct {
 	Err *Error
 }
@@ -47,7 +55,8 @@ type NotFoundError struct {
 func (e *NotFoundError) Error() string { return e.Err.Error() }
 func (e *NotFoundError) Unwrap() error { return e.Err }
 
-// APIError is returned for other non-2xx HTTP responses.
+// APIError is returned for non-2xx HTTP responses that do not match the more
+// specific error types (not 401, 403, 404, or 429).
 type APIError struct {
 	Err *Error
 }

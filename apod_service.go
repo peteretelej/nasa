@@ -1,3 +1,5 @@
+// APOD service types and methods for the Astronomy Picture of the Day API.
+
 package nasa
 
 import (

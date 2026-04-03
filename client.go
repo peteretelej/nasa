@@ -1,3 +1,5 @@
+// Client construction, functional options, and HTTP transport.
+
 package nasa
 
 import (
@@ -10,7 +12,8 @@ import (
 	"time"
 )
 
-// Client is a NASA API client with rate limiting and multi-key support.
+// Client is a NASA API client with built-in rate limiting, multi-key rotation,
+// and sub-services for each supported NASA API. Use [NewClient] to create one.
 type Client struct {
 	httpClient  *http.Client
 	apiKeys     []string
@@ -32,27 +35,31 @@ type Client struct {
 // Option configures a Client.
 type Option func(*Client)
 
-// WithAPIKey sets a single API key.
+// WithAPIKey sets a single API key for authenticating requests.
 func WithAPIKey(key string) Option {
 	return func(c *Client) { c.apiKeys = []string{key} }
 }
 
-// WithAPIKeys sets multiple API keys for rotation.
+// WithAPIKeys sets multiple API keys for automatic rotation. When one key
+// hits a rate limit, the client switches to the next available key.
 func WithAPIKeys(keys []string) Option {
 	return func(c *Client) { c.apiKeys = keys }
 }
 
-// WithHTTPClient replaces the default HTTP client.
+// WithHTTPClient replaces the default HTTP client used for all requests.
 func WithHTTPClient(h *http.Client) Option {
 	return func(c *Client) { c.httpClient = h }
 }
 
-// WithBaseURL overrides the base URL (useful for testing).
+// WithBaseURL overrides the default base URL (https://api.nasa.gov). This is
+// primarily useful for testing with httptest servers.
 func WithBaseURL(u string) Option {
 	return func(c *Client) { c.baseURL = u }
 }
 
-// WithRateLimit sets the rate limit in requests per second.
+// WithRateLimit sets the maximum request rate in requests per second. By
+// default, the client uses ~0.278 rps for registered keys (1000/hour) and
+// ~0.008 rps for DEMO_KEY (30/hour).
 func WithRateLimit(rps float64) Option {
 	return func(c *Client) {
 		c.rps = rps

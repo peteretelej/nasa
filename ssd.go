@@ -1,3 +1,6 @@
+// SSD/CNEOS service types and methods for JPL Small-Body Database and
+// close approach, fireball, NHATS, Scout, and Sentry APIs.
+
 package nasa
 
 import (
