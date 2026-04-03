@@ -39,7 +39,7 @@ func ssdCmd(args []string) {
 }
 
 func ssdUsage(w io.Writer) {
-	fmt.Fprintf(w, `Usage: nasa ssd <command> [flags]
+	if _, err := fmt.Fprintf(w, `Usage: nasa ssd <command> [flags]
 
 Commands:
   cad         Close Approach Data
@@ -50,7 +50,9 @@ Commands:
   sbdb        Small-Body Database Lookup
 
 Use "nasa ssd <command> --help" for more information about a command.
-`)
+`); err != nil {
+		fatal("failed to write output: %v", err)
+	}
 }
 
 // ssdCADCmd handles "nasa ssd cad".
@@ -120,7 +122,7 @@ Flags:
 
 	tw := newTable("Designation", "Date", "Distance (AU)", "V_rel (km/s)", "H")
 	for _, d := range data {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\t%s\n",
 			d.Designation,
 			d.CloseDate,
 			formatFloat(d.Distance, 4),
@@ -192,7 +194,7 @@ Flags:
 	for _, e := range events {
 		lat := formatFireballCoord(e.Lat, e.LatDir)
 		lon := formatFireballCoord(e.Lon, e.LonDir)
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\t%s\n",
 			e.Date,
 			lat,
 			lon,
@@ -252,7 +254,7 @@ Flags:
 
 	tw := newTable("Designation", "OCC", "Min DV (km/s)", "Min Duration (days)", "Viable Trajectories")
 	for _, o := range objects {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%d\t%d\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%d\t%d\n",
 			o.Designation,
 			o.OCC,
 			o.MinDV.DV,
@@ -308,7 +310,7 @@ Flags:
 		if o.Rating != nil {
 			rating = fmt.Sprintf("%d", *o.Rating)
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%d\t%d\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%d\t%d\n",
 			o.ObjectName,
 			rating,
 			formatFloat(o.H, 1),
@@ -360,7 +362,7 @@ Flags:
 
 	tw := newTable("Designation", "Diameter", "Impact Prob", "Palermo Scale", "Torino Scale", "Range")
 	for _, o := range objects {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\n",
 			o.Designation,
 			o.Diameter,
 			o.IP,

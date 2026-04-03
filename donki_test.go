@@ -26,7 +26,9 @@ func setupDONKITestServer(t *testing.T, fixturePath string) (*Client, **http.Req
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		captured = r.Clone(r.Context())
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing DONKI fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 	c := NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST_KEY"))
@@ -40,7 +42,9 @@ func setupDONKIErrorServer(t *testing.T, statusCode int, body string) *Client {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
-		w.Write([]byte(body))
+		if _, err := w.Write([]byte(body)); err != nil {
+			t.Fatalf("writing DONKI error response: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 	return NewClient(WithBaseURL(ts.URL), WithAPIKey("TEST_KEY"))
@@ -89,8 +93,8 @@ func TestDONKITime_UnmarshalJSON(t *testing.T) {
 			false,
 			func(t *testing.T, dt DONKITime) {
 				want := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
-				if !dt.Time.Equal(want) {
-					t.Errorf("got %v, want %v", dt.Time, want)
+				if !dt.Equal(want) {
+					t.Errorf("got %v, want %v", dt, want)
 				}
 			},
 		},
@@ -100,8 +104,8 @@ func TestDONKITime_UnmarshalJSON(t *testing.T) {
 			false,
 			func(t *testing.T, dt DONKITime) {
 				want := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
-				if !dt.Time.Equal(want) {
-					t.Errorf("got %v, want %v", dt.Time, want)
+				if !dt.Equal(want) {
+					t.Errorf("got %v, want %v", dt, want)
 				}
 			},
 		},
@@ -110,11 +114,11 @@ func TestDONKITime_UnmarshalJSON(t *testing.T) {
 			`"2024-01-15T12:00:00"`,
 			false,
 			func(t *testing.T, dt DONKITime) {
-				if dt.Time.Year() != 2024 || dt.Time.Month() != 1 || dt.Time.Day() != 15 {
-					t.Errorf("unexpected date: %v", dt.Time)
+				if dt.Year() != 2024 || dt.Month() != 1 || dt.Day() != 15 {
+					t.Errorf("unexpected date: %v", dt)
 				}
-				if dt.Time.Hour() != 12 || dt.Time.Minute() != 0 {
-					t.Errorf("unexpected time: %v", dt.Time)
+				if dt.Hour() != 12 || dt.Minute() != 0 {
+					t.Errorf("unexpected time: %v", dt)
 				}
 			},
 		},
@@ -123,8 +127,8 @@ func TestDONKITime_UnmarshalJSON(t *testing.T) {
 			`"2024-01-15T12:00"`,
 			false,
 			func(t *testing.T, dt DONKITime) {
-				if dt.Time.Year() != 2024 || dt.Time.Hour() != 12 {
-					t.Errorf("unexpected parse: %v", dt.Time)
+				if dt.Year() != 2024 || dt.Hour() != 12 {
+					t.Errorf("unexpected parse: %v", dt)
 				}
 			},
 		},
@@ -134,8 +138,8 @@ func TestDONKITime_UnmarshalJSON(t *testing.T) {
 			false,
 			func(t *testing.T, dt DONKITime) {
 				// Should parse to 12:00 in -07:00 timezone.
-				if dt.Time.Hour() != 12 {
-					t.Errorf("hour = %d, want 12", dt.Time.Hour())
+				if dt.Hour() != 12 {
+					t.Errorf("hour = %d, want 12", dt.Hour())
 				}
 			},
 		},
@@ -144,8 +148,8 @@ func TestDONKITime_UnmarshalJSON(t *testing.T) {
 			`null`,
 			false,
 			func(t *testing.T, dt DONKITime) {
-				if !dt.Time.IsZero() {
-					t.Errorf("expected zero time for null, got %v", dt.Time)
+				if !dt.IsZero() {
+					t.Errorf("expected zero time for null, got %v", dt)
 				}
 			},
 		},
@@ -338,13 +342,13 @@ func TestDONKI_FLR(t *testing.T) {
 	if e.ClassType != "X2.8" {
 		t.Errorf("ClassType = %q, want X2.8", e.ClassType)
 	}
-	if e.BeginTime.Time.IsZero() {
+	if e.BeginTime.IsZero() {
 		t.Error("expected BeginTime to be non-zero")
 	}
-	if e.PeakTime.Time.IsZero() {
+	if e.PeakTime.IsZero() {
 		t.Error("expected PeakTime to be non-zero")
 	}
-	if e.EndTime.Time.IsZero() {
+	if e.EndTime.IsZero() {
 		t.Error("expected EndTime to be non-zero")
 	}
 	if len(e.LinkedEvents) != 1 {

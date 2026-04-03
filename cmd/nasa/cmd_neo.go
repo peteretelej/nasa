@@ -34,7 +34,7 @@ func neoCmd(args []string) {
 }
 
 func neoUsage(w io.Writer) {
-	fmt.Fprintf(w, `Usage: nasa neo <command> [flags]
+	if _, err := fmt.Fprintf(w, `Usage: nasa neo <command> [flags]
 
 Commands:
   feed      List near-Earth objects by date range
@@ -42,7 +42,9 @@ Commands:
   browse    Browse the full asteroid catalog
 
 Use "nasa neo <command> --help" for more information about a command.
-`)
+`); err != nil {
+		fatal("failed to write output: %v", err)
+	}
 }
 
 // neoFeedCmd handles the "nasa neo feed" command.
@@ -114,7 +116,7 @@ Flags:
 		neos := feed.NearEarthObjects[d]
 		for _, neo := range neos {
 			for _, ca := range neo.CloseApproachData {
-				fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n",
+				tablePrintf(tw, "%s\t%s\t%s\t%s\t%s\n",
 					neo.Name,
 					ca.CloseApproachDate,
 					formatFloat(float64(ca.MissDistance.Kilometers), 2),
@@ -210,7 +212,7 @@ Flags:
 
 	tw := newTable("Name", "Magnitude", "Hazardous", "Sentry")
 	for _, neo := range browse.NearEarthObjects {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\n",
 			neo.Name,
 			formatFloat(neo.AbsoluteMagnitude, 1),
 			formatBool(neo.IsPotentiallyHazardous, "Yes", "No"),
@@ -241,7 +243,7 @@ func printDetailedNEO(neo *nasa.NearEarthObject) {
 		fmt.Println("\nClose Approaches:")
 		tw := newTable("Date", "Distance (km)", "Velocity (km/s)", "Orbiting Body")
 		for _, ca := range neo.CloseApproachData {
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n",
+			tablePrintf(tw, "%s\t%s\t%s\t%s\n",
 				ca.CloseApproachDate,
 				formatFloat(float64(ca.MissDistance.Kilometers), 2),
 				formatFloat(float64(ca.RelativeVelocity.KilometersPerSecond), 2),

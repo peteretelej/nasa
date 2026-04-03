@@ -27,7 +27,9 @@ func TestNEOService_Feed(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(fixture)
+		if _, err := w.Write(fixture); err != nil {
+			t.Fatalf("writing neo service fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 
@@ -134,7 +136,9 @@ func TestNEOService_Get(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(fixture)
+		if _, err := w.Write(fixture); err != nil {
+			t.Fatalf("writing neo get fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 
@@ -213,7 +217,9 @@ func TestNEOService_Browse(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(fixture)
+		if _, err := w.Write(fixture); err != nil {
+			t.Fatalf("writing neo browse fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 
@@ -329,7 +335,9 @@ func TestNEOService_Feed_APIError(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Retry-After", "60")
 		w.WriteHeader(http.StatusTooManyRequests)
-		w.Write([]byte(`{"error":{"message":"rate limit exceeded"}}`))
+		if _, err := w.Write([]byte(`{"error":{"message":"rate limit exceeded"}}`)); err != nil {
+			t.Fatalf("writing neo api error response: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 

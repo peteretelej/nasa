@@ -139,7 +139,7 @@ func printSingleAPOD(apod *nasa.APODImage) {
 func printAPODTable(apods []*nasa.APODImage) {
 	tw := newTable("Title", "Date", "Type", "URL")
 	for _, a := range apods {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\n",
 			truncate(a.Title, 40),
 			formatDate(a.Date),
 			a.MediaType,

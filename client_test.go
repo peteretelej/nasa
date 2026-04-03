@@ -166,7 +166,7 @@ func TestGetWithHTTPTest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	if gotAPIKey != "test-key-123" {
 		t.Errorf("expected api_key=test-key-123, got %s", gotAPIKey)
@@ -198,7 +198,7 @@ func TestGetUnauthenticated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	if gotAPIKey != "" {
 		t.Errorf("expected no api_key for unauthenticated request, got %s", gotAPIKey)
@@ -234,7 +234,7 @@ func TestGet429RetryWithKeyRotation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected success after retry, got error: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("expected 200, got %d", resp.StatusCode)
@@ -306,7 +306,7 @@ func TestGet429RetryReEntersRateLimiter(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected success after retry, got error: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	if requestCount.Load() != 2 {
 		t.Fatalf("expected 2 requests, got %d", requestCount.Load())
@@ -469,7 +469,7 @@ func TestGetPreservesExistingParams(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	if gotDate != "2024-01-15" {
 		t.Errorf("expected date=2024-01-15, got %s", gotDate)
@@ -497,7 +497,7 @@ func TestGetExternal_CustomBaseURL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	if gotPath != "/search" {
 		t.Errorf("expected path /search, got %s", gotPath)
@@ -528,7 +528,7 @@ func TestGetExternal_NoAPIKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	if gotAPIKey != "" {
 		t.Errorf("expected no api_key for external request, got %s", gotAPIKey)

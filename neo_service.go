@@ -207,7 +207,7 @@ type NEOBrowse struct {
 // fixHTTPLinks replaces http://api.nasa.gov with https://api.nasa.gov
 // in the given string. The NeoWs API returns HTTP links due to a backend bug.
 func fixHTTPLinks(s string) string {
-	return strings.Replace(s, "http://api.nasa.gov", "https://api.nasa.gov", -1)
+	return strings.ReplaceAll(s, "http://api.nasa.gov", "https://api.nasa.gov")
 }
 
 // NEOService provides access to the Near Earth Object Web Service.
@@ -258,7 +258,7 @@ func (s *NEOService) Feed(ctx context.Context, start, end time.Time) (*NEOFeed, 
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -289,7 +289,7 @@ func (s *NEOService) Get(ctx context.Context, asteroidID string) (*NearEarthObje
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -321,7 +321,7 @@ func (s *NEOService) Browse(ctx context.Context, page, size int) (*NEOBrowse, er
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {

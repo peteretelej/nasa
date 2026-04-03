@@ -50,7 +50,7 @@ func donkiCmd(args []string) {
 }
 
 func donkiUsage(w io.Writer) {
-	fmt.Fprintf(w, `Usage: nasa donki <command> [flags]
+	if _, err := fmt.Fprintf(w, `Usage: nasa donki <command> [flags]
 
 Commands:
   cme             Coronal Mass Ejections
@@ -72,7 +72,9 @@ Common flags:
   --api-key   API key override
 
 Use "nasa donki <command> --help" for more information about a command.
-`)
+`); err != nil {
+		fatal("failed to write output: %v", err)
+	}
 }
 
 // parseDonkiFlags creates a FlagSet with the 4 common DONKI flags, parses
@@ -142,7 +144,7 @@ func donkiCMECmd(args []string) {
 
 	tw := newTable("ACTIVITY ID", "START TIME", "SOURCE LOCATION", "NOTE")
 	for _, e := range events {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\n",
 			e.ActivityID,
 			formatDONKITime(e.StartTime),
 			e.SourceLocation,
@@ -224,7 +226,7 @@ func donkiCMEAnalysisCmd(args []string) {
 
 	tw := newTable("TIME 21.5", "LATITUDE", "LONGITUDE", "SPEED (KM/S)", "HALF ANGLE", "TYPE", "MOST ACCURATE")
 	for _, a := range analyses {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			formatDONKITime(a.Time21_5),
 			formatFloat(a.Latitude, 1),
 			formatFloat(a.Longitude, 1),
@@ -265,7 +267,7 @@ func donkiGSTCmd(args []string) {
 		for i, kp := range e.AllKpIndex {
 			kpValues[i] = formatFloat(kp.KpIndex, 1)
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\n",
 			e.GstID,
 			formatDONKITime(e.StartTime),
 			strings.Join(kpValues, ", "),
@@ -334,7 +336,7 @@ func donkiIPSCmd(args []string) {
 
 	tw := newTable("ACTIVITY ID", "EVENT TIME", "LOCATION", "CATALOG")
 	for _, e := range events {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\n",
 			e.ActivityID,
 			formatDONKITime(e.EventTime),
 			e.Location,
@@ -368,7 +370,7 @@ func donkiFLRCmd(args []string) {
 
 	tw := newTable("FLR ID", "BEGIN TIME", "PEAK TIME", "END TIME", "CLASS", "SOURCE LOCATION")
 	for _, e := range events {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\n",
 			e.FlrID,
 			formatDONKITime(e.BeginTime),
 			formatDONKITime(e.PeakTime),
@@ -408,7 +410,7 @@ func donkiSEPCmd(args []string) {
 		for i, inst := range e.Instruments {
 			names[i] = inst.DisplayName
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\n",
 			e.SepID,
 			formatDONKITime(e.EventTime),
 			strings.Join(names, ", "),
@@ -445,7 +447,7 @@ func donkiMPCCmd(args []string) {
 		for i, inst := range e.Instruments {
 			names[i] = inst.DisplayName
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\n",
 			e.MpcID,
 			formatDONKITime(e.EventTime),
 			strings.Join(names, ", "),
@@ -482,7 +484,7 @@ func donkiRBECmd(args []string) {
 		for i, inst := range e.Instruments {
 			names[i] = inst.DisplayName
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\n",
 			e.RbeID,
 			formatDONKITime(e.EventTime),
 			strings.Join(names, ", "),
@@ -519,7 +521,7 @@ func donkiHSSCmd(args []string) {
 		for i, inst := range e.Instruments {
 			names[i] = inst.DisplayName
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\n",
 			e.HssID,
 			formatDONKITime(e.EventTime),
 			strings.Join(names, ", "),
@@ -556,7 +558,7 @@ func donkiWSAEnlilCmd(args []string) {
 		if e.EstimatedDuration != nil {
 			duration = formatFloat(*e.EstimatedDuration, 1)
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%d\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\t%d\n",
 			e.SimulationID,
 			formatDONKITime(e.ModelCompletionTime),
 			formatDONKITime(e.EstimatedShockArrivalTime),
@@ -618,7 +620,7 @@ func donkiNotificationsCmd(args []string) {
 
 	tw := newTable("MESSAGE TYPE", "ISSUE TIME", "BODY")
 	for _, n := range notifications {
-		fmt.Fprintf(tw, "%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\n",
 			n.MessageType,
 			formatDONKITime(n.MessageIssueTime),
 			truncate(strings.ReplaceAll(n.MessageBody, "\n", " "), 80),

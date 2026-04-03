@@ -138,7 +138,7 @@ func (s *ImageService) Search(ctx context.Context, query string, opts ...ImageSe
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -203,7 +203,7 @@ func (s *ImageService) Asset(ctx context.Context, nasaID string) (*AssetManifest
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -236,7 +236,7 @@ func (s *ImageService) Metadata(ctx context.Context, nasaID string) (map[string]
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -260,7 +260,7 @@ func (s *ImageService) Captions(ctx context.Context, nasaID string) (string, err
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {

@@ -46,7 +46,7 @@ func main() {
 }
 
 func printUsage(w io.Writer) {
-	fmt.Fprintf(w, `Usage: nasa <command> [flags]
+	if _, err := fmt.Fprintf(w, `Usage: nasa <command> [flags]
 
 Commands:
   apod      Astronomy Picture of the Day
@@ -61,5 +61,7 @@ Global flags:
   --help      Show this help message
 
 Use "nasa <command> --help" for more information about a command.
-`)
+`); err != nil {
+		fatal("failed to write output: %v", err)
+	}
 }

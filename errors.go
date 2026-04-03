@@ -24,6 +24,10 @@ func readResponseBody(r io.Reader) ([]byte, error) {
 	return body, nil
 }
 
+func closeResponseBody(c io.Closer) {
+	_ = c.Close()
+}
+
 // Error is the base error type for all NASA API errors. It carries the HTTP
 // status code, a human-readable message extracted from the response body, and
 // an optional RetryAfter duration for rate-limited responses.
@@ -81,7 +85,7 @@ func (e *APIError) Unwrap() error { return e.Err }
 // The response body is read up to 1MB to prevent unbounded memory usage.
 // The response body is closed by this function.
 func newError(resp *http.Response) error {
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	// Read body up to 1MB.
 	body, _ := io.ReadAll(io.LimitReader(resp.Body, maxResponseBodyBytes))

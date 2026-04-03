@@ -179,7 +179,9 @@ func serveFixture(w http.ResponseWriter, path string) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
+	if _, err := w.Write(data); err != nil {
+		http.Error(w, "fixture write error: "+err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // setupTestClient creates a nasa.Client backed by an httptest server that

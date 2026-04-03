@@ -23,7 +23,9 @@ func TestAPODGet_Wrapper(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing APOD fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 
@@ -55,7 +57,9 @@ func TestAPODTodayWithKey_Wrapper(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing APOD today fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 
@@ -82,7 +86,9 @@ func TestNEOFeedWithKey_Wrapper(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing NEO fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 
@@ -228,41 +234,36 @@ func TestApodImageToImage(t *testing.T) {
 
 // Compile-time type assertions for legacy function signatures.
 
+func assertType[T any](T) {}
+
 func TestExistingAPODToday_Compiles(t *testing.T) {
-	var f func() (*Image, error) = APODToday
-	_ = f
+	assertType[func() (*Image, error)](APODToday)
 }
 
 func TestExistingApodImage_Compiles(t *testing.T) {
-	var f func(time.Time) (*Image, error) = ApodImage
-	_ = f
+	assertType[func(time.Time) (*Image, error)](ApodImage)
 }
 
 func TestExistingRandomAPOD_Compiles(t *testing.T) {
-	var f func() (*Image, error) = RandomAPOD
-	_ = f
+	assertType[func() (*Image, error)](RandomAPOD)
 }
 
 func TestExistingNeoFeed_Compiles(t *testing.T) {
-	var f func(time.Time, time.Time) (*NeoList, error) = NeoFeed
-	_ = f
+	assertType[func(time.Time, time.Time) (*NeoList, error)](NeoFeed)
 }
 
 // Compile-time type assertions for new wrapper function signatures.
 
 func TestAPODGet_SignatureCompiles(t *testing.T) {
-	var f func(string, string) (*APODImage, error) = APODGet
-	_ = f
+	assertType[func(string, string) (*APODImage, error)](APODGet)
 }
 
 func TestAPODTodayWithKey_SignatureCompiles(t *testing.T) {
-	var f func(string) (*APODImage, error) = APODTodayWithKey
-	_ = f
+	assertType[func(string) (*APODImage, error)](APODTodayWithKey)
 }
 
 func TestNEOFeedWithKey_SignatureCompiles(t *testing.T) {
-	var f func(string, string, string) (*NEOFeed, error) = NEOFeedWithKey
-	_ = f
+	assertType[func(string, string, string) (*NEOFeed, error)](NEOFeedWithKey)
 }
 
 // Compile-time struct field type assertions for legacy and new types.
@@ -271,58 +272,58 @@ func TestNEOFeedWithKey_SignatureCompiles(t *testing.T) {
 // its field types. All user-facing string fields must remain string; ApodDate
 // must remain time.Time.
 func TestCompat_ImageStructFields(t *testing.T) {
-	var _ string = Image{}.Date
-	var _ string = Image{}.Title
-	var _ string = Image{}.URL
-	var _ string = Image{}.HDURL
-	var _ string = Image{}.Explanation
-	var _ time.Time = Image{}.ApodDate
+	assertType[string](Image{}.Date)
+	assertType[string](Image{}.Title)
+	assertType[string](Image{}.URL)
+	assertType[string](Image{}.HDURL)
+	assertType[string](Image{}.Explanation)
+	assertType[time.Time](Image{}.ApodDate)
 }
 
 // TestCompat_APODImageStructFields verifies the new APODImage struct field types.
 func TestCompat_APODImageStructFields(t *testing.T) {
-	var _ string = APODImage{}.Copyright
-	var _ MediaType = APODImage{}.MediaType
-	var _ string = APODImage{}.ServiceVersion
-	var _ string = APODImage{}.ThumbnailURL
+	assertType[string](APODImage{}.Copyright)
+	assertType[MediaType](APODImage{}.MediaType)
+	assertType[string](APODImage{}.ServiceVersion)
+	assertType[string](APODImage{}.ThumbnailURL)
 }
 
 // TestCompat_AsteroidStructFields verifies the legacy Asteroid struct preserves
 // its field types, including all orbital data fields which must remain string.
 func TestCompat_AsteroidStructFields(t *testing.T) {
-	var _ string = Asteroid{}.ID
-	var _ string = Asteroid{}.Name
-	var _ string = Asteroid{}.JPLURL
-	var _ float64 = Asteroid{}.AbsoluteMagnitude
-	var _ bool = Asteroid{}.PotentiallyHazardous
+	assertType[string](Asteroid{}.ID)
+	assertType[string](Asteroid{}.Name)
+	assertType[string](Asteroid{}.JPLURL)
+	assertType[float64](Asteroid{}.AbsoluteMagnitude)
+	assertType[bool](Asteroid{}.PotentiallyHazardous)
 
 	// Orbital data fields must all remain string
 	var a Asteroid
-	var _ string = a.OrbitalData.OrbitID
-	var _ string = a.OrbitalData.OrbitDeterminationDate
-	var _ string = a.OrbitalData.OrbitUncertainity
-	var _ string = a.OrbitalData.MinimumOrbitIntersection
-	var _ string = a.OrbitalData.JupiterTisserandInvariant
-	var _ string = a.OrbitalData.EpochOsculation
-	var _ string = a.OrbitalData.Eccentricity
-	var _ string = a.OrbitalData.Inclination
-	var _ string = a.OrbitalData.SemiMajorAxis
-	var _ string = a.OrbitalData.AscendingNodeLongitude
-	var _ string = a.OrbitalData.OrbitalPeriod
-	var _ string = a.OrbitalData.PerihelionDistance
-	var _ string = a.OrbitalData.PerihelionArgument
-	var _ string = a.OrbitalData.AphelionDistance
-	var _ string = a.OrbitalData.PerihelionTime
-	var _ string = a.OrbitalData.MeanAnomaly
-	var _ string = a.OrbitalData.MeanMotion
-	var _ string = a.OrbitalData.Equinox
+	assertType[string](a.OrbitalData.OrbitID)
+	assertType[string](a.OrbitalData.OrbitDeterminationDate)
+	assertType[string](a.OrbitalData.OrbitUncertainity)
+	assertType[string](a.OrbitalData.MinimumOrbitIntersection)
+	assertType[string](a.OrbitalData.JupiterTisserandInvariant)
+	assertType[string](a.OrbitalData.EpochOsculation)
+	assertType[string](a.OrbitalData.Eccentricity)
+	assertType[string](a.OrbitalData.Inclination)
+	assertType[string](a.OrbitalData.SemiMajorAxis)
+	assertType[string](a.OrbitalData.AscendingNodeLongitude)
+	assertType[string](a.OrbitalData.OrbitalPeriod)
+	assertType[string](a.OrbitalData.PerihelionDistance)
+	assertType[string](a.OrbitalData.PerihelionArgument)
+	assertType[string](a.OrbitalData.AphelionDistance)
+	assertType[string](a.OrbitalData.PerihelionTime)
+	assertType[string](a.OrbitalData.MeanAnomaly)
+	assertType[string](a.OrbitalData.MeanMotion)
+	assertType[string](a.OrbitalData.Equinox)
 }
 
 // TestCompat_NeoListStructFields verifies the legacy NeoList struct preserves
 // its field types.
 func TestCompat_NeoListStructFields(t *testing.T) {
-	var _ int64 = NeoList{}.ElementCount
-	var _ map[string][]Asteroid = NeoList{}.NearEarthObjects
+	assertType[int64](NeoList{}.ElementCount)
+	assertType[map[string][]Asteroid](NeoList{}.NearEarthObjects)
 }
 
 // TestCompat_APODConversion_ResponseFormat verifies the APOD conversion path:
@@ -333,7 +334,9 @@ func TestCompat_APODConversion_ResponseFormat(t *testing.T) {
 	data := loadFixture(t, "apod_single.json")
 	c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing APOD conversion fixture: %v", err)
+		}
 	})
 
 	date := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
@@ -378,7 +381,9 @@ func TestCompat_NeoFeedConversion_ResponseFormat(t *testing.T) {
 	data := loadFixture(t, "neo_feed.json")
 	c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing NEO conversion fixture: %v", err)
+		}
 	})
 
 	start := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)

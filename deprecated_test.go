@@ -80,8 +80,7 @@ func TestDeprecatedRandomHandler(t *testing.T) {
 
 // Compile-time assertion: NewServer signature must remain stable.
 func TestNewServer_SignatureCompiles(t *testing.T) {
-	var f func(string) (*http.Server, error) = NewServer
-	_ = f
+	assertType[func(string) (*http.Server, error)](NewServer)
 }
 
 // Compile-time assertion: TmplData must remain an exported type with Render.
@@ -96,6 +95,5 @@ func TestTmplData_SignatureCompiles(t *testing.T) {
 	_ = td.IsYoutube
 	_ = td.AutoReloadInterval
 
-	var f func(http.ResponseWriter) = td.Render
-	_ = f
+	assertType[func(http.ResponseWriter)](td.Render)
 }

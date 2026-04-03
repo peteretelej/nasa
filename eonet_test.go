@@ -23,7 +23,9 @@ func setupEONETTestServer(t *testing.T, fixturePath string) (*EONETService, **ht
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		captured = r.Clone(r.Context())
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing EONET fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 	c := NewClient(WithAPIKey("TEST_KEY"))
@@ -43,7 +45,9 @@ func setupEONETTestServerNoAuth(t *testing.T, fixturePath string) (*EONETService
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		captured = r.Clone(r.Context())
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing EONET no-auth fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 	c := NewClient(WithAPIKey("DEMO_KEY"))

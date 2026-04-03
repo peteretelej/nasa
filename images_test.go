@@ -23,7 +23,9 @@ func setupImageTestServer(t *testing.T, fixturePath string) (*Client, *ImageServ
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		captured = r.Clone(r.Context())
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing image fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 	c := NewClient(WithAPIKey("TEST_KEY"))
@@ -38,7 +40,9 @@ func setupImageErrorServer(t *testing.T, statusCode int, body string) *ImageServ
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
-		w.Write([]byte(body))
+		if _, err := w.Write([]byte(body)); err != nil {
+			t.Fatalf("writing image error response: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 	c := NewClient(WithAPIKey("TEST_KEY"))
@@ -50,7 +54,9 @@ func setupImageTextServer(t *testing.T, text string) *ImageService {
 	t.Helper()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte(text))
+		if _, err := w.Write([]byte(text)); err != nil {
+			t.Fatalf("writing image text response: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 	c := NewClient(WithAPIKey("TEST_KEY"))
@@ -235,7 +241,9 @@ func TestImageMetadata(t *testing.T) {
 	metadataJSON := `{"AVAIL:Title":"Apollo 11","EXIF:ImageWidth":4096,"EXIF:ImageHeight":3072,"XMP:Creator":"NASA"}`
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(metadataJSON))
+		if _, err := w.Write([]byte(metadataJSON)); err != nil {
+			t.Fatalf("writing metadata response: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 
@@ -308,7 +316,9 @@ func TestImageSearch_NoAuth(t *testing.T) {
 		gotAPIKey = r.URL.Query().Get("api_key")
 		w.Header().Set("Content-Type", "application/json")
 		data, _ := os.ReadFile("testdata/images_empty.json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing no-auth image response: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 
@@ -331,7 +341,9 @@ func TestImageAsset_NoAuth(t *testing.T) {
 		gotAPIKey = r.URL.Query().Get("api_key")
 		w.Header().Set("Content-Type", "application/json")
 		data, _ := os.ReadFile("testdata/images_asset.json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing image asset response: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 
@@ -353,7 +365,9 @@ func TestImageMetadata_NoAuth(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotAPIKey = r.URL.Query().Get("api_key")
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"key":"value"}`))
+		if _, err := w.Write([]byte(`{"key":"value"}`)); err != nil {
+			t.Fatalf("writing image metadata response: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 
@@ -375,7 +389,9 @@ func TestImageCaptions_NoAuth(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotAPIKey = r.URL.Query().Get("api_key")
 		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte("captions"))
+		if _, err := w.Write([]byte("captions")); err != nil {
+			t.Fatalf("writing image captions response: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 

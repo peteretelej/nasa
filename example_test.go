@@ -36,7 +36,7 @@ func ExampleNewClient_withOptions() {
 func ExampleAPODService_Get() {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, _ := os.ReadFile("testdata/apod_single.json")
-		w.Write(data)
+		_, _ = w.Write(data)
 	}))
 	defer ts.Close()
 
@@ -56,7 +56,7 @@ func ExampleAPODService_Get() {
 func ExampleAPODService_Today() {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, _ := os.ReadFile("testdata/apod_single.json")
-		w.Write(data)
+		_, _ = w.Write(data)
 	}))
 	defer ts.Close()
 
@@ -76,7 +76,7 @@ func ExampleAPODService_Today() {
 func ExampleAPODService_Random() {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, _ := os.ReadFile("testdata/apod_range.json")
-		w.Write(data)
+		_, _ = w.Write(data)
 	}))
 	defer ts.Close()
 
@@ -100,7 +100,9 @@ func ExampleAPODService_Random() {
 func ExampleNEOService_Feed() {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, _ := os.ReadFile("testdata/neo_feed.json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			fmt.Println("error:", err)
+		}
 	}))
 	defer ts.Close()
 
@@ -124,7 +126,9 @@ func ExampleNEOService_Feed() {
 func ExampleDONKIService() {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, _ := os.ReadFile("testdata/donki_cme.json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			fmt.Println("error:", err)
+		}
 	}))
 	defer ts.Close()
 
@@ -148,7 +152,9 @@ func ExampleDONKIService() {
 func ExampleImageService_Search() {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, _ := os.ReadFile("testdata/images_search.json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			fmt.Println("error:", err)
+		}
 	}))
 	defer ts.Close()
 
@@ -175,7 +181,9 @@ func ExampleImageService_Search() {
 func ExampleSSDService() {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, _ := os.ReadFile("testdata/ssd_cad.json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			fmt.Println("error:", err)
+		}
 	}))
 	defer ts.Close()
 
@@ -200,7 +208,9 @@ func ExampleSSDService() {
 func ExampleEONETService() {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, _ := os.ReadFile("testdata/eonet_events.json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			fmt.Println("error:", err)
+		}
 	}))
 	defer ts.Close()
 

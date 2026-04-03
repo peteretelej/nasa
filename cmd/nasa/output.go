@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"text/tabwriter"
 	"time"
@@ -31,17 +32,31 @@ func newTable(headers ...string) *tabwriter.Writer {
 	tw := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
 	for i, h := range headers {
 		if i > 0 {
-			fmt.Fprint(tw, "\t")
+			mustWriteString(tw, "\t")
 		}
-		fmt.Fprint(tw, h)
+		mustWriteString(tw, h)
 	}
-	fmt.Fprintln(tw)
+	mustWriteString(tw, "\n")
 	return tw
 }
 
 // flushTable flushes the tabwriter.
 func flushTable(tw *tabwriter.Writer) {
-	tw.Flush()
+	if err := tw.Flush(); err != nil {
+		fatal("failed to flush output: %v", err)
+	}
+}
+
+func tablePrintf(tw *tabwriter.Writer, format string, args ...any) {
+	if _, err := fmt.Fprintf(tw, format, args...); err != nil {
+		fatal("failed to write output: %v", err)
+	}
+}
+
+func mustWriteString(w io.Writer, s string) {
+	if _, err := io.WriteString(w, s); err != nil {
+		fatal("failed to write output: %v", err)
+	}
 }
 
 // formatDate returns a date as YYYY-MM-DD.

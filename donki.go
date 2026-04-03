@@ -554,7 +554,7 @@ func donkiGet[T any](ctx context.Context, s *DONKIService, path string, params u
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {

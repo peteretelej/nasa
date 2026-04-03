@@ -168,7 +168,7 @@ func (s *EONETService) Events(ctx context.Context, opts ...EONETOption) ([]*EONE
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -195,7 +195,7 @@ func (s *EONETService) Event(ctx context.Context, eventID string) (*EONETEvent, 
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -215,7 +215,7 @@ func (s *EONETService) Categories(ctx context.Context) ([]*EONETCategory, error)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -239,7 +239,7 @@ func (s *EONETService) Sources(ctx context.Context) ([]*EONETSource, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {

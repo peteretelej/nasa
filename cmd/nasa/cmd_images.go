@@ -36,7 +36,7 @@ func imagesCmd(args []string) {
 }
 
 func imagesUsage(w io.Writer) {
-	fmt.Fprintf(w, `Usage: nasa images <command> [flags]
+	if _, err := fmt.Fprintf(w, `Usage: nasa images <command> [flags]
 
 Commands:
   search      Search the NASA Image and Video Library
@@ -45,7 +45,9 @@ Commands:
   captions    Get captions for a NASA ID
 
 Use "nasa images <command> --help" for more information about a command.
-`)
+`); err != nil {
+		fatal("failed to write output: %v", err)
+	}
 }
 
 // imagesSearchCmd handles "nasa images search <query>".
@@ -120,7 +122,7 @@ Flags:
 
 	tw := newTable("Title", "NASA ID", "Type", "Date", "Description")
 	for _, item := range collection.Items {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\t%s\n",
 			truncate(item.Title, 30),
 			item.NasaID,
 			item.MediaType,
@@ -172,7 +174,7 @@ Flags:
 
 	tw := newTable("URL")
 	for _, item := range manifest.Items {
-		fmt.Fprintf(tw, "%s\n", item.Href)
+		tablePrintf(tw, "%s\n", item.Href)
 	}
 	flushTable(tw)
 }

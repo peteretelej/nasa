@@ -26,7 +26,9 @@ func TestNEOFeed_EmptyStringFloatHandling(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(fixture)
+		if _, err := w.Write(fixture); err != nil {
+			t.Fatalf("writing neo feed fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 
@@ -102,7 +104,9 @@ func TestNEOFeed_HTTPLinkFixupNested(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(fixture)
+		if _, err := w.Write(fixture); err != nil {
+			t.Fatalf("writing neo http-links fixture: %v", err)
+		}
 	}))
 	t.Cleanup(ts.Close)
 

@@ -67,9 +67,13 @@ func TestDONKI_CrossReferenceActivityIDs(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		switch {
 		case strings.HasPrefix(r.URL.Path, "/DONKI/FLR"):
-			w.Write(flrData)
+			if _, err := w.Write(flrData); err != nil {
+				t.Fatalf("writing FLR fixture: %v", err)
+			}
 		case strings.HasPrefix(r.URL.Path, "/DONKI/CME"):
-			w.Write(cmeData)
+			if _, err := w.Write(cmeData); err != nil {
+				t.Fatalf("writing CME fixture: %v", err)
+			}
 		default:
 			http.NotFound(w, r)
 		}

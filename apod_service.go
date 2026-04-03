@@ -97,7 +97,7 @@ func (s *APODService) Today(ctx context.Context) (*APODImage, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -135,7 +135,7 @@ func (s *APODService) Get(ctx context.Context, date time.Time) (*APODImage, erro
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -180,7 +180,7 @@ func (s *APODService) GetRange(ctx context.Context, start, end time.Time) ([]*AP
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -206,7 +206,7 @@ func (s *APODService) Random(ctx context.Context, count int) ([]*APODImage, erro
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {

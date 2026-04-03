@@ -20,7 +20,9 @@ func TestAPODGet_NoCopyrightField(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(fixture)
+		if _, err := w.Write(fixture); err != nil {
+			t.Fatalf("writing fixture: %v", err)
+		}
 	})
 
 	date := time.Date(2024, 2, 20, 0, 0, 0, 0, time.UTC)
@@ -61,9 +63,13 @@ func TestAPODGet_SingleObjectVsArrayResponse(t *testing.T) {
 		// If count or start_date param present, serve array; otherwise single.
 		q := r.URL.Query()
 		if q.Get("start_date") != "" || q.Get("count") != "" {
-			w.Write(arrayFixture)
+			if _, err := w.Write(arrayFixture); err != nil {
+				t.Fatalf("writing array fixture: %v", err)
+			}
 		} else {
-			w.Write(singleFixture)
+			if _, err := w.Write(singleFixture); err != nil {
+				t.Fatalf("writing single fixture: %v", err)
+			}
 		}
 	})
 
@@ -112,7 +118,9 @@ func TestAPODGetRange_EmptyRange(t *testing.T) {
 			t.Errorf("start_date=%q != end_date=%q, expected equal", q.Get("start_date"), q.Get("end_date"))
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(arrayFixture)
+		if _, err := w.Write(arrayFixture); err != nil {
+			t.Fatalf("writing range fixture: %v", err)
+		}
 	})
 
 	date := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)

@@ -34,7 +34,9 @@ func apodFixtureHandler(t *testing.T, fixturePath string) http.HandlerFunc {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing fixture response: %v", err)
+		}
 	}
 }
 
@@ -79,7 +81,9 @@ func TestAPODService_Get(t *testing.T) {
 		capturedQuery = r.URL.RawQuery
 		data, _ := os.ReadFile("testdata/apod_single.json")
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing get response: %v", err)
+		}
 	})
 
 	date := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
@@ -155,7 +159,9 @@ func TestAPODService_Random(t *testing.T) {
 		capturedQuery = r.URL.RawQuery
 		data, _ := os.ReadFile("testdata/apod_range.json")
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing random response: %v", err)
+		}
 	})
 
 	imgs, err := c.APOD.Random(context.Background(), 3)
@@ -221,7 +227,9 @@ func TestAPODService_Get_APIError(t *testing.T) {
 	c := setupAPODTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusTooManyRequests)
-		w.Write([]byte(`{"error":{"message":"rate limit exceeded"}}`))
+		if _, err := w.Write([]byte(`{"error":{"message":"rate limit exceeded"}}`)); err != nil {
+			t.Fatalf("writing api error response: %v", err)
+		}
 	})
 
 	date := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
@@ -244,7 +252,9 @@ func TestAPODService_Get_NotFound(t *testing.T) {
 	c := setupAPODTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			t.Fatalf("writing not found response: %v", err)
+		}
 	})
 
 	date := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)

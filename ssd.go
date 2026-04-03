@@ -401,7 +401,7 @@ func (s *SSDService) CloseApproach(ctx context.Context, opts ...CADOption) ([]*C
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -434,7 +434,7 @@ func (s *SSDService) Fireball(ctx context.Context, opts ...FireballOption) ([]*F
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -466,7 +466,7 @@ func (s *SSDService) NHATS(ctx context.Context, opts ...NHATSOption) ([]*NHATSOb
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -500,7 +500,7 @@ func (s *SSDService) Scout(ctx context.Context, opts ...ScoutOption) ([]*ScoutOb
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -533,7 +533,7 @@ func (s *SSDService) Sentry(ctx context.Context, opts ...SentryOption) ([]*Sentr
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -566,7 +566,7 @@ func (s *SSDService) SBDB(ctx context.Context, designation string) (*SmallBody, 
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp.Body)
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {

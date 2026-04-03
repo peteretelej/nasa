@@ -36,7 +36,7 @@ func eonetCmd(args []string) {
 }
 
 func eonetUsage(w io.Writer) {
-	fmt.Fprintf(w, `Usage: nasa eonet <command> [flags]
+	if _, err := fmt.Fprintf(w, `Usage: nasa eonet <command> [flags]
 
 Commands:
   events       List natural events
@@ -45,7 +45,9 @@ Commands:
   sources      List event sources
 
 Use "nasa eonet <command> --help" for more information about a command.
-`)
+`); err != nil {
+		fatal("failed to write output: %v", err)
+	}
 }
 
 // eonetEventsCmd handles "nasa eonet events".
@@ -141,7 +143,7 @@ Flags:
 		if len(e.Geometry) > 0 {
 			date = formatDate(e.Geometry[0].Date)
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\t%s\t%s\n",
 			e.ID,
 			truncate(e.Title, 30),
 			cat,
@@ -221,7 +223,7 @@ Flags:
 		tw := newTable("Date", "Type", "Coordinates")
 		for _, g := range event.Geometry {
 			coords := formatEONETCoords(g)
-			fmt.Fprintf(tw, "%s\t%s\t%s\n",
+			tablePrintf(tw, "%s\t%s\t%s\n",
 				g.Date.Format(time.RFC3339),
 				g.Type,
 				coords,
@@ -286,7 +288,7 @@ Flags:
 
 	tw := newTable("ID", "Title", "Description")
 	for _, c := range categories {
-		fmt.Fprintf(tw, "%s\t%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\t%s\n",
 			c.ID,
 			c.Title,
 			truncate(c.Description, 50),
@@ -337,7 +339,7 @@ Flags:
 
 	tw := newTable("ID", "URL")
 	for _, s := range sources {
-		fmt.Fprintf(tw, "%s\t%s\n",
+		tablePrintf(tw, "%s\t%s\n",
 			s.ID,
 			s.URL,
 		)
