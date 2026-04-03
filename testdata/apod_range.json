@@ -1,0 +1,31 @@
+[
+  {
+    "copyright": "Photographer One",
+    "date": "2024-01-10",
+    "explanation": "First image in range.",
+    "hdurl": "https://apod.nasa.gov/apod/image/2401/range1_hd.jpg",
+    "media_type": "image",
+    "service_version": "v1",
+    "title": "Range Image One",
+    "url": "https://apod.nasa.gov/apod/image/2401/range1.jpg"
+  },
+  {
+    "date": "2024-01-11",
+    "explanation": "A video in the range.",
+    "media_type": "video",
+    "service_version": "v1",
+    "thumbnail_url": "https://img.youtube.com/vi/xyz789/0.jpg",
+    "title": "Range Video Two",
+    "url": "https://www.youtube.com/embed/xyz789"
+  },
+  {
+    "copyright": "Photographer Three",
+    "date": "2024-01-12",
+    "explanation": "Third image in range.",
+    "hdurl": "https://apod.nasa.gov/apod/image/2401/range3_hd.jpg",
+    "media_type": "image",
+    "service_version": "v1",
+    "title": "Range Image Three",
+    "url": "https://apod.nasa.gov/apod/image/2401/range3.jpg"
+  }
+]

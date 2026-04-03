@@ -4,22 +4,88 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"io"
 	"net/url"
 	"time"
 )
+
+// MediaType represents the type of media returned by the APOD API.
+type MediaType string
+
+const (
+	// MediaImage indicates the APOD entry is a still image.
+	MediaImage MediaType = "image"
+	// MediaVideo indicates the APOD entry is a video (typically YouTube/Vimeo embed).
+	MediaVideo MediaType = "video"
+)
+
+// dateFormat is the date layout used by the NASA APOD and NeoWs APIs.
+const dateFormat = "2006-01-02"
+
+// apodEarliestDate is the earliest date for which an APOD entry exists.
+var apodEarliestDate = time.Date(1995, 6, 16, 0, 0, 0, 0, time.UTC)
+
+// APODImage represents a single Astronomy Picture of the Day entry.
+type APODImage struct {
+	Date           time.Time `json:"-"`
+	Title          string    `json:"title"`
+	Explanation    string    `json:"explanation"`
+	URL            string    `json:"url"`
+	HDURL          string    `json:"hdurl"`
+	MediaType      MediaType `json:"media_type"`
+	Copyright      string    `json:"copyright"`
+	ThumbnailURL   string    `json:"thumbnail_url"`
+	ServiceVersion string    `json:"service_version"`
+}
+
+// UnmarshalJSON implements custom JSON unmarshalling for APODImage,
+// parsing the "date" string field into a time.Time value.
+func (a *APODImage) UnmarshalJSON(data []byte) error {
+	type Alias APODImage
+	aux := &struct {
+		Date string `json:"date"`
+		*Alias
+	}{
+		Alias: (*Alias)(a),
+	}
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+	if t, err := time.Parse(dateFormat, aux.Date); err == nil {
+		a.Date = t
+	}
+	return nil
+}
+
+// decodeAPODResponse unmarshals a response body into APODImage values.
+// When single is true, the body is expected to be a single JSON object;
+// when false, a JSON array.
+func decodeAPODResponse(body []byte, single bool) ([]*APODImage, error) {
+	if single {
+		var img APODImage
+		if err := json.Unmarshal(body, &img); err != nil {
+			return nil, err
+		}
+		return []*APODImage{&img}, nil
+	}
+	var imgs []*APODImage
+	if err := json.Unmarshal(body, &imgs); err != nil {
+		return nil, err
+	}
+	return imgs, nil
+}
 
 // APODService provides access to the Astronomy Picture of the Day API.
 type APODService struct {
 	client *Client
 }
 
-// Get retrieves the APOD for a specific date.
-func (s *APODService) Get(ctx context.Context, date time.Time) (*Image, error) {
+// Today retrieves today's Astronomy Picture of the Day. The NASA API
+// determines "today" based on its own timezone, avoiding client-side
+// timezone mismatches.
+func (s *APODService) Today(ctx context.Context) (*APODImage, error) {
 	params := url.Values{}
-	if !date.IsZero() {
-		params.Set("date", date.Format("2006-01-02"))
-	}
+	params.Set("thumbs", "true")
 
 	resp, err := s.client.get(ctx, "/planetary/apod", params, true)
 	if err != nil {
@@ -27,32 +93,114 @@ func (s *APODService) Get(ctx context.Context, date time.Time) (*Image, error) {
 	}
 	defer resp.Body.Close()
 
-	var img Image
-	if err := json.NewDecoder(resp.Body).Decode(&img); err != nil {
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
 		return nil, err
 	}
 
-	if t, err := time.Parse("2006-01-02", img.Date); err == nil {
-		img.ApodDate = t
+	imgs, err := decodeAPODResponse(body, true)
+	if err != nil {
+		return nil, err
 	}
-
-	// Preserve existing validation: require at least one image URL
-	if img.URL == "" && img.HDURL == "" {
-		return nil, fmt.Errorf("nasa: APOD response for %s has no image URL", date.Format("2006-01-02"))
-	}
-
-	return &img, nil
+	return imgs[0], nil
 }
 
-// Today retrieves today's APOD.
-func (s *APODService) Today(ctx context.Context) (*Image, error) {
-	return s.Get(ctx, time.Now())
+// Get retrieves the APOD for a specific date. The date must be between
+// June 16, 1995 (the first APOD) and today.
+func (s *APODService) Get(ctx context.Context, date time.Time) (*APODImage, error) {
+	truncated := date.Truncate(24 * time.Hour)
+
+	if truncated.Before(apodEarliestDate) {
+		return nil, fmt.Errorf("nasa: date %s is before the earliest APOD (%s)",
+			date.Format(dateFormat), apodEarliestDate.Format(dateFormat))
+	}
+	today := time.Now().Truncate(24 * time.Hour)
+	if truncated.After(today) {
+		return nil, fmt.Errorf("nasa: date %s is in the future", date.Format(dateFormat))
+	}
+
+	params := url.Values{}
+	params.Set("date", date.Format(dateFormat))
+	params.Set("thumbs", "true")
+
+	resp, err := s.client.get(ctx, "/planetary/apod", params, true)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	imgs, err := decodeAPODResponse(body, true)
+	if err != nil {
+		return nil, err
+	}
+	return imgs[0], nil
 }
 
-// Random retrieves an APOD from a random date in the last 2 years.
-func (s *APODService) Random(ctx context.Context) (*Image, error) {
-	days := 2 * 365
-	randDays := time.Duration(rand.Intn(days))
-	t := time.Now().Add(-(time.Hour * 24 * randDays))
-	return s.Get(ctx, t)
+// GetRange retrieves APOD entries for a date range (inclusive). Both dates
+// must be within the valid APOD range and start must not be after end.
+func (s *APODService) GetRange(ctx context.Context, start, end time.Time) ([]*APODImage, error) {
+	startTrunc := start.Truncate(24 * time.Hour)
+	endTrunc := end.Truncate(24 * time.Hour)
+
+	if startTrunc.After(endTrunc) {
+		return nil, fmt.Errorf("nasa: start date %s is after end date %s",
+			start.Format(dateFormat), end.Format(dateFormat))
+	}
+	if startTrunc.Before(apodEarliestDate) {
+		return nil, fmt.Errorf("nasa: start date %s is before the earliest APOD (%s)",
+			start.Format(dateFormat), apodEarliestDate.Format(dateFormat))
+	}
+	today := time.Now().Truncate(24 * time.Hour)
+	if endTrunc.After(today) {
+		return nil, fmt.Errorf("nasa: end date %s is in the future", end.Format(dateFormat))
+	}
+
+	params := url.Values{}
+	params.Set("start_date", start.Format(dateFormat))
+	params.Set("end_date", end.Format(dateFormat))
+	params.Set("thumbs", "true")
+
+	resp, err := s.client.get(ctx, "/planetary/apod", params, true)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return decodeAPODResponse(body, false)
+}
+
+// Random retrieves the specified number of random APOD entries. Count must
+// be at least 1. Note that large counts can be slow because the NASA API
+// shuffles all ~11,000 dates and fetches them sequentially.
+func (s *APODService) Random(ctx context.Context, count int) ([]*APODImage, error) {
+	if count < 1 {
+		return nil, fmt.Errorf("nasa: count must be at least 1, got %d", count)
+	}
+
+	params := url.Values{}
+	params.Set("count", fmt.Sprintf("%d", count))
+	params.Set("thumbs", "true")
+
+	resp, err := s.client.get(ctx, "/planetary/apod", params, true)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return decodeAPODResponse(body, false)
 }

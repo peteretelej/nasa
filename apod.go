@@ -71,12 +71,29 @@ func getDefaultClient() *Client {
 // Picks any image shared between the last 2 years
 func RandomAPOD() (*Image, error) {
 	c := getDefaultClient()
-	return c.APOD.Random(context.Background())
+	imgs, err := c.APOD.Random(context.Background(), 1)
+	if err != nil {
+		return nil, err
+	}
+	return apodToImage(imgs[0]), nil
+}
+
+// apodToImage converts an APODImage to the legacy Image type.
+// Phase 3 will replace this with a proper helper in compat.go.
+func apodToImage(a *APODImage) *Image {
+	return &Image{
+		Date:        a.Date.Format(dateFormat),
+		Title:       a.Title,
+		URL:         a.URL,
+		HDURL:       a.HDURL,
+		Explanation: a.Explanation,
+		ApodDate:    a.Date,
+	}
 }
 
 // APODToday returns today's APOD, from cache if possible, fetches fresh if not
 func APODToday() (*Image, error) {
-	d := time.Now().Format("2006-01-02")
+	d := time.Now().Format(dateFormat)
 
 	tAPOD.mu.RLock()
 	cacheddate, apod := tAPOD.date, tAPOD.apod
@@ -92,11 +109,13 @@ func APODToday() (*Image, error) {
 		return nil, err
 	}
 
+	legacy := apodToImage(img)
+
 	// Cache today's result
-	if time.Now().Format("2006-01-02") == img.Date {
-		tAPOD.update(*img)
+	if time.Now().Format(dateFormat) == img.Date.Format(dateFormat) {
+		tAPOD.update(*legacy)
 	}
-	return img, nil
+	return legacy, nil
 }
 
 // ApodImage returns the NASA Astronomy Picture of the Day
@@ -111,9 +130,11 @@ func ApodImage(t time.Time) (*Image, error) {
 		return nil, err
 	}
 
+	legacy := apodToImage(img)
+
 	// Cache if it's today
-	if time.Now().Format("2006-01-02") == img.Date {
-		tAPOD.update(*img)
+	if time.Now().Format(dateFormat) == img.Date.Format(dateFormat) {
+		tAPOD.update(*legacy)
 	}
-	return img, nil
+	return legacy, nil
 }
