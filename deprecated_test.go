@@ -30,9 +30,9 @@ func apodMockHandler(t *testing.T, todayFixture, randomFixture string) http.Hand
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if r.URL.Query().Get("count") != "" {
-			w.Write(randomData)
+			_, _ = w.Write(randomData)
 		} else {
-			w.Write(todayData)
+			_, _ = w.Write(todayData)
 		}
 	}
 }

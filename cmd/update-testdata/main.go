@@ -195,7 +195,7 @@ func loadAPIKey() string {
 	if err != nil {
 		return ""
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -221,7 +221,7 @@ func mustFetch(_ string, name, url, _ string) []byte {
 		fmt.Fprintf(os.Stderr, "\nerror fetching %s: %v\n", name, err)
 		os.Exit(1)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -279,7 +279,7 @@ func fetchVideoAPOD(apiKey string) []byte {
 			continue
 		}
 		body, _ := io.ReadAll(resp.Body)
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
 			fmt.Printf(" HTTP %d\n", resp.StatusCode)
@@ -309,7 +309,7 @@ func fetchVideoAPOD(apiKey string) []byte {
 		os.Exit(1)
 	}
 	body, _ := io.ReadAll(resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 
 	var apods []map[string]interface{}
 	if err := json.Unmarshal(body, &apods); err != nil {
