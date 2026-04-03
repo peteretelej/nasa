@@ -228,5 +228,29 @@ Get a free API key at [api.nasa.gov](https://api.nasa.gov/).
 | `nasa_eonet_events` | Natural events (EONET) |
 
 
+## Testing
+
+### Unit Tests
+
+Run all unit tests:
+
+```bash
+go test ./...
+```
+
+### Integration Tests
+
+Integration tests hit the live NASA API and are gated by the `//go:build integration` build tag. They are excluded from `go test ./...` by default.
+
+**Locally**, use the convenience script:
+
+```bash
+./scripts/test-integration.sh
+```
+
+This loads `NASA_API_KEY` from a `.env` file if present, or you can export it directly. Get a free key at [api.nasa.gov](https://api.nasa.gov/).
+
+**In CI**, integration tests run as a separate job triggered by manual dispatch (`workflow_dispatch`) or on a nightly schedule (06:00 UTC). The job reads `NASA_API_KEY` from repository secrets.
+
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa?ref=badge_large)
