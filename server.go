@@ -12,9 +12,10 @@ import (
 )
 
 // NewServer a http web-server that serves APOD pictures
-//     / - today's APOD
-//     /random-apod - returns a random APOD
-//     TODO: /apod/YYYY-MM-DD - returns apod for specified date
+//
+//	/ - today's APOD
+//	/random-apod - returns a random APOD
+//	TODO: /apod/YYYY-MM-DD - returns apod for specified date
 func NewServer(listenAddr string) (*http.Server, error) {
 	var err error
 	tmpl, err = template.New("tmpl").Parse(tmplHTML)
@@ -87,7 +88,7 @@ func (h *randomHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	apod := h.apod()
 
 	// Update if cached apod is older than a second
-	if time.Now().Sub(h.last()) > time.Second {
+	if time.Since(h.last()) > time.Second {
 		if newApod, err := RandomAPOD(); err == nil {
 			if newApod.URL != "" {
 				apod = *newApod

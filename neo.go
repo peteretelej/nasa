@@ -79,7 +79,7 @@ func (nl NeoList) String() string {
 		neos += fmt.Sprintf("%s: %d objects\n", k, len(val))
 		var objs []string
 		for _, each := range val {
-			objs = append(objs, fmt.Sprintf("%s", each.Name))
+			objs = append(objs, each.Name)
 		}
 		neos += fmt.Sprintf("Objects: %s\n", strings.Join(objs, ","))
 	}

@@ -42,7 +42,7 @@ var (
 
 func init() {
 	if os.Getenv("NASAKEY") == "" {
-		fmt.Println(nasa.APIKEYMissing)
+		fmt.Print(nasa.APIKEYMissing)
 	}
 }
 
@@ -163,7 +163,7 @@ func updateRandom() error {
 	switch http.DetectContentType(dat[:512]) {
 	case "image/jpg", "image/jpeg", "image/png", "image/gif":
 	default:
-		return errors.New("Apod returned is not a valid image mimetype")
+		return errors.New("apod returned is not a valid image mimetype")
 	}
 	err = os.WriteFile(tmpfile, dat, 0644)
 	if err != nil {

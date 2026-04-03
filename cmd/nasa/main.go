@@ -25,7 +25,7 @@ var (
 
 func init() {
 	if os.Getenv("NASAKEY") == "" {
-		fmt.Println(nasa.APIKEYMissing)
+		fmt.Print(nasa.APIKEYMissing)
 	}
 }
 

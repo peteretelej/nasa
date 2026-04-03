@@ -1,39 +1,20 @@
-// Package nasa provides Go structs and functions for accessing the NASA API
+// Package nasa provides a Go client for NASA's public APIs.
 //
-// Queries are made with Go types as arguments and responses returned as valid Go types.
-// For best experience, grap NASA API key from api.nasa.gov and set it to the environment variable NASAKEY
-//   export NASAKEY=Your-NASA-API_KEY
+// The recommended way to use this package is through the Client:
 //
-// Example Usage
+//	client := nasa.NewClient(nasa.WithAPIKey("your-key"))
+//	apod, err := client.APOD.Today(context.Background())
 //
-//  package main
+// For quick usage, package-level convenience functions are also available:
 //
-//  import (
-//  	"fmt"
-//  	"log"
-//  	"time"
+//	apod, err := nasa.APODToday()
+//	neo, err := nasa.NeoFeed(start, end)
 //
-//  	"github.com/peteretelej/nasa"
-//  )
+// These convenience functions read the API key from the NASA_API_KEY
+// or NASAKEY environment variable, falling back to DEMO_KEY.
 //
-//  func main() {
-//  	apod, err := nasa.ApodImage(time.Now())
-//  	handle(err)
-//  	fmt.Println(apod)
+// For best experience, get a NASA API key from https://api.nasa.gov
+// and set it:
 //
-//  	// apod has structure of nasa.Image, hence get details with:
-//  	// apod.Date, apod.Title, apod.Explanation, apod.URL, apod.HDURL etc
-//  	fmt.Printf("Today's APOD is %s, available at %s", apod.Title, apod.HDURL)
-//
-//  	lastweek := time.Now().Add(-(7 * 24 * time.Hour))
-//  	apod, err = nasa.ApodImage(lastweek)
-//  	handle(err)
-//  	fmt.Printf("APOD for 1 week ago:\n%s\n", apod)
-//  }
-//  func handle(err error) {
-//  	if err != nil {
-//  		log.Fatal(err)
-//  	}
-//  }
-//
+//	export NASA_API_KEY=your-key
 package nasa
