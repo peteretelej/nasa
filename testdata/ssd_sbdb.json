@@ -1,0 +1,40 @@
+{
+  "object": {
+    "fullname": "99942 Apophis (2004 MN4)",
+    "shortname": "Apophis",
+    "des": "99942",
+    "kind": "an",
+    "orbit_id": "199",
+    "orbit_class": {
+      "code": "ATE",
+      "name": "Aten"
+    },
+    "neo": true,
+    "pha": true,
+    "spkid": "2099942",
+    "prefix": null
+  },
+  "orbit": {
+    "elements": [
+      {"name": "e", "title": "eccentricity", "value": "0.1914", "units": null, "sigma": "3.1e-08", "label": "e"},
+      {"name": "a", "title": "semi-major axis", "value": "0.9224", "units": "au", "sigma": "1.2e-09", "label": "a"},
+      {"name": "q", "title": "perihelion distance", "value": "0.7461", "units": "au", "sigma": "2.9e-08", "label": "q"},
+      {"name": "i", "title": "inclination", "value": "3.3387", "units": "deg", "sigma": "5.2e-06", "label": "i"},
+      {"name": "om", "title": "longitude of ascending node", "value": "204.446", "units": "deg", "sigma": "1.5e-04", "label": "node"},
+      {"name": "w", "title": "argument of perihelion", "value": "126.393", "units": "deg", "sigma": "1.5e-04", "label": "peri"}
+    ],
+    "epoch": "2460600.5",
+    "orbit_id": "199",
+    "source": "JPL",
+    "condition_code": "0",
+    "moid": "0.000225",
+    "moid_jup": "3.952",
+    "t_jup": "6.464",
+    "data_arc": "7294",
+    "n_obs_used": 5134,
+    "first_obs": "2004-03-15",
+    "last_obs": "2024-03-08",
+    "rms": "0.41",
+    "producer": "Otto Matic"
+  }
+}
