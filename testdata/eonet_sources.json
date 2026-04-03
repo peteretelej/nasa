@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "id": "InciWeb",
+      "url": "https://inciweb.nwcg.gov/"
+    },
+    {
+      "id": "GDACS",
+      "url": "https://www.gdacs.org/"
+    },
+    {
+      "id": "USGS_CMT",
+      "url": "https://earthquake.usgs.gov/"
+    }
+  ]
+}

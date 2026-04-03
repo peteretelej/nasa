@@ -1,0 +1,25 @@
+{
+  "categories": [
+    {
+      "id": "drought",
+      "title": "Drought",
+      "description": "Long lasting absence of precipitation.",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/categories/drought",
+      "layers": "MODIS_Terra_NDVI_8Day"
+    },
+    {
+      "id": "earthquakes",
+      "title": "Earthquakes",
+      "description": "Shaking and displacement of the ground.",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/categories/earthquakes",
+      "layers": ""
+    },
+    {
+      "id": "wildfires",
+      "title": "Wildfires",
+      "description": "Uncontrolled fires in wildlands.",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/categories/wildfires",
+      "layers": "MODIS_Fires_All"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "id": "EONET_6354",
+  "title": "Wildfire - Los Angeles, California",
+  "description": "A large wildfire near Los Angeles.",
+  "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_6354",
+  "closed": null,
+  "categories": [
+    {
+      "id": "wildfires",
+      "title": "Wildfires"
+    }
+  ],
+  "sources": [
+    {
+      "id": "InciWeb",
+      "url": "https://inciweb.wildfire.gov/incident-information/caanf-palisades"
+    }
+  ],
+  "geometry": [
+    {
+      "date": "2026-01-07T18:00:00Z",
+      "type": "Point",
+      "coordinates": [-118.52, 34.05],
+      "magnitudeValue": null,
+      "magnitudeUnit": ""
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "title": "EONET Events",
+  "description": "Natural events from EONET.",
+  "link": "https://eonet.gsfc.nasa.gov/api/v3/events",
+  "events": [
+    {
+      "id": "EONET_6354",
+      "title": "Wildfire - Los Angeles, California",
+      "description": "A large wildfire near Los Angeles.",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_6354",
+      "closed": null,
+      "categories": [
+        {
+          "id": "wildfires",
+          "title": "Wildfires"
+        }
+      ],
+      "sources": [
+        {
+          "id": "InciWeb",
+          "url": "https://inciweb.wildfire.gov/incident-information/caanf-palisades"
+        }
+      ],
+      "geometry": [
+        {
+          "date": "2026-01-07T18:00:00Z",
+          "type": "Point",
+          "coordinates": [-118.52, 34.05],
+          "magnitudeValue": null,
+          "magnitudeUnit": ""
+        },
+        {
+          "date": "2026-01-08T12:00:00Z",
+          "type": "Point",
+          "coordinates": [-118.53, 34.06],
+          "magnitudeValue": null,
+          "magnitudeUnit": ""
+        }
+      ]
+    },
+    {
+      "id": "EONET_6280",
+      "title": "Tropical Storm Gamma",
+      "description": "",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_6280",
+      "closed": "2025-11-15T00:00:00Z",
+      "categories": [
+        {
+          "id": "severeStorms",
+          "title": "Severe Storms"
+        }
+      ],
+      "sources": [
+        {
+          "id": "JTWC",
+          "url": "https://www.metoc.navy.mil/jtwc/"
+        },
+        {
+          "id": "GDACS",
+          "url": "https://www.gdacs.org/report.aspx?eventtype=TC&eventid=1000999"
+        }
+      ],
+      "geometry": [
+        {
+          "date": "2025-11-10T06:00:00Z",
+          "type": "Point",
+          "coordinates": [135.2, 15.8],
+          "magnitudeValue": 65.0,
+          "magnitudeUnit": "kts"
+        }
+      ]
+    }
+  ]
+}
