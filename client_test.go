@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -418,5 +419,110 @@ func TestGetPreservesExistingParams(t *testing.T) {
 
 	if gotDate != "2024-01-15" {
 		t.Errorf("expected date=2024-01-15, got %s", gotDate)
+	}
+}
+
+func TestGetExternal_CustomBaseURL(t *testing.T) {
+	var gotPath string
+	var gotQuery string
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		gotQuery = r.URL.RawQuery
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(WithAPIKey("test-key"))
+
+	params := url.Values{}
+	params.Set("q", "apollo")
+
+	resp, err := c.getExternal(context.Background(), ts.URL, "search", params)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if gotPath != "/search" {
+		t.Errorf("expected path /search, got %s", gotPath)
+	}
+	if !strings.Contains(gotQuery, "q=apollo") {
+		t.Errorf("expected query to contain q=apollo, got %s", gotQuery)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected 200, got %d", resp.StatusCode)
+	}
+}
+
+func TestGetExternal_NoAPIKey(t *testing.T) {
+	var gotAPIKey string
+	var gotUserAgent string
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAPIKey = r.URL.Query().Get("api_key")
+		gotUserAgent = r.Header.Get("User-Agent")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(WithAPIKey("should-not-appear"))
+
+	resp, err := c.getExternal(context.Background(), ts.URL, "test", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if gotAPIKey != "" {
+		t.Errorf("expected no api_key for external request, got %s", gotAPIKey)
+	}
+	if gotUserAgent != "go-nasa-sdk" {
+		t.Errorf("expected User-Agent go-nasa-sdk, got %s", gotUserAgent)
+	}
+}
+
+func TestGetExternal_ErrorPropagation(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"error":{"message":"not found"}}`))
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(WithAPIKey("test"))
+
+	_, err := c.getExternal(context.Background(), ts.URL, "missing", nil)
+	if err == nil {
+		t.Fatal("expected error for 404")
+	}
+
+	var nfErr *NotFoundError
+	if !errors.As(err, &nfErr) {
+		t.Errorf("expected NotFoundError, got %T: %v", err, err)
+	}
+}
+
+func TestNewClient_ServicesInitialized(t *testing.T) {
+	c := NewClient(WithAPIKey("test"))
+
+	if c.APOD == nil {
+		t.Error("expected APOD service to be initialized")
+	}
+	if c.NEO == nil {
+		t.Error("expected NEO service to be initialized")
+	}
+	if c.DONKI == nil {
+		t.Error("expected DONKI service to be initialized")
+	}
+	if c.Images == nil {
+		t.Error("expected Images service to be initialized")
+	}
+	if c.SSD == nil {
+		t.Error("expected SSD service to be initialized")
+	}
+	if c.EONET == nil {
+		t.Error("expected EONET service to be initialized")
 	}
 }

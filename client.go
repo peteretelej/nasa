@@ -21,9 +21,12 @@ type Client struct {
 	rpsSet      bool    // true if WithRateLimit was explicitly called
 
 	// Services
-	APOD  *APODService
-	NEO   *NEOService
-	DONKI *DONKIService
+	APOD   *APODService
+	NEO    *NEOService
+	DONKI  *DONKIService
+	Images *ImageService
+	SSD    *SSDService
+	EONET  *EONETService
 }
 
 // Option configures a Client.
@@ -95,6 +98,9 @@ func NewClient(opts ...Option) *Client {
 	c.APOD = &APODService{client: c}
 	c.NEO = &NEOService{client: c}
 	c.DONKI = &DONKIService{client: c}
+	c.Images = &ImageService{client: c, baseURL: "https://images-api.nasa.gov"}
+	c.SSD = &SSDService{client: c, baseURL: "https://ssd-api.jpl.nasa.gov"}
+	c.EONET = &EONETService{client: c, baseURL: "https://eonet.gsfc.nasa.gov/api/v3", apiKey: c.apiKeys[0]}
 
 	return c
 }
@@ -166,6 +172,23 @@ func (c *Client) get(ctx context.Context, path string, params url.Values, authen
 	}
 
 	return nil, lastErr
+}
+
+// getExternal performs a GET to an external (non-api.nasa.gov) URL.
+// No API key injection or rate limiting. Used by services with their own
+// base URLs (Images, SSD, EONET).
+func (c *Client) getExternal(ctx context.Context, baseURL, path string, params url.Values) (*http.Response, error) {
+	fullURL := strings.TrimRight(baseURL, "/") + "/" + strings.TrimLeft(path, "/")
+	if params != nil {
+		if encoded := params.Encode(); encoded != "" {
+			fullURL += "?" + encoded
+		}
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	return c.do(req)
 }
 
 // do executes an HTTP request, setting the User-Agent header. On success (2xx),
