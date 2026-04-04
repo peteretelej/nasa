@@ -122,7 +122,7 @@ func TestServiceError_ConnectionRefused(t *testing.T) {
 		t.Fatalf("binding ephemeral port: %v", err)
 	}
 	addr := ln.Addr().String()
-	ln.Close()
+	_ = ln.Close()
 
 	c := NewClient(
 		WithBaseURL("http://"+addr),

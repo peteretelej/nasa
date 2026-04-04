@@ -102,7 +102,7 @@ nasa ssd cad                       # close approach data
 go install github.com/peteretelej/nasa/cmd/nasa-mcp@latest
 ```
 
-Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+Add to your MCP client config:
 
 ```json
 {
@@ -115,7 +115,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 }
 ```
 
-The MCP server exposes 13 tools covering all 6 APIs. Works with Claude Desktop, Claude Code, Cursor, and VS Code Copilot. See the [documentation](https://peteretelej.github.io/nasa) for other client configurations.
+The MCP server exposes 13 tools covering all 6 APIs. See the [documentation](https://peteretelej.github.io/nasa) for details.
 
 ## Documentation
 
