@@ -250,14 +250,14 @@ src="{{.Apod.URL}}?autoplay=1&controls=0&showinfo=0&autohide=1">
 </iframe>
 </div>
 {{else}}
-<img src="{{if .SD}}{{.Apod.URL}}{{else}}{{.Apod.HDURL}}{{end}}" id="bg" alt="{{.Apod.Title}}" />
+<img src="{{if .SD}}{{.Apod.URL}}{{else}}{{if .Apod.HDURL}}{{.Apod.HDURL}}{{else}}{{.Apod.URL}}{{end}}{{end}}" id="bg" alt="{{.Apod.Title}}" />
 {{end}}
 </div>
 <div id="apod">
 <div id="explanation">
 <h4>{{.Apod.Title}}</h4>
 <p>{{.Apod.Explanation}}</p>
-<p>NASA Astronomy Picture of the Day {{.Apod.Date}} <a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>Open Image in HD</i></a> </p>
+<p>NASA Astronomy Picture of the Day {{.Apod.Date}} {{if .Apod.HDURL}}<a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>Open Image in HD</i></a>{{end}} </p>
 </div>
 <h4>{{.Apod.Title}}</h4>
 <p style="text-align:right">

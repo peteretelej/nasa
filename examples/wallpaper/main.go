@@ -28,20 +28,22 @@ var (
 )
 
 // Commands for changing wallpapers
-var (
-	cmds []string // actual command in use
+var cmds []string // actual command in use
 
-	cmdDefaults = map[string]string{
-		"gnome":   "gsettings set org.gnome.desktop.background picture-uri file://%s",
-		"kde":     "dcop kdesktop KBackgroundIface setWallpaper %s 1",
-		"gnome2":  "gconftool-2 --set /desktop/gnome/background/picture_filename --type=string %s",
-		"xfce":    "xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s %s",
-		"mate":    `dconf write /org/mate/desktop/background/picture-filename "%s"`,
-		"lxde":    "pcmanfm -w %s --wallpaper-mode=fit",
-		"feh":     "feh --bg-scale %s",
-		"setroot": "setroot %s",
-	}
-)
+// cmdDefaults maps desktop environment names to structured command templates.
+// Each value is a []string where "%s" is replaced with the file path at runtime.
+// Using []string avoids strings.Split which breaks on quoted arguments or paths
+// containing spaces.
+var cmdDefaults = map[string][]string{
+	"gnome":   {"gsettings", "set", "org.gnome.desktop.background", "picture-uri", "file://%s"},
+	"kde":     {"dcop", "kdesktop", "KBackgroundIface", "setWallpaper", "%s", "1"},
+	"gnome2":  {"gconftool-2", "--set", "/desktop/gnome/background/picture_filename", "--type=string", "%s"},
+	"xfce":    {"xfconf-query", "-c", "xfce4-desktop", "-p", "/backdrop/screen0/monitor0/image-path", "-s", "%s"},
+	"mate":    {"dconf", "write", "/org/mate/desktop/background/picture-filename", "%s"},
+	"lxde":    {"pcmanfm", "-w", "%s", "--wallpaper-mode=fit"},
+	"feh":     {"feh", "--bg-scale", "%s"},
+	"setroot": {"setroot", "%s"},
+}
 
 var (
 	client  *nasa.Client
@@ -49,7 +51,7 @@ var (
 )
 
 func init() {
-	tmp, err := os.CreateTemp("", "nasa-wallpapers-pic.jpg")
+	tmp, err := os.CreateTemp("", "nasa-wallpapers-pic-*")
 	if err != nil {
 		log.Fatalf("unable to get tempfile to work with: %v", err)
 	}
@@ -69,11 +71,10 @@ func main() {
 
 	client = nasa.NewClient()
 
-	realCmdString := getCmdString()
-	if realCmdString == "" {
+	cmds = getCmd(tmpfile)
+	if len(cmds) == 0 {
 		log.Fatal("wallpapers change command not found, set custom one with -cmd")
 	}
-	cmds = strings.Split(fmt.Sprintf(realCmdString, tmpfile), " ")
 
 	if !*random {
 		if err := todaysAPOD(); err != nil {
@@ -121,39 +122,53 @@ func randomAPOD(intv time.Duration) error {
 	}
 }
 
-func getCmdString() string {
+// buildCmd returns a copy of template with every "%s" replaced by filepath.
+func buildCmd(template []string, filepath string) []string {
+	result := make([]string, len(template))
+	for i, arg := range template {
+		result[i] = strings.Replace(arg, "%s", filepath, 1)
+	}
+	return result
+}
+
+// getCmd returns the wallpaper-setting command with filepath substituted.
+// User-provided -cmd strings are split on whitespace (strings.Fields), which
+// does not handle quoted arguments or paths with spaces. Use -cmdDefault or
+// rely on auto-detection for robust argument handling.
+func getCmd(filepath string) []string {
 	if *cmdString != "" {
-		return *cmdString
+		parts := strings.Fields(fmt.Sprintf(*cmdString, filepath))
+		return parts
 	}
 	if cmd, ok := cmdDefaults[*cmdDefault]; ok {
-		return cmd
+		return buildCmd(cmd, filepath)
 	}
 	// Autodetect based on env variables.
 	xdgDesktop := os.Getenv("XDG_CURRENT_DESKTOP")
 	gdmDesktop := os.Getenv("GDM_DESKTOP")
 	switch xdgDesktop {
 	case "Unity":
-		return cmdDefaults["gnome"]
+		return buildCmd(cmdDefaults["gnome"], filepath)
 	case "GNOME":
 		switch gdmDesktop {
 		case "gnome-shell", "gnome-classic", "gnome-fallback", "cinnamon", "gnome":
-			return cmdDefaults["gnome"]
+			return buildCmd(cmdDefaults["gnome"], filepath)
 		}
 	case "KDE":
-		return cmdDefaults["kde"]
+		return buildCmd(cmdDefaults["kde"], filepath)
 	case "XFCE":
-		return cmdDefaults["xfce"]
+		return buildCmd(cmdDefaults["xfce"], filepath)
 	case "LXDE":
-		return cmdDefaults["lxde"]
+		return buildCmd(cmdDefaults["lxde"], filepath)
 	case "X-Cinnamon":
-		return cmdDefaults["gnome"]
+		return buildCmd(cmdDefaults["gnome"], filepath)
 	case "":
 		switch gdmDesktop {
 		case "kde-plasma":
-			return cmdDefaults["kde"]
+			return buildCmd(cmdDefaults["kde"], filepath)
 		}
 	}
-	return ""
+	return nil
 }
 
 func updateRandom() error {
@@ -190,11 +205,11 @@ func downloadAndSet(url string) error {
 	}
 	defer func() { _ = resp.Body.Close() }()
 	const maxDownloadSize = 50 << 20 // 50 MB
-	dat, err := io.ReadAll(io.LimitReader(resp.Body, maxDownloadSize))
+	dat, err := io.ReadAll(io.LimitReader(resp.Body, maxDownloadSize+1))
 	if err != nil {
 		return err
 	}
-	if len(dat) >= maxDownloadSize {
+	if len(dat) > maxDownloadSize {
 		return errors.New("download too large (exceeds 50 MB limit)")
 	}
 	if len(dat) < 512 {
