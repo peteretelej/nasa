@@ -79,6 +79,7 @@ func main() {
 		if err := todaysAPOD(); err != nil {
 			log.Fatalf("nasa-wallpapers: %v\n", err)
 		}
+		return
 	}
 
 	if err := randomAPOD(*interval); err != nil {
@@ -87,7 +88,6 @@ func main() {
 }
 
 func todaysAPOD() error {
-	defer cleanUp()
 	ctx := context.Background()
 	img, err := client.APOD.Today(ctx)
 	if err != nil {
@@ -189,9 +189,13 @@ func downloadAndSet(url string) error {
 			resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
 	defer func() { _ = resp.Body.Close() }()
-	dat, err := io.ReadAll(resp.Body)
+	const maxDownloadSize = 50 << 20 // 50 MB
+	dat, err := io.ReadAll(io.LimitReader(resp.Body, maxDownloadSize))
 	if err != nil {
 		return err
+	}
+	if len(dat) >= maxDownloadSize {
+		return errors.New("download too large (exceeds 50 MB limit)")
 	}
 	if len(dat) < 512 {
 		return errors.New("invalid response from APOD image url")

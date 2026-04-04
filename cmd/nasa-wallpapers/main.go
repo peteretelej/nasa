@@ -57,6 +57,7 @@ func main() {
 		if err := todaysAPOD(); err != nil {
 			log.Fatalf("nasa-wallpapers: %v\n", err)
 		}
+		return
 	}
 
 	if err := randomAPOD(*interval); err != nil {
@@ -65,7 +66,6 @@ func main() {
 }
 
 func todaysAPOD() error {
-	defer cleanUp()
 	return errors.New("TODO")
 }
 
@@ -156,7 +156,6 @@ func updateRandom() error {
 	if err != nil {
 		return err
 	}
-	_ = resp.Body.Close()
 	if len(dat) < 512 {
 		return errors.New("invalid response from APOD image url")
 	}

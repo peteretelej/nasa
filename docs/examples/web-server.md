@@ -8,7 +8,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -16,6 +16,13 @@ import (
 
 	"github.com/peteretelej/nasa"
 )
+
+var apodTmpl = template.Must(template.New("apod").Parse(`<!DOCTYPE html>
+<html><head><title>{{.Title}}</title></head><body>
+<h1>{{.Title}}</h1>
+<p>{{.Explanation}}</p>
+<img src="{{.URL}}" style="max-width:800px">
+</body></html>`))
 
 func main() {
 	client := nasa.NewClient(
@@ -33,12 +40,9 @@ func main() {
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprintf(w, `<!DOCTYPE html>
-<html><head><title>%s</title></head><body>
-<h1>%s</h1>
-<p>%s</p>
-<img src="%s" style="max-width:800px">
-</body></html>`, apod.Title, apod.Title, apod.Explanation, apod.URL)
+		if err := apodTmpl.Execute(w, apod); err != nil {
+			log.Printf("template error: %v", err)
+		}
 	})
 
 	http.HandleFunc("/api/neo", func(w http.ResponseWriter, r *http.Request) {

@@ -232,7 +232,7 @@ body{background-color:#000;color:#fff}
 </style>
 {{if and .AutoReload .Legacy}}
 <script type='text/javascript'>
-function TimedRefresh( t ) { setTimeout("location.reload(true);", t); }
+function TimedRefresh( t ) { setTimeout(function() { location.reload(true); }, t); }
 </script>
 {{end}}
 <body {{if and .AutoReload .Legacy}}onload="javascript:TimedRefresh({{.AutoReloadInterval}}*1000)"{{end}}>
