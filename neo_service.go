@@ -103,11 +103,48 @@ type CloseApproach struct {
 	RelativeVelocity       VelocityData     `json:"relative_velocity"`
 	MissDistance           DistanceData     `json:"miss_distance"`
 	OrbitingBody           string           `json:"orbiting_body"`
+
+	// Raw string fields captured during unmarshal for lossless round-trip.
+	rawVelocity map[string]string
+	rawDistance map[string]string
+}
+
+// RawRelativeVelocity returns the original string values for relative velocity
+// fields as sent by the NASA API, preserving full numeric precision.
+func (ca *CloseApproach) RawRelativeVelocity() map[string]string {
+	if ca.rawVelocity == nil {
+		return map[string]string{}
+	}
+	cp := make(map[string]string, len(ca.rawVelocity))
+	for k, v := range ca.rawVelocity {
+		cp[k] = v
+	}
+	return cp
+}
+
+// RawMissDistance returns the original string values for miss distance
+// fields as sent by the NASA API, preserving full numeric precision.
+func (ca *CloseApproach) RawMissDistance() map[string]string {
+	if ca.rawDistance == nil {
+		return map[string]string{}
+	}
+	cp := make(map[string]string, len(ca.rawDistance))
+	for k, v := range ca.rawDistance {
+		cp[k] = v
+	}
+	return cp
 }
 
 // UnmarshalJSON implements custom JSON unmarshalling for CloseApproach,
-// parsing the close_approach_date_full string into a time.Time value.
+// parsing the close_approach_date_full string into a time.Time value and
+// capturing raw velocity/distance string values for lossless round-trip.
+//
+// Uses a two-pass approach: the first pass populates all typed fields via the
+// Alias type, and the second pass extracts the raw string maps for velocity
+// and distance so callers can access the original API values without
+// float64 precision loss.
 func (ca *CloseApproach) UnmarshalJSON(data []byte) error {
+	// Pass 1: standard unmarshal into typed fields.
 	type Alias CloseApproach
 	aux := &struct {
 		CloseApproachDateFull string `json:"close_approach_date_full"`
@@ -123,6 +160,17 @@ func (ca *CloseApproach) UnmarshalJSON(data []byte) error {
 			ca.CloseApproachDateFull = t
 		}
 	}
+
+	// Pass 2: extract raw string values for velocity and distance.
+	var raw struct {
+		Velocity map[string]string `json:"relative_velocity"`
+		Distance map[string]string `json:"miss_distance"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	ca.rawVelocity = raw.Velocity
+	ca.rawDistance = raw.Distance
 	return nil
 }
 
@@ -178,6 +226,9 @@ type OrbitalData struct {
 
 // NearEarthObject represents a single near-earth object from the NeoWs API.
 type NearEarthObject struct {
+	Links struct {
+		Self string `json:"self"`
+	} `json:"links"`
 	ID                     string            `json:"id"`
 	NeoReferenceID         string            `json:"neo_reference_id"`
 	Name                   string            `json:"name"`
@@ -220,11 +271,7 @@ func neoFeedStartDate(t time.Time) string {
 }
 
 func neoFeedEndDate(t time.Time) string {
-	end := startOfDay(t)
-	if t.Hour() != 0 || t.Minute() != 0 || t.Second() != 0 || t.Nanosecond() != 0 {
-		end = end.AddDate(0, 0, 1)
-	}
-	return end.Format(dateFormat)
+	return startOfDay(t).Format(dateFormat)
 }
 
 // Feed retrieves near-earth objects for a date range (max 7 days).

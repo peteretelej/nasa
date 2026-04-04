@@ -100,7 +100,7 @@ type EONETCategory struct {
 // EONETSource represents a data source for EONET events.
 type EONETSource struct {
 	ID  string `json:"id"`
-	URL string `json:"url"`
+	URL string `json:"source"`
 }
 
 // --- Functional options ---

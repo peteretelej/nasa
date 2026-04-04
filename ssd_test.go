@@ -170,6 +170,80 @@ func TestZipColumns(t *testing.T) {
 			t.Errorf("LatDir: got %q, want %q", r.LatDir, "N")
 		}
 	})
+
+	t.Run("pointer types", func(t *testing.T) {
+		type ptrStruct struct {
+			Name  string   `ssd:"name"`
+			Value *float64 `ssd:"val"`
+			Count *int     `ssd:"cnt"`
+		}
+		fields := []string{"name", "val", "cnt"}
+		data := [][]string{
+			{"alpha", "3.14", "7"},
+			{"beta", "", ""},
+		}
+
+		result, err := zipColumns[ptrStruct](fields, data)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(result) != 2 {
+			t.Fatalf("expected 2 results, got %d", len(result))
+		}
+
+		r1 := result[0]
+		if r1.Name != "alpha" {
+			t.Errorf("Name: got %q, want %q", r1.Name, "alpha")
+		}
+		if r1.Value == nil || *r1.Value != 3.14 {
+			t.Errorf("Value: got %v, want 3.14", r1.Value)
+		}
+		if r1.Count == nil || *r1.Count != 7 {
+			t.Errorf("Count: got %v, want 7", r1.Count)
+		}
+
+		r2 := result[1]
+		if r2.Value != nil {
+			t.Errorf("Value: expected nil for empty string, got %v", r2.Value)
+		}
+		if r2.Count != nil {
+			t.Errorf("Count: expected nil for empty string, got %v", r2.Count)
+		}
+	})
+
+	t.Run("unsigned integer types", func(t *testing.T) {
+		type uintStruct struct {
+			Name  string `ssd:"name"`
+			Count uint   `ssd:"cnt"`
+			Small uint8  `ssd:"small"`
+		}
+		fields := []string{"name", "cnt", "small"}
+		data := [][]string{
+			{"test", "42", "255"},
+			{"empty", "", ""},
+		}
+
+		result, err := zipColumns[uintStruct](fields, data)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(result) != 2 {
+			t.Fatalf("expected 2 results, got %d", len(result))
+		}
+
+		r1 := result[0]
+		if r1.Count != 42 {
+			t.Errorf("Count: got %d, want 42", r1.Count)
+		}
+		if r1.Small != 255 {
+			t.Errorf("Small: got %d, want 255", r1.Small)
+		}
+
+		r2 := result[1]
+		if r2.Count != 0 {
+			t.Errorf("Count: expected 0 for empty, got %d", r2.Count)
+		}
+	})
 }
 
 // --- parseCount tests ---

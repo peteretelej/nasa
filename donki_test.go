@@ -680,3 +680,31 @@ func TestDONKI_AuthError(t *testing.T) {
 		t.Errorf("error type = %T, want *AuthError", err)
 	}
 }
+
+func TestDONKIParamsInjectableTime(t *testing.T) {
+	fixed := time.Date(2025, 6, 15, 12, 0, 0, 0, time.UTC)
+
+	t.Run("zero start uses now minus 30 days", func(t *testing.T) {
+		params := donkiParams(time.Time{}, time.Time{}, fixed)
+		got := params.Get("startDate")
+		want := "2025-05-16"
+		if got != want {
+			t.Errorf("startDate = %q, want %q", got, want)
+		}
+		if params.Get("endDate") != "" {
+			t.Errorf("endDate = %q, want empty for zero end", params.Get("endDate"))
+		}
+	})
+
+	t.Run("explicit start and end", func(t *testing.T) {
+		start := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+		end := time.Date(2025, 1, 31, 0, 0, 0, 0, time.UTC)
+		params := donkiParams(start, end, fixed)
+		if params.Get("startDate") != "2025-01-01" {
+			t.Errorf("startDate = %q, want %q", params.Get("startDate"), "2025-01-01")
+		}
+		if params.Get("endDate") != "2025-01-31" {
+			t.Errorf("endDate = %q, want %q", params.Get("endDate"), "2025-01-31")
+		}
+	})
+}

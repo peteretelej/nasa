@@ -46,6 +46,22 @@ type collectionMetadata struct {
 	TotalHits int `json:"total_hits"`
 }
 
+// errMissingCollection is returned when a Collection+JSON response lacks the
+// "collection" envelope.
+var errMissingCollection = fmt.Errorf("nasa: invalid Collection+JSON response: missing collection envelope")
+
+// validateCollectionJSON checks that the unmarshalled response contains a
+// non-zero Collection envelope. The NASA Image API wraps all structured
+// responses in {"collection": {...}}.
+func validateCollectionJSON(c *collectionJSON) error {
+	// A zero-value Collection struct means the "collection" key was absent
+	// or null. Check by looking for any populated field.
+	if c.Collection.Items == nil && c.Collection.Metadata == (collectionMetadata{}) && c.Collection.Links == nil {
+		return errMissingCollection
+	}
+	return nil
+}
+
 // --- Public response types ---
 
 // ImageCollection holds the result of an Image Library search, including
@@ -149,6 +165,9 @@ func (s *ImageService) Search(ctx context.Context, query string, opts ...ImageSe
 	if err := json.Unmarshal(body, &coll); err != nil {
 		return nil, fmt.Errorf("nasa: images: failed to parse response: %w", err)
 	}
+	if err := validateCollectionJSON(&coll); err != nil {
+		return nil, err
+	}
 
 	result := &ImageCollection{
 		TotalHits: coll.Collection.Metadata.TotalHits,
@@ -213,6 +232,9 @@ func (s *ImageService) Asset(ctx context.Context, nasaID string) (*AssetManifest
 	var coll collectionJSON
 	if err := json.Unmarshal(body, &coll); err != nil {
 		return nil, fmt.Errorf("nasa: images: failed to parse asset response: %w", err)
+	}
+	if err := validateCollectionJSON(&coll); err != nil {
+		return nil, err
 	}
 
 	manifest := &AssetManifest{

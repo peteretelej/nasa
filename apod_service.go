@@ -57,7 +57,11 @@ func (a *APODImage) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, aux); err != nil {
 		return err
 	}
-	if t, err := time.Parse(dateFormat, aux.Date); err == nil {
+	if aux.Date != "" {
+		t, err := time.Parse(dateFormat, aux.Date)
+		if err != nil {
+			return fmt.Errorf("nasa: invalid APOD date %q: %w", aux.Date, err)
+		}
 		a.Date = t
 	}
 	return nil

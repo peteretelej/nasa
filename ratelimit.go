@@ -5,8 +5,6 @@ package nasa
 import (
 	"context"
 	"math/rand/v2"
-	"net/http"
-	"strconv"
 	"sync"
 	"time"
 
@@ -110,10 +108,8 @@ func (kr *keyRotator) shortestCooldown() time.Duration {
 
 // rateLimiter combines token-bucket rate limiting with multi-key rotation.
 type rateLimiter struct {
-	limiter     *rate.Limiter
-	keys        *keyRotator
-	defaultRate rate.Limit
-	burst       int
+	limiter *rate.Limiter
+	keys    *keyRotator
 }
 
 // newRateLimiter creates a rate limiter with the given requests-per-second and
@@ -124,40 +120,12 @@ func newRateLimiter(rps float64, keys []string) *rateLimiter {
 		burst = 1
 	}
 	return &rateLimiter{
-		limiter:     rate.NewLimiter(rate.Limit(rps), burst),
-		keys:        newKeyRotator(keys),
-		defaultRate: rate.Limit(rps),
-		burst:       burst,
+		limiter: rate.NewLimiter(rate.Limit(rps), burst),
+		keys:    newKeyRotator(keys),
 	}
 }
 
 // wait blocks until the rate limiter allows a request or the context is done.
 func (rl *rateLimiter) wait(ctx context.Context) error {
 	return rl.limiter.Wait(ctx)
-}
-
-// adjustFromHeaders dynamically adjusts the rate based on the
-// X-RateLimit-Remaining response header. When remaining requests are low
-// (< 10), the rate is reduced to avoid hitting the limit. When remaining is
-// healthy (>= 10), the default rate is restored. Parsing errors are ignored.
-func (rl *rateLimiter) adjustFromHeaders(header http.Header) {
-	val := header.Get("X-RateLimit-Remaining")
-	if val == "" {
-		return
-	}
-
-	remaining, err := strconv.Atoi(val)
-	if err != nil {
-		return
-	}
-
-	if remaining < 10 {
-		adjusted := float64(remaining) / 60.0
-		if adjusted < 0.01 {
-			adjusted = 0.01
-		}
-		rl.limiter.SetLimit(rate.Limit(adjusted))
-	} else {
-		rl.limiter.SetLimit(rl.defaultRate)
-	}
 }

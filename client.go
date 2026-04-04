@@ -47,8 +47,13 @@ func WithAPIKeys(keys []string) Option {
 }
 
 // WithHTTPClient replaces the default HTTP client used for all requests.
+// A nil argument is silently ignored, preserving the default client.
 func WithHTTPClient(h *http.Client) Option {
-	return func(c *Client) { c.httpClient = h }
+	return func(c *Client) {
+		if h != nil {
+			c.httpClient = h
+		}
+	}
 }
 
 // WithBaseURL overrides the default base URL (https://api.nasa.gov). This is
@@ -204,10 +209,6 @@ func (c *Client) get(ctx context.Context, path string, params url.Values, authen
 			return nil, err
 		}
 
-		// Adjust rate from response headers for authenticated requests.
-		if authenticated {
-			c.rateLimiter.adjustFromHeaders(resp.Header)
-		}
 		return resp, nil
 	}
 

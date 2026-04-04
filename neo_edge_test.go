@@ -180,15 +180,17 @@ func TestNEOFeed_TimezoneEdgeUsesSameDatesForValidationAndWire(t *testing.T) {
 	if gotQuery.Get("start_date") != "2024-01-01" {
 		t.Fatalf("start_date = %q, want 2024-01-01", gotQuery.Get("start_date"))
 	}
-	if gotQuery.Get("end_date") != "2024-01-08" {
-		t.Fatalf("end_date = %q, want 2024-01-08", gotQuery.Get("end_date"))
+	// neoFeedEndDate truncates to start-of-day, so 2024-01-07 00:30 +02:00
+	// becomes 2024-01-07 (the calendar date of the input).
+	if gotQuery.Get("end_date") != "2024-01-07" {
+		t.Fatalf("end_date = %q, want 2024-01-07", gotQuery.Get("end_date"))
 	}
 }
 
 func TestNEOFeed_RejectsWireDateRangePastSevenDays(t *testing.T) {
-	loc := time.FixedZone("east", 2*60*60)
-	start := time.Date(2024, 1, 1, 0, 30, 0, 0, loc)
-	end := time.Date(2024, 1, 8, 0, 30, 0, 0, loc)
+	// Wire dates: 2024-01-01 to 2024-01-09 = 8 days, exceeds the 7-day limit.
+	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	end := time.Date(2024, 1, 9, 0, 0, 0, 0, time.UTC)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("HTTP request should not be made when wire dates exceed 7 days")

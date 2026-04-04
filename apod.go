@@ -109,7 +109,8 @@ func APODToday() (*Image, error) {
 	tAPOD.mu.RUnlock()
 
 	if cacheddate == d && apod != nil {
-		return apod, nil
+		cached := *apod
+		return &cached, nil
 	}
 
 	c := getDefaultClient()

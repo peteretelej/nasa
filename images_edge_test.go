@@ -60,11 +60,10 @@ func TestImages_Page2_PrevAndNextLinks(t *testing.T) {
 	}
 }
 
-// TestImages_MalformedResponse verifies that the SDK handles a non-Collection+JSON
-// response gracefully. When the server returns {"bad": true} instead of a valid
-// Collection+JSON envelope, the SDK returns an empty collection with zero hits
-// rather than an error (since the JSON is syntactically valid, just structurally
-// wrong).
+// TestImages_MalformedResponse verifies that the SDK rejects a non-Collection+JSON
+// response. When the server returns {"bad": true} instead of a valid
+// Collection+JSON envelope, the SDK returns an error indicating the missing
+// collection envelope.
 func TestImages_MalformedResponse(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -77,23 +76,11 @@ func TestImages_MalformedResponse(t *testing.T) {
 	c := NewClient(WithAPIKey("TEST_KEY"))
 	svc := &ImageService{client: c, baseURL: ts.URL}
 
-	coll, err := svc.Search(context.Background(), "test")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+	_, err := svc.Search(context.Background(), "test")
+	if err == nil {
+		t.Fatal("expected error for non-Collection+JSON response, got nil")
 	}
-
-	// The response is valid JSON but not Collection+JSON. The SDK unmarshals
-	// it into an empty collectionJSON struct, resulting in zero-value fields.
-	if coll.TotalHits != 0 {
-		t.Errorf("TotalHits = %d, want 0 for malformed response", coll.TotalHits)
-	}
-	if len(coll.Items) != 0 {
-		t.Errorf("Items length = %d, want 0 for malformed response", len(coll.Items))
-	}
-	if coll.NextPage != "" {
-		t.Errorf("NextPage = %q, want empty for malformed response", coll.NextPage)
-	}
-	if coll.PrevPage != "" {
-		t.Errorf("PrevPage = %q, want empty for malformed response", coll.PrevPage)
+	if !strings.Contains(err.Error(), "missing collection envelope") {
+		t.Fatalf("error = %q, want message about missing collection envelope", err.Error())
 	}
 }

@@ -2,6 +2,7 @@ package nasa
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -176,25 +177,69 @@ func TestNeoToAsteroid_NilOrbitalData(t *testing.T) {
 	}
 }
 
-// TestFormatSF verifies StringFloat64 to string conversion.
-func TestFormatSF(t *testing.T) {
-	tests := []struct {
-		name  string
-		input StringFloat64
-		want  string
-	}{
-		{"zero", 0, "0"},
-		{"integer", 42, "42"},
-		{"decimal", 15.23, "15.23"},
-		{"large", 1234567.89, "1234567.89"},
+// TestCloseApproach_RawStringRoundTrip verifies that original numeric string
+// values survive a JSON unmarshal -> neoToAsteroid round-trip without
+// float64 precision loss.
+func TestCloseApproach_RawStringRoundTrip(t *testing.T) {
+	// Use a high-precision value that would lose precision via float64.
+	caJSON := `{
+		"close_approach_date": "2024-01-15",
+		"epoch_date_close_approach": 1705327020000,
+		"relative_velocity": {
+			"kilometers_per_second": "39.5920533483",
+			"kilometers_per_hour": "142531.3920539412",
+			"miles_per_hour": "88563.4641348503"
+		},
+		"miss_distance": {
+			"astronomical": "0.4287565823",
+			"lunar": "166.7863105147",
+			"kilometers": "64141071.460559701",
+			"miles": "39855413.6855018338"
+		},
+		"orbiting_body": "Earth"
+	}`
+
+	var ca CloseApproach
+	if err := json.Unmarshal([]byte(caJSON), &ca); err != nil {
+		t.Fatalf("unmarshal: %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := formatSF(tt.input)
-			if got != tt.want {
-				t.Errorf("formatSF(%v) = %q, want %q", tt.input, got, tt.want)
-			}
-		})
+
+	// Verify raw accessors return original strings
+	rv := ca.RawRelativeVelocity()
+	if rv["kilometers_per_second"] != "39.5920533483" {
+		t.Errorf("raw kps = %q, want %q", rv["kilometers_per_second"], "39.5920533483")
+	}
+	if rv["kilometers_per_hour"] != "142531.3920539412" {
+		t.Errorf("raw kph = %q, want %q", rv["kilometers_per_hour"], "142531.3920539412")
+	}
+	md := ca.RawMissDistance()
+	if md["kilometers"] != "64141071.460559701" {
+		t.Errorf("raw km = %q, want %q", md["kilometers"], "64141071.460559701")
+	}
+
+	// Verify typed fields are also populated
+	if ca.RelativeVelocity.KilometersPerSecond == 0 {
+		t.Error("typed KilometersPerSecond is 0, want non-zero")
+	}
+	if ca.MissDistance.Astronomical == 0 {
+		t.Error("typed Astronomical is 0, want non-zero")
+	}
+
+	// Verify round-trip through neoToAsteroid uses raw strings
+	neo := &NearEarthObject{
+		NeoReferenceID:    "test",
+		CloseApproachData: []CloseApproach{ca},
+	}
+	a := neoToAsteroid(neo)
+	if len(a.CloseApproachData) != 1 {
+		t.Fatalf("len(CloseApproachData) = %d, want 1", len(a.CloseApproachData))
+	}
+	cad := a.CloseApproachData[0]
+	if cad.RelativeVelocity.KilometersPerSecond != "39.5920533483" {
+		t.Errorf("asteroid kps = %q, want %q", cad.RelativeVelocity.KilometersPerSecond, "39.5920533483")
+	}
+	if cad.MissDistance.Kilometers != "64141071.460559701" {
+		t.Errorf("asteroid km = %q, want %q", cad.MissDistance.Kilometers, "64141071.460559701")
 	}
 }
 

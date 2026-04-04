@@ -5,7 +5,6 @@ package nasa
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -139,7 +138,7 @@ func neoToAsteroid(neo *NearEarthObject) Asteroid {
 		AbsoluteMagnitude:    neo.AbsoluteMagnitude,
 		PotentiallyHazardous: neo.IsPotentiallyHazardous,
 	}
-	a.Links.Self = "" // NearEarthObject intentionally omits per-asteroid links
+	a.Links.Self = neo.Links.Self
 
 	// Diameter
 	a.EstimatedDiameter.Kilometers = diameter(neo.EstimatedDiameter.Kilometers)
@@ -147,20 +146,22 @@ func neoToAsteroid(neo *NearEarthObject) Asteroid {
 	a.EstimatedDiameter.Miles = diameter(neo.EstimatedDiameter.Miles)
 	a.EstimatedDiameter.Feet = diameter(neo.EstimatedDiameter.Feet)
 
-	// Close approach data - convert StringFloat64 back to string
+	// Close approach data - use raw string values preserved during unmarshal
 	for _, ca := range neo.CloseApproachData {
 		cad := closeApproachData{
 			CloseApproachDate:      ca.CloseApproachDate,
 			EpochDateCloseApproach: ca.EpochDateCloseApproach.Time().UnixMilli(),
 			OrbitingBody:           ca.OrbitingBody,
 		}
-		cad.RelativeVelocity.KilometersPerSecond = formatSF(ca.RelativeVelocity.KilometersPerSecond)
-		cad.RelativeVelocity.KilometersPerHour = formatSF(ca.RelativeVelocity.KilometersPerHour)
-		cad.RelativeVelocity.MilesPerHour = formatSF(ca.RelativeVelocity.MilesPerHour)
-		cad.MissDistance.Astronomical = formatSF(ca.MissDistance.Astronomical)
-		cad.MissDistance.Lunar = formatSF(ca.MissDistance.Lunar)
-		cad.MissDistance.Kilometers = formatSF(ca.MissDistance.Kilometers)
-		cad.MissDistance.Miles = formatSF(ca.MissDistance.Miles)
+		rv := ca.rawVelocity
+		cad.RelativeVelocity.KilometersPerSecond = rv["kilometers_per_second"]
+		cad.RelativeVelocity.KilometersPerHour = rv["kilometers_per_hour"]
+		cad.RelativeVelocity.MilesPerHour = rv["miles_per_hour"]
+		md := ca.rawDistance
+		cad.MissDistance.Astronomical = md["astronomical"]
+		cad.MissDistance.Lunar = md["lunar"]
+		cad.MissDistance.Kilometers = md["kilometers"]
+		cad.MissDistance.Miles = md["miles"]
 		a.CloseApproachData = append(a.CloseApproachData, cad)
 	}
 
@@ -189,9 +190,4 @@ func neoToAsteroid(neo *NearEarthObject) Asteroid {
 	}
 
 	return a
-}
-
-// formatSF converts StringFloat64 back to string for old types.
-func formatSF(sf StringFloat64) string {
-	return strconv.FormatFloat(float64(sf), 'f', -1, 64)
 }

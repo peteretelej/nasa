@@ -2,7 +2,6 @@ package nasa
 
 import (
 	"context"
-	"net/http"
 	"runtime"
 	"testing"
 	"time"
@@ -139,79 +138,6 @@ func TestShortestCooldown(t *testing.T) {
 	}
 }
 
-func TestAdjustFromHeadersLowRemaining(t *testing.T) {
-	rl := newRateLimiter(10.0, nil)
-
-	header := http.Header{}
-	header.Set("X-RateLimit-Remaining", "5")
-	rl.adjustFromHeaders(header)
-
-	// Rate should be reduced: 5/60.0 ~= 0.0833
-	limit := rl.limiter.Limit()
-	if limit < 0.08 || limit > 0.09 {
-		t.Errorf("expected rate ~0.083, got %f", float64(limit))
-	}
-}
-
-func TestAdjustFromHeadersZeroRemaining(t *testing.T) {
-	rl := newRateLimiter(10.0, nil)
-
-	header := http.Header{}
-	header.Set("X-RateLimit-Remaining", "0")
-	rl.adjustFromHeaders(header)
-
-	// Rate should be floored at 0.01, not 0.0.
-	limit := rl.limiter.Limit()
-	if float64(limit) != 0.01 {
-		t.Errorf("expected rate 0.01 (floor), got %f", float64(limit))
-	}
-}
-
-func TestAdjustFromHeadersHealthyRemaining(t *testing.T) {
-	rl := newRateLimiter(10.0, nil)
-
-	// First reduce the rate.
-	header := http.Header{}
-	header.Set("X-RateLimit-Remaining", "5")
-	rl.adjustFromHeaders(header)
-
-	// Now restore with healthy remaining.
-	header.Set("X-RateLimit-Remaining", "500")
-	rl.adjustFromHeaders(header)
-
-	limit := rl.limiter.Limit()
-	if float64(limit) != 10.0 {
-		t.Errorf("expected default rate 10.0, got %f", float64(limit))
-	}
-}
-
-func TestAdjustFromHeadersMissing(t *testing.T) {
-	rl := newRateLimiter(10.0, nil)
-	originalLimit := rl.limiter.Limit()
-
-	// Empty header - should not panic and rate should be unchanged.
-	rl.adjustFromHeaders(http.Header{})
-
-	if rl.limiter.Limit() != originalLimit {
-		t.Errorf("rate changed on missing header: got %f, want %f",
-			float64(rl.limiter.Limit()), float64(originalLimit))
-	}
-}
-
-func TestAdjustFromHeadersInvalid(t *testing.T) {
-	rl := newRateLimiter(10.0, nil)
-	originalLimit := rl.limiter.Limit()
-
-	header := http.Header{}
-	header.Set("X-RateLimit-Remaining", "not-a-number")
-	rl.adjustFromHeaders(header)
-
-	if rl.limiter.Limit() != originalLimit {
-		t.Errorf("rate changed on invalid header: got %f, want %f",
-			float64(rl.limiter.Limit()), float64(originalLimit))
-	}
-}
-
 func TestWaitCancelledContext(t *testing.T) {
 	rl := newRateLimiter(10.0, nil)
 
@@ -268,13 +194,13 @@ func TestNewKeyRotatorDoesNotMutateInput(t *testing.T) {
 func TestNewRateLimiterMinBurst(t *testing.T) {
 	// With rps=0.5, int(0.5)=0, so burst should be 0+1=1.
 	rl := newRateLimiter(0.5, nil)
-	if rl.burst != 1 {
-		t.Errorf("expected burst 1, got %d", rl.burst)
+	if rl.limiter.Burst() != 1 {
+		t.Errorf("expected burst 1, got %d", rl.limiter.Burst())
 	}
 
 	// With rps=0, burst should still be 1 (minimum).
 	rl2 := newRateLimiter(0, nil)
-	if rl2.burst != 1 {
-		t.Errorf("expected burst 1, got %d", rl2.burst)
+	if rl2.limiter.Burst() != 1 {
+		t.Errorf("expected burst 1, got %d", rl2.limiter.Burst())
 	}
 }

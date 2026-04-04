@@ -115,10 +115,20 @@ type LinkedEvent struct {
 
 // --- CME types ---
 
-// CMEInstrument represents an instrument that observed a CME.
-type CMEInstrument struct {
+// Instrument represents an instrument that observed a DONKI event. All DONKI
+// sub-APIs use the same instrument structure with a single display name field.
+type Instrument struct {
 	DisplayName string `json:"displayName"`
 }
+
+// Legacy type aliases for backward compatibility.
+type CMEInstrument = Instrument
+type IPSInstrument = Instrument
+type FLRInstrument = Instrument
+type SEPInstrument = Instrument
+type MPCInstrument = Instrument
+type RBEInstrument = Instrument
+type HSSInstrument = Instrument
 
 // WSAEnlilData represents nested WSA-Enlil simulation data referenced from
 // CME analysis entries.
@@ -204,11 +214,6 @@ type GSTEvent struct {
 
 // --- IPS types ---
 
-// IPSInstrument represents an instrument that observed an interplanetary shock.
-type IPSInstrument struct {
-	DisplayName string `json:"displayName"`
-}
-
 // IPSEvent represents an Interplanetary Shock event from the DONKI API.
 type IPSEvent struct {
 	Catalog      string          `json:"catalog"`
@@ -221,11 +226,6 @@ type IPSEvent struct {
 }
 
 // --- FLR types ---
-
-// FLRInstrument represents an instrument that observed a solar flare.
-type FLRInstrument struct {
-	DisplayName string `json:"displayName"`
-}
 
 // FLREvent represents a Solar Flare event from the DONKI API.
 type FLREvent struct {
@@ -243,11 +243,6 @@ type FLREvent struct {
 
 // --- SEP types ---
 
-// SEPInstrument represents an instrument that observed a solar energetic particle event.
-type SEPInstrument struct {
-	DisplayName string `json:"displayName"`
-}
-
 // SEPEvent represents a Solar Energetic Particle event from the DONKI API.
 type SEPEvent struct {
 	SepID        string          `json:"sepID"`
@@ -258,11 +253,6 @@ type SEPEvent struct {
 }
 
 // --- MPC types ---
-
-// MPCInstrument represents an instrument that observed a magnetopause crossing.
-type MPCInstrument struct {
-	DisplayName string `json:"displayName"`
-}
 
 // MPCEvent represents a Magnetopause Crossing event from the DONKI API.
 type MPCEvent struct {
@@ -275,11 +265,6 @@ type MPCEvent struct {
 
 // --- RBE types ---
 
-// RBEInstrument represents an instrument that observed a radiation belt enhancement.
-type RBEInstrument struct {
-	DisplayName string `json:"displayName"`
-}
-
 // RBEEvent represents a Radiation Belt Enhancement event from the DONKI API.
 type RBEEvent struct {
 	RbeID        string          `json:"rbeID"`
@@ -290,11 +275,6 @@ type RBEEvent struct {
 }
 
 // --- HSS types ---
-
-// HSSInstrument represents an instrument that observed a high speed stream.
-type HSSInstrument struct {
-	DisplayName string `json:"displayName"`
-}
 
 // HSSEvent represents a High Speed Stream event from the DONKI API.
 type HSSEvent struct {
@@ -428,7 +408,7 @@ func WithIPSCatalog(catalog string) IPSOption {
 // value, defaults to today. The DONKI API returns all results in a single
 // response.
 func (s *DONKIService) CME(ctx context.Context, start, end time.Time) ([]*CMEEvent, error) {
-	return donkiGet[CMEEvent](ctx, s, "/DONKI/CME", donkiParams(start, end))
+	return donkiGet[CMEEvent](ctx, s, "/DONKI/CME", donkiParams(start, end, time.Now()))
 }
 
 // CMEAnalysis retrieves CME analysis entries from the DONKI API, with optional
@@ -437,7 +417,7 @@ func (s *DONKIService) CME(ctx context.Context, start, end time.Time) ([]*CMEEve
 // value, defaults to today. The DONKI API returns all results in a single
 // response.
 func (s *DONKIService) CMEAnalysis(ctx context.Context, start, end time.Time, opts ...CMEAnalysisOption) ([]*CMEAnalysis, error) {
-	params := donkiParams(start, end)
+	params := donkiParams(start, end, time.Now())
 	for _, o := range opts {
 		o(params)
 	}
@@ -449,7 +429,7 @@ func (s *DONKIService) CMEAnalysis(ctx context.Context, start, end time.Time, op
 // value, defaults to today. The DONKI API returns all results in a single
 // response.
 func (s *DONKIService) GST(ctx context.Context, start, end time.Time) ([]*GSTEvent, error) {
-	return donkiGet[GSTEvent](ctx, s, "/DONKI/GST", donkiParams(start, end))
+	return donkiGet[GSTEvent](ctx, s, "/DONKI/GST", donkiParams(start, end, time.Now()))
 }
 
 // IPS retrieves Interplanetary Shock events from the DONKI API, with optional
@@ -458,7 +438,7 @@ func (s *DONKIService) GST(ctx context.Context, start, end time.Time) ([]*GSTEve
 // value, defaults to today. The DONKI API returns all results in a single
 // response.
 func (s *DONKIService) IPS(ctx context.Context, start, end time.Time, opts ...IPSOption) ([]*IPSEvent, error) {
-	params := donkiParams(start, end)
+	params := donkiParams(start, end, time.Now())
 	for _, o := range opts {
 		o(params)
 	}
@@ -470,7 +450,7 @@ func (s *DONKIService) IPS(ctx context.Context, start, end time.Time, opts ...IP
 // value, defaults to today. The DONKI API returns all results in a single
 // response.
 func (s *DONKIService) FLR(ctx context.Context, start, end time.Time) ([]*FLREvent, error) {
-	return donkiGet[FLREvent](ctx, s, "/DONKI/FLR", donkiParams(start, end))
+	return donkiGet[FLREvent](ctx, s, "/DONKI/FLR", donkiParams(start, end, time.Now()))
 }
 
 // SEP retrieves Solar Energetic Particle events from the DONKI API.
@@ -478,7 +458,7 @@ func (s *DONKIService) FLR(ctx context.Context, start, end time.Time) ([]*FLREve
 // value, defaults to today. The DONKI API returns all results in a single
 // response.
 func (s *DONKIService) SEP(ctx context.Context, start, end time.Time) ([]*SEPEvent, error) {
-	return donkiGet[SEPEvent](ctx, s, "/DONKI/SEP", donkiParams(start, end))
+	return donkiGet[SEPEvent](ctx, s, "/DONKI/SEP", donkiParams(start, end, time.Now()))
 }
 
 // MPC retrieves Magnetopause Crossing events from the DONKI API.
@@ -486,7 +466,7 @@ func (s *DONKIService) SEP(ctx context.Context, start, end time.Time) ([]*SEPEve
 // value, defaults to today. The DONKI API returns all results in a single
 // response.
 func (s *DONKIService) MPC(ctx context.Context, start, end time.Time) ([]*MPCEvent, error) {
-	return donkiGet[MPCEvent](ctx, s, "/DONKI/MPC", donkiParams(start, end))
+	return donkiGet[MPCEvent](ctx, s, "/DONKI/MPC", donkiParams(start, end, time.Now()))
 }
 
 // RBE retrieves Radiation Belt Enhancement events from the DONKI API.
@@ -494,7 +474,7 @@ func (s *DONKIService) MPC(ctx context.Context, start, end time.Time) ([]*MPCEve
 // value, defaults to today. The DONKI API returns all results in a single
 // response.
 func (s *DONKIService) RBE(ctx context.Context, start, end time.Time) ([]*RBEEvent, error) {
-	return donkiGet[RBEEvent](ctx, s, "/DONKI/RBE", donkiParams(start, end))
+	return donkiGet[RBEEvent](ctx, s, "/DONKI/RBE", donkiParams(start, end, time.Now()))
 }
 
 // HSS retrieves High Speed Stream events from the DONKI API.
@@ -502,7 +482,7 @@ func (s *DONKIService) RBE(ctx context.Context, start, end time.Time) ([]*RBEEve
 // value, defaults to today. The DONKI API returns all results in a single
 // response.
 func (s *DONKIService) HSS(ctx context.Context, start, end time.Time) ([]*HSSEvent, error) {
-	return donkiGet[HSSEvent](ctx, s, "/DONKI/HSS", donkiParams(start, end))
+	return donkiGet[HSSEvent](ctx, s, "/DONKI/HSS", donkiParams(start, end, time.Now()))
 }
 
 // WSAEnlil retrieves WSA-Enlil simulation results from the DONKI API.
@@ -510,7 +490,7 @@ func (s *DONKIService) HSS(ctx context.Context, start, end time.Time) ([]*HSSEve
 // value, defaults to today. The DONKI API returns all results in a single
 // response.
 func (s *DONKIService) WSAEnlil(ctx context.Context, start, end time.Time) ([]*WSAEnlilEvent, error) {
-	return donkiGet[WSAEnlilEvent](ctx, s, "/DONKI/WSAEnlilSimulations", donkiParams(start, end))
+	return donkiGet[WSAEnlilEvent](ctx, s, "/DONKI/WSAEnlilSimulations", donkiParams(start, end, time.Now()))
 }
 
 // Notifications retrieves DONKI notification messages, optionally filtered by
@@ -520,7 +500,7 @@ func (s *DONKIService) WSAEnlil(ctx context.Context, start, end time.Time) ([]*W
 // When end is the zero value, defaults to today. The DONKI API returns all
 // results in a single response.
 func (s *DONKIService) Notifications(ctx context.Context, start, end time.Time, notificationType string) ([]*Notification, error) {
-	params := donkiParams(start, end)
+	params := donkiParams(start, end, time.Now())
 	if notificationType != "" {
 		params.Set("type", notificationType)
 	}
@@ -530,12 +510,13 @@ func (s *DONKIService) Notifications(ctx context.Context, start, end time.Time, 
 // --- Helpers ---
 
 // donkiParams builds the standard startDate/endDate query parameters for DONKI
-// API requests. When start is zero, it defaults to 30 days ago. When end is
-// zero, it is omitted (the API defaults to today).
-func donkiParams(start, end time.Time) url.Values {
+// API requests. When start is zero, it defaults to 30 days before now. When end
+// is zero, it is omitted (the API defaults to today). The now parameter provides
+// the current time for testability; pass time.Now() in production code.
+func donkiParams(start, end time.Time, now time.Time) url.Values {
 	params := url.Values{}
 	if start.IsZero() {
-		params.Set("startDate", time.Now().AddDate(0, 0, -30).Format("2006-01-02"))
+		params.Set("startDate", now.AddDate(0, 0, -30).Format("2006-01-02"))
 	} else {
 		params.Set("startDate", start.Format("2006-01-02"))
 	}

@@ -67,6 +67,17 @@ func TestNewClientWithHTTPClient(t *testing.T) {
 	}
 }
 
+func TestNewClientWithHTTPClientNil(t *testing.T) {
+	c := NewClient(WithHTTPClient(nil))
+
+	if c.httpClient == nil {
+		t.Fatal("expected default HTTP client to be preserved, got nil")
+	}
+	if c.httpClient.Timeout != 30*time.Second {
+		t.Errorf("expected default 30s timeout, got %v", c.httpClient.Timeout)
+	}
+}
+
 func TestNewClientWithBaseURL(t *testing.T) {
 	c := NewClient(WithBaseURL("http://localhost:8080"))
 

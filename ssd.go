@@ -124,21 +124,37 @@ func zipColumns[T any](fields []string, data [][]string) ([]*T, error) {
 			}
 
 			field := elem.Field(m.fieldIdx)
-			switch field.Kind() {
+			ft := field.Type()
+
+			// Dereference pointer types: allocate a new value if needed.
+			if ft.Kind() == reflect.Ptr {
+				ptr := reflect.New(ft.Elem())
+				field.Set(ptr)
+				field = ptr.Elem()
+				ft = ft.Elem()
+			}
+
+			switch ft.Kind() {
 			case reflect.String:
 				field.SetString(val)
-			case reflect.Float64:
+			case reflect.Float64, reflect.Float32:
 				f, err := strconv.ParseFloat(val, 64)
 				if err != nil {
-					return nil, fmt.Errorf("nasa: ssd: row %d, column %q: cannot parse %q as float64: %w", rowIdx, fields[m.colIdx], val, err)
+					return nil, fmt.Errorf("nasa: ssd: row %d, column %q: cannot parse %q as float: %w", rowIdx, fields[m.colIdx], val, err)
 				}
 				field.SetFloat(f)
-			case reflect.Int, reflect.Int64:
-				n, err := strconv.Atoi(val)
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				n, err := strconv.ParseInt(val, 10, 64)
 				if err != nil {
 					return nil, fmt.Errorf("nasa: ssd: row %d, column %q: cannot parse %q as int: %w", rowIdx, fields[m.colIdx], val, err)
 				}
-				field.SetInt(int64(n))
+				field.SetInt(n)
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				n, err := strconv.ParseUint(val, 10, 64)
+				if err != nil {
+					return nil, fmt.Errorf("nasa: ssd: row %d, column %q: cannot parse %q as uint: %w", rowIdx, fields[m.colIdx], val, err)
+				}
+				field.SetUint(n)
 			}
 		}
 

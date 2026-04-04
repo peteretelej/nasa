@@ -228,11 +228,8 @@ func TestEONETSources(t *testing.T) {
 	if sources[0].ID != "AVO" {
 		t.Errorf("expected first source ID=AVO, got %s", sources[0].ID)
 	}
-	// The /sources endpoint returns "source" (not "url"), so the URL field
-	// stays empty since EONETSource maps URL to json:"url".
-	// TODO: fix EONETSource struct tag - URL should map to json:"source".
-	if sources[0].URL != "" {
-		t.Errorf("expected first source URL empty (json field mismatch), got %s", sources[0].URL)
+	if sources[0].URL != "https://www.avo.alaska.edu/" {
+		t.Errorf("expected first source URL=%q, got %q", "https://www.avo.alaska.edu/", sources[0].URL)
 	}
 	if sources[2].ID != "AU_BOM" {
 		t.Errorf("expected third source ID=AU_BOM, got %s", sources[2].ID)

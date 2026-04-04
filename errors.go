@@ -88,7 +88,7 @@ func newError(resp *http.Response) error {
 	defer closeResponseBody(resp.Body)
 
 	// Read body up to 1MB.
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, maxResponseBodyBytes))
+	body, _ := readResponseBody(resp.Body)
 
 	msg := ""
 	// Try to extract message from JSON response body.
