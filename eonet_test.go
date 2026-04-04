@@ -2,10 +2,12 @@ package nasa
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -407,5 +409,111 @@ func TestEONETEventUsesRotatingClientKeys(t *testing.T) {
 		if gotKeys[i] != wantKey {
 			t.Fatalf("request %d used key %q, want %q", i+1, gotKeys[i], wantKey)
 		}
+	}
+}
+
+func TestEONETEvent_EmptyID(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("HTTP request should not be made for empty event ID")
+	}))
+	t.Cleanup(ts.Close)
+
+	c := NewClient(WithAPIKey("TEST_KEY"))
+	svc := &EONETService{client: c, baseURL: ts.URL}
+
+	_, err := svc.Event(context.Background(), "")
+	if err == nil {
+		t.Fatal("expected error for empty event ID")
+	}
+	if !strings.Contains(err.Error(), "must not be empty") {
+		t.Errorf("error = %q, want to contain 'must not be empty'", err.Error())
+	}
+}
+
+func TestEONETPointCoordinates_WrongLength(t *testing.T) {
+	tests := []struct {
+		name  string
+		raw   string
+		count int
+	}{
+		{"one element", `[1.0]`, 1},
+		{"three elements", `[1.0, 2.0, 3.0]`, 3},
+		{"empty array", `[]`, 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			geo := &EONETGeometry{
+				Coordinates: json.RawMessage(tt.raw),
+			}
+			_, err := geo.PointCoordinates()
+			if err == nil {
+				t.Fatal("expected error for wrong tuple length")
+			}
+			want := fmt.Sprintf("exactly 2 elements, got %d", tt.count)
+			if !strings.Contains(err.Error(), want) {
+				t.Errorf("error = %q, want to contain %q", err.Error(), want)
+			}
+		})
+	}
+}
+
+func TestEONETPointCoordinates_Valid(t *testing.T) {
+	geo := &EONETGeometry{
+		Coordinates: json.RawMessage(`[-92.5, 45.7]`),
+	}
+	pt, err := geo.PointCoordinates()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if pt[0] != -92.5 || pt[1] != 45.7 {
+		t.Errorf("got [%f, %f], want [-92.5, 45.7]", pt[0], pt[1])
+	}
+}
+
+func TestEONETPolygonCoordinates_BadRingSize(t *testing.T) {
+	// A ring with only 2 points (needs at least 3).
+	raw := `[[[1.0, 2.0], [3.0, 4.0]]]`
+	geo := &EONETGeometry{
+		Coordinates: json.RawMessage(raw),
+	}
+	_, err := geo.PolygonCoordinates()
+	if err == nil {
+		t.Fatal("expected error for ring with < 3 points")
+	}
+	if !strings.Contains(err.Error(), "at least 3 points") {
+		t.Errorf("error = %q, want to contain 'at least 3 points'", err.Error())
+	}
+}
+
+func TestEONETPolygonCoordinates_BadPointSize(t *testing.T) {
+	// A ring with a point that has 3 elements instead of 2.
+	raw := `[[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0, 7.0]]]`
+	geo := &EONETGeometry{
+		Coordinates: json.RawMessage(raw),
+	}
+	_, err := geo.PolygonCoordinates()
+	if err == nil {
+		t.Fatal("expected error for point with != 2 elements")
+	}
+	if !strings.Contains(err.Error(), "exactly 2 elements") {
+		t.Errorf("error = %q, want to contain 'exactly 2 elements'", err.Error())
+	}
+}
+
+func TestEONETPolygonCoordinates_Valid(t *testing.T) {
+	raw := `[[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [1.0, 2.0]]]`
+	geo := &EONETGeometry{
+		Coordinates: json.RawMessage(raw),
+	}
+	coords, err := geo.PolygonCoordinates()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(coords) != 1 {
+		t.Fatalf("expected 1 ring, got %d", len(coords))
+	}
+	if len(coords[0]) != 4 {
+		t.Fatalf("expected 4 points in ring, got %d", len(coords[0]))
 	}
 }

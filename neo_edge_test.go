@@ -2,6 +2,7 @@ package nasa
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -228,5 +229,53 @@ func TestNEOGet_EscapesCraftedAsteroidID(t *testing.T) {
 	wantPath := "/neo/rest/v1/neo/" + url.PathEscape(craftedID)
 	if gotPath != wantPath {
 		t.Fatalf("escaped path = %q, want %q", gotPath, wantPath)
+	}
+}
+
+// TestCloseApproach_NumericVelocityDistance verifies that the second-pass
+// unmarshal handles numeric JSON literals (e.g. 42.5 instead of "42.5")
+// in the velocity and distance maps without error.
+func TestCloseApproach_NumericVelocityDistance(t *testing.T) {
+	input := `{
+		"close_approach_date": "2026-04-01",
+		"close_approach_date_full": "2026-Apr-01 17:14",
+		"epoch_date_close_approach": 1775070840000,
+		"relative_velocity": {"kilometers_per_second": 12.5, "kilometers_per_hour": "45000.0", "miles_per_hour": 27961.7},
+		"miss_distance": {"astronomical": "0.1", "lunar": 38.9, "kilometers": 14960000, "miles": "9296000"},
+		"orbiting_body": "Earth"
+	}`
+
+	var ca CloseApproach
+	if err := json.Unmarshal([]byte(input), &ca); err != nil {
+		t.Fatalf("unmarshal error: %v", err)
+	}
+
+	// Typed fields should parse correctly via StringFloat64.
+	if got := float64(ca.RelativeVelocity.KilometersPerSecond); got != 12.5 {
+		t.Errorf("KilometersPerSecond = %f, want 12.5", got)
+	}
+
+	// Raw velocity should preserve both string and numeric originals.
+	raw := ca.RawRelativeVelocity()
+	if raw["kilometers_per_second"] != "12.5" {
+		t.Errorf("raw kilometers_per_second = %q, want %q", raw["kilometers_per_second"], "12.5")
+	}
+	if raw["kilometers_per_hour"] != "45000.0" {
+		t.Errorf("raw kilometers_per_hour = %q, want %q", raw["kilometers_per_hour"], "45000.0")
+	}
+	if raw["miles_per_hour"] != "27961.7" {
+		t.Errorf("raw miles_per_hour = %q, want %q", raw["miles_per_hour"], "27961.7")
+	}
+
+	// Raw distance should also handle the mix.
+	rawDist := ca.RawMissDistance()
+	if rawDist["astronomical"] != "0.1" {
+		t.Errorf("raw astronomical = %q, want %q", rawDist["astronomical"], "0.1")
+	}
+	if rawDist["lunar"] != "38.9" {
+		t.Errorf("raw lunar = %q, want %q", rawDist["lunar"], "38.9")
+	}
+	if rawDist["kilometers"] != "14960000" {
+		t.Errorf("raw kilometers = %q, want %q", rawDist["kilometers"], "14960000")
 	}
 }

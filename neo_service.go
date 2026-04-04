@@ -162,16 +162,35 @@ func (ca *CloseApproach) UnmarshalJSON(data []byte) error {
 	}
 
 	// Pass 2: extract raw string values for velocity and distance.
+	// Uses json.RawMessage so both JSON strings ("42.5") and numeric
+	// literals (42.5) are captured without unmarshal errors.
 	var raw struct {
-		Velocity map[string]string `json:"relative_velocity"`
-		Distance map[string]string `json:"miss_distance"`
+		Velocity map[string]json.RawMessage `json:"relative_velocity"`
+		Distance map[string]json.RawMessage `json:"miss_distance"`
 	}
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
-	ca.rawVelocity = raw.Velocity
-	ca.rawDistance = raw.Distance
+	ca.rawVelocity = rawMapToStringMap(raw.Velocity)
+	ca.rawDistance = rawMapToStringMap(raw.Distance)
 	return nil
+}
+
+// rawMapToStringMap converts a map of json.RawMessage values to a map of
+// strings. Quoted JSON strings are unquoted; numeric literals and other
+// non-string values are used as-is after trimming whitespace.
+func rawMapToStringMap(m map[string]json.RawMessage) map[string]string {
+	result := make(map[string]string, len(m))
+	for k, v := range m {
+		var s string
+		if err := json.Unmarshal(v, &s); err == nil {
+			result[k] = s
+		} else {
+			// Numeric literal or other non-string: use raw bytes as string.
+			result[k] = strings.TrimSpace(string(v))
+		}
+	}
+	return result
 }
 
 // PaginationLinks contains HATEOAS pagination links from the NeoWs API.

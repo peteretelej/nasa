@@ -6,6 +6,7 @@ package nasa
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strconv"
 	"time"
@@ -68,22 +69,45 @@ type EONETGeometry struct {
 }
 
 // PointCoordinates returns the [lon, lat] coordinates for a Point geometry.
-// Returns an error if the coordinates cannot be parsed as a flat [lon, lat] pair.
+// Returns an error if the coordinates cannot be parsed as a flat [lon, lat]
+// pair or if the tuple does not contain exactly 2 elements.
 func (g *EONETGeometry) PointCoordinates() ([2]float64, error) {
+	var raw []json.RawMessage
+	if err := json.Unmarshal(g.Coordinates, &raw); err != nil {
+		return [2]float64{}, fmt.Errorf("nasa: invalid point coordinates: %w", err)
+	}
+	if len(raw) != 2 {
+		return [2]float64{}, fmt.Errorf("nasa: point coordinates must have exactly 2 elements, got %d", len(raw))
+	}
 	var coords [2]float64
 	if err := json.Unmarshal(g.Coordinates, &coords); err != nil {
-		return coords, err
+		return [2]float64{}, fmt.Errorf("nasa: invalid point coordinates: %w", err)
 	}
 	return coords, nil
 }
 
 // PolygonCoordinates returns the ring coordinates for a Polygon geometry.
 // A Polygon has one or more rings, each being a slice of [lon, lat] pairs.
-// Returns an error if the coordinates cannot be parsed as [][][2]float64.
+// Each ring must have at least 3 points and each point must have exactly 2
+// elements. Returns an error if the coordinates are malformed.
 func (g *EONETGeometry) PolygonCoordinates() ([][][2]float64, error) {
+	var raw [][][]json.RawMessage
+	if err := json.Unmarshal(g.Coordinates, &raw); err != nil {
+		return nil, fmt.Errorf("nasa: invalid polygon coordinates: %w", err)
+	}
+	for i, ring := range raw {
+		if len(ring) < 3 {
+			return nil, fmt.Errorf("nasa: polygon ring %d must have at least 3 points, got %d", i, len(ring))
+		}
+		for j, pt := range ring {
+			if len(pt) != 2 {
+				return nil, fmt.Errorf("nasa: polygon ring %d point %d must have exactly 2 elements, got %d", i, j, len(pt))
+			}
+		}
+	}
 	var coords [][][2]float64
 	if err := json.Unmarshal(g.Coordinates, &coords); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("nasa: invalid polygon coordinates: %w", err)
 	}
 	return coords, nil
 }
@@ -188,6 +212,10 @@ func (s *EONETService) Events(ctx context.Context, opts ...EONETOption) ([]*EONE
 
 // Event retrieves a single natural event by ID from the EONET API.
 func (s *EONETService) Event(ctx context.Context, eventID string) (*EONETEvent, error) {
+	if eventID == "" {
+		return nil, fmt.Errorf("nasa: event ID must not be empty")
+	}
+
 	params := url.Values{}
 	s.addAuth(params)
 
