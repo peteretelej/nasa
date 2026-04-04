@@ -52,8 +52,8 @@ func main() {
 	}
 
 	// Fetch the past week of APOD entries.
-	today := time.Now()
-	weekAgo := today.AddDate(0, 0, -7)
+	today := time.Now().UTC()
+	weekAgo := today.AddDate(0, 0, -6)
 	entries, err := client.APOD.GetRange(ctx, weekAgo, today)
 	if err != nil {
 		log.Fatal(err)

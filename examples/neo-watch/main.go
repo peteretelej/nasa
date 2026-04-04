@@ -14,6 +14,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"sort"
 	"time"
 
@@ -40,7 +41,7 @@ func main() {
 
 	// Sort by closest approach distance (ascending).
 	sort.Slice(objects, func(i, j int) bool {
-		var di, dj float64
+		di, dj := math.Inf(1), math.Inf(1)
 		if len(objects[i].CloseApproachData) > 0 {
 			di = float64(objects[i].CloseApproachData[0].MissDistance.Kilometers)
 		}

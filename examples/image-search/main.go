@@ -104,7 +104,7 @@ func main() {
 
 	captions, err := client.Images.Captions(ctx, nasaID)
 	if err != nil {
-		fmt.Println("No captions available (expected for image assets)")
+		fmt.Printf("  Captions unavailable: %v\n", err)
 	} else {
 		if len(captions) > 200 {
 			captions = captions[:200] + "..."

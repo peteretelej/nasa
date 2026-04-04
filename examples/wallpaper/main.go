@@ -12,7 +12,10 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/peteretelej/nasa"
@@ -48,21 +51,33 @@ var cmdDefaults = map[string][]string{
 var (
 	client  *nasa.Client
 	tmpfile string
+	tmpOnce sync.Once
 )
 
-func init() {
-	tmp, err := os.CreateTemp("", "nasa-wallpapers-pic-*")
-	if err != nil {
-		log.Fatalf("unable to get tempfile to work with: %v", err)
-	}
-	tmpfile = tmp.Name()
-	if err := tmp.Close(); err != nil {
-		log.Fatalf("unable to use tempfile %v", err)
-	}
+func ensureTmpFile() {
+	tmpOnce.Do(func() {
+		tmp, err := os.CreateTemp("", "nasa-wallpapers-pic-*")
+		if err != nil {
+			log.Fatalf("unable to get tempfile to work with: %v", err)
+		}
+		tmpfile = tmp.Name()
+		if err := tmp.Close(); err != nil {
+			log.Fatalf("unable to use tempfile %v", err)
+		}
+	})
 }
 
 func main() {
 	flag.Parse()
+
+	// Handle SIGINT/SIGTERM to ensure temp file cleanup.
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigCh
+		cleanUp()
+		os.Exit(0)
+	}()
 
 	// Warn if no API key is set.
 	if os.Getenv("NASA_API_KEY") == "" && os.Getenv("NASAKEY") == "" {
@@ -71,6 +86,7 @@ func main() {
 
 	client = nasa.NewClient()
 
+	ensureTmpFile()
 	cmds = getCmd(tmpfile)
 	if len(cmds) == 0 {
 		log.Fatal("wallpapers change command not found, set custom one with -cmd")
@@ -248,6 +264,7 @@ func updateRandom() error {
 }
 
 func downloadAndSet(url string) error {
+	ensureTmpFile()
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return err

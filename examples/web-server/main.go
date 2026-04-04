@@ -33,8 +33,8 @@ type templateData struct {
 	SD                 bool
 	AutoReload         bool
 	Legacy             bool
-	IsYoutube          bool
-	EmbedURL           string // YouTube URL with query params stripped
+	IsVideo            bool
+	EmbedURL           string // video embed URL with query params stripped
 	AutoReloadInterval int
 }
 
@@ -163,6 +163,7 @@ func handleRandom(w http.ResponseWriter, r *http.Request) {
 
 func renderTemplate(w http.ResponseWriter, img *nasa.APODImage, r *http.Request) {
 	td := templateData{
+		Title:      img.Title,
 		Image:      img,
 		SD:         r.URL.Query().Get("sd") != "",
 		AutoReload: r.URL.Query().Get("auto") != "" || r.URL.Query().Get("interval") != "",
@@ -178,9 +179,9 @@ func renderTemplate(w http.ResponseWriter, img *nasa.APODImage, r *http.Request)
 		td.AutoReloadInterval = 5 * 60 // default reload every 5 minutes
 	}
 
-	// Detect YouTube embeds and strip query params for embedding.
-	if strings.Contains(img.URL, "youtube") {
-		td.IsYoutube = true
+	// Detect video APODs using the MediaType field.
+	if img.MediaType == nasa.MediaVideo {
+		td.IsVideo = true
 		td.EmbedURL = img.URL
 		if i := strings.Index(td.EmbedURL, "?"); i > 1 {
 			td.EmbedURL = td.EmbedURL[:i]
@@ -237,7 +238,7 @@ function TimedRefresh( t ) { setTimeout(function() { location.reload(true); }, t
 {{end}}
 <body {{if and .AutoReload .Legacy}}onload="javascript:TimedRefresh({{.AutoReloadInterval}}*1000)"{{end}}>
 <div id="imgwrap">
-{{if .IsYoutube}}
+{{if .IsVideo}}
 <div style="position: fixed; z-index: -99; width: 100%; height: 100%">
 <iframe frameborder="0" height="100%" width="100%" 
 src="{{.EmbedURL}}?autoplay=1&controls=0&showinfo=0&autohide=1">
