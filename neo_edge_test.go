@@ -27,7 +27,8 @@ func TestNEOFeed_EmptyStringFloatHandling(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(fixture); err != nil {
-			t.Fatalf("writing neo feed fixture: %v", err)
+			t.Errorf("writing neo feed fixture: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
@@ -105,7 +106,8 @@ func TestNEOFeed_HTTPLinkFixupNested(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(fixture); err != nil {
-			t.Fatalf("writing neo http-links fixture: %v", err)
+			t.Errorf("writing neo http-links fixture: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
@@ -193,7 +195,7 @@ func TestNEOFeed_RejectsWireDateRangePastSevenDays(t *testing.T) {
 	end := time.Date(2024, 1, 9, 0, 0, 0, 0, time.UTC)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Fatal("HTTP request should not be made when wire dates exceed 7 days")
+		t.Errorf("HTTP request should not be made when wire dates exceed 7 days")
 	}))
 	t.Cleanup(ts.Close)
 

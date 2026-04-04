@@ -24,7 +24,8 @@ func setupEONETTestServer(t *testing.T, fixturePath string) (*EONETService, **ht
 		captured = r.Clone(r.Context())
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing EONET fixture: %v", err)
+			t.Errorf("writing EONET fixture: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
@@ -46,7 +47,8 @@ func setupEONETTestServerNoAuth(t *testing.T, fixturePath string) (*EONETService
 		captured = r.Clone(r.Context())
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing EONET no-auth fixture: %v", err)
+			t.Errorf("writing EONET no-auth fixture: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)

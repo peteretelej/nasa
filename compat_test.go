@@ -25,7 +25,8 @@ func TestAPODGet_Wrapper(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing APOD fixture: %v", err)
+			t.Errorf("writing APOD fixture: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
@@ -59,7 +60,8 @@ func TestAPODTodayWithKey_Wrapper(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing APOD today fixture: %v", err)
+			t.Errorf("writing APOD today fixture: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
@@ -88,7 +90,8 @@ func TestNEOFeedWithKey_Wrapper(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing NEO fixture: %v", err)
+			t.Errorf("writing NEO fixture: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
@@ -511,7 +514,8 @@ func TestCompat_APODConversion_ResponseFormat(t *testing.T) {
 	c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing APOD conversion fixture: %v", err)
+			t.Errorf("writing APOD conversion fixture: %v", err)
+			return
 		}
 	})
 
@@ -558,7 +562,8 @@ func TestCompat_NeoFeedConversion_ResponseFormat(t *testing.T) {
 	c := setupMockServer(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing NEO conversion fixture: %v", err)
+			t.Errorf("writing NEO conversion fixture: %v", err)
+			return
 		}
 	})
 

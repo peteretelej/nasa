@@ -27,7 +27,8 @@ func setupDONKITestServer(t *testing.T, fixturePath string) (*Client, **http.Req
 		captured = r.Clone(r.Context())
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing DONKI fixture: %v", err)
+			t.Errorf("writing DONKI fixture: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
@@ -43,7 +44,8 @@ func setupDONKIErrorServer(t *testing.T, statusCode int, body string) *Client {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
 		if _, err := w.Write([]byte(body)); err != nil {
-			t.Fatalf("writing DONKI error response: %v", err)
+			t.Errorf("writing DONKI error response: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
