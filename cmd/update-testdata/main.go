@@ -179,19 +179,19 @@ func mustFetch(name, url string) []byte {
 
 	resp, err := httpClient.Get(url)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "\nerror fetching %s\n", name)
+		fmt.Fprintf(os.Stderr, "\nerror fetching %s: %v\n", name, err)
 		os.Exit(1)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "\nerror reading %s\n", name)
+		fmt.Fprintf(os.Stderr, "\nerror reading %s: %v\n", name, err)
 		os.Exit(1)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Fprintf(os.Stderr, "\nerror: %s returned HTTP %d\n", name, resp.StatusCode)
+		fmt.Fprintf(os.Stderr, "\nerror: %s returned %s\n", name, resp.Status)
 		os.Exit(1)
 	}
 

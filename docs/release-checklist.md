@@ -67,7 +67,7 @@ gh release create "${VERSION}" --generate-notes
 
 ### 1. GitHub Release
 
-- [ ] Visit [Releases](https://github.com/peteretelej/nasa/releases) and confirm the tag appears.
+- [ ] Visit [Releases](https://github.com/peteretelej/nasa/releases) and confirm the release appears.
 - [ ] Optionally add release notes summarizing what the release includes.
 
 ### 2. pkg.go.dev

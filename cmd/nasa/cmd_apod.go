@@ -164,8 +164,10 @@ func apodToMap(a *nasa.APODImage) map[string]any {
 		"title":       a.Title,
 		"explanation": a.Explanation,
 		"url":         a.URL,
-		"hdurl":       a.HDURL,
 		"media_type":  string(a.MediaType),
+	}
+	if a.HDURL != "" {
+		m["hdurl"] = a.HDURL
 	}
 	if a.Copyright != "" {
 		m["copyright"] = a.Copyright

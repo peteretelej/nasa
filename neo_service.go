@@ -64,6 +64,16 @@ func (me MillisecondEpoch) Time() time.Time {
 	return time.Time(me)
 }
 
+// MarshalJSON converts the time back to a millisecond epoch integer,
+// or JSON null for zero values.
+func (me MillisecondEpoch) MarshalJSON() ([]byte, error) {
+	t := time.Time(me)
+	if t.IsZero() {
+		return []byte("null"), nil
+	}
+	return json.Marshal(t.UnixMilli())
+}
+
 // DiameterRange represents minimum and maximum estimated diameter values.
 type DiameterRange struct {
 	Min float64 `json:"estimated_diameter_min"`
@@ -313,8 +323,8 @@ func (s *NEOService) Feed(ctx context.Context, start, end time.Time) (*NEOFeed, 
 		return nil, fmt.Errorf("nasa: start date %s is after end date %s", startDate, endDate)
 	}
 
-	// Validate range <= 7 days.
-	if endWire.Sub(startWire) > 7*24*time.Hour {
+	// Validate range <= 7 days (start + 6 calendar days = 7 days inclusive).
+	if endWire.Sub(startWire) >= 7*24*time.Hour {
 		return nil, fmt.Errorf("nasa: date range exceeds 7 days (%s to %s)", startDate, endDate)
 	}
 

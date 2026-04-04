@@ -178,14 +178,14 @@ func handleRandom(w http.ResponseWriter, r *http.Request) {
 func handleServiceWorker(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/javascript")
 	w.Header().Set("Cache-Control", "no-cache")
-	fmt.Fprint(w, swJS)
+	_, _ = fmt.Fprint(w, swJS)
 }
 
 func renderError(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Retry-After", "30")
 	w.WriteHeader(http.StatusServiceUnavailable)
-	fmt.Fprint(w, errorHTML)
+	_, _ = fmt.Fprint(w, errorHTML)
 }
 
 func renderTemplate(w http.ResponseWriter, img *nasa.APODImage, r *http.Request, stale bool) {
@@ -211,7 +211,7 @@ func renderTemplate(w http.ResponseWriter, img *nasa.APODImage, r *http.Request,
 	if img.MediaType == nasa.MediaVideo {
 		td.IsVideo = true
 		td.EmbedURL = img.URL
-		if i := strings.Index(td.EmbedURL, "?"); i > 1 {
+		if i := strings.Index(td.EmbedURL, "?"); i > 0 {
 			td.EmbedURL = td.EmbedURL[:i]
 		}
 	}

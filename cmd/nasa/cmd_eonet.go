@@ -87,9 +87,13 @@ Flags:
 	}
 	if *days > 0 {
 		opts = append(opts, nasa.EONETWithDays(*days))
+	} else if *days < 0 {
+		fatal("eonet events: --days must not be negative")
 	}
 	if *limit > 0 {
 		opts = append(opts, nasa.EONETWithLimit(*limit))
+	} else if *limit < 0 {
+		fatal("eonet events: --limit must not be negative")
 	}
 	if *source != "" {
 		opts = append(opts, nasa.EONETWithSource(*source))

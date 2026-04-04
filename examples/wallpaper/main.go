@@ -96,6 +96,7 @@ func main() {
 		if err := todaysAPOD(); err != nil {
 			log.Fatalf("nasa-wallpapers: %v\n", err)
 		}
+		cleanUp()
 		return
 	}
 
@@ -293,7 +294,7 @@ func downloadAndSet(url string) error {
 		return errors.New("invalid response from APOD image url")
 	}
 	switch http.DetectContentType(dat[:512]) {
-	case "image/jpg", "image/jpeg", "image/png", "image/gif":
+	case "image/jpeg", "image/png", "image/gif":
 	default:
 		return errors.New("apod returned is not a valid image mimetype")
 	}

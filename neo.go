@@ -152,9 +152,13 @@ func neoToAsteroid(neo *NearEarthObject) Asteroid {
 
 	// Close approach data - use raw string values preserved during unmarshal
 	for _, ca := range neo.CloseApproachData {
+		var epochMillis int64
+		if t := ca.EpochDateCloseApproach.Time(); !t.IsZero() {
+			epochMillis = t.UnixMilli()
+		}
 		cad := closeApproachData{
 			CloseApproachDate:      ca.CloseApproachDate,
-			EpochDateCloseApproach: ca.EpochDateCloseApproach.Time().UnixMilli(),
+			EpochDateCloseApproach: epochMillis,
 			OrbitingBody:           ca.OrbitingBody,
 		}
 		rv := ca.rawVelocity
