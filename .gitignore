@@ -22,6 +22,8 @@ dist/
 /image-search
 /neo-watch
 /space-weather
+/wallpaper
+/web-server
 
 # Test and coverage artifacts
 *.out
