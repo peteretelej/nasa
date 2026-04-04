@@ -38,6 +38,8 @@ func main() {
 		ssdCmd(os.Args[2:])
 	case "eonet":
 		eonetCmd(os.Args[2:])
+	case "web":
+		webCmd(os.Args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "nasa: unknown command %q\n\n", os.Args[1])
 		printUsage(os.Stderr)
@@ -55,6 +57,7 @@ Commands:
   images    NASA Image and Video Library
   ssd       Small-Body Database (SSD/CNEOS)
   eonet     Earth Observatory Natural Event Tracker
+  web       Launch APOD demo web server
 
 Global flags:
   --version   Print version and exit
