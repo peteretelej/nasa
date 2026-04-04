@@ -21,7 +21,11 @@ var apodTmpl = template.Must(template.New("apod").Parse(`<!DOCTYPE html>
 <html><head><title>{{.Title}}</title></head><body>
 <h1>{{.Title}}</h1>
 <p>{{.Explanation}}</p>
+{{if eq .MediaType "video"}}
+<iframe src="{{.URL}}" width="800" height="450" frameborder="0" allowfullscreen></iframe>
+{{else}}
 <img src="{{.URL}}" style="max-width:800px">
+{{end}}
 </body></html>`))
 
 func main() {
@@ -50,7 +54,7 @@ func main() {
 		defer cancel()
 
 		now := time.Now()
-		feed, err := client.NEO.Feed(ctx, now, now.AddDate(0, 0, 7))
+		feed, err := client.NEO.Feed(ctx, now, now.AddDate(0, 0, 6))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadGateway)
 			return

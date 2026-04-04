@@ -119,7 +119,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 		now := time.Now()
-		feed, neoErr = client.NEO.Feed(ctx, now, now.AddDate(0, 0, 7))
+		feed, neoErr = client.NEO.Feed(ctx, now, now.AddDate(0, 0, 6))
 	}()
 
 	wg.Wait()
@@ -198,7 +198,7 @@ func main() {
 	feed, err := nasa.NEOFeedWithKey(
 		os.Getenv("NASA_API_KEY"),
 		now.Format("2006-01-02"),
-		now.AddDate(0, 0, 7).Format("2006-01-02"),
+		now.AddDate(0, 0, 6).Format("2006-01-02"),
 	)
 	if err != nil {
 		log.Fatal(err)

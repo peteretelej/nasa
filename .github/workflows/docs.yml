@@ -21,8 +21,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: peteretelej/starlight-action@v1
+      - uses: actions/checkout@de0fac2 # v6
+      - uses: peteretelej/starlight-action@3127bd1 # v1
         with:
           docs: docs/
           title: NASA Go SDK
@@ -37,4 +37,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db901 # v4

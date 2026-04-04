@@ -4,11 +4,12 @@ The SDK includes a built-in rate limiter that prevents you from exceeding NASA's
 
 ## How It Works
 
-The rate limiter uses a token bucket algorithm (from `golang.org/x/time/rate`) that controls request throughput:
+The rate limiter combines a token bucket with per-key cooldown tracking:
 
-1. **Default rate**: Requests are paced to stay within NASA's limits
-2. **Dynamic adjustment**: The limiter reads `X-RateLimit-Remaining` response headers and throttles automatically when the remaining quota is low
-3. **429 retry**: If a request receives HTTP 429 (Too Many Requests), the SDK waits and retries automatically
+1. **Token bucket**: A `golang.org/x/time/rate` limiter paces outgoing requests to stay within the configured rate (default or custom). Every request waits for a token before executing, including retries.
+2. **429 handling with key rotation**: When a request receives HTTP 429, the SDK marks that API key as limited and retries with the next available key. If you have N API keys configured, the client attempts up to N total requests (one per key) before giving up.
+3. **`Retry-After` header**: If the 429 response includes a `Retry-After` header (in seconds), that value is used as the cooldown duration for the affected key. Without the header, the default cooldown is 30 minutes.
+4. **When retries stop**: Once all API keys are in cooldown (or there is only one key), the SDK stops retrying and returns a `*nasa.RateLimitError` to the caller. The error's `RetryAfter` field contains the shortest remaining cooldown across all keys.
 
 ## Custom Rate Limit
 

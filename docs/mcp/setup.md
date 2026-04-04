@@ -8,6 +8,8 @@ The NASA MCP server exposes NASA APIs as tools for AI assistants over the Model 
 go install github.com/peteretelej/nasa/cmd/nasa-mcp@latest
 ```
 
+> **Tip:** GUI clients (Claude Desktop, Cursor, VS Code) often don't inherit your shell's `$PATH`. If the MCP server isn't found, use the full path to the binary: `$(go env GOPATH)/bin/nasa-mcp`. You can find the absolute path by running `which nasa-mcp` or `go env GOPATH` in your terminal.
+
 ## Configuration
 
 Set your NASA API key in the `env` block. Without it, the server falls back to `DEMO_KEY` (30 requests/hour).
@@ -29,11 +31,15 @@ Add to `claude_desktop_config.json`:
 }
 ```
 
+If `nasa-mcp` is not found, replace `"command": "nasa-mcp"` with the absolute path (e.g., `"/home/you/go/bin/nasa-mcp"`).
+
 ### Claude Code
 
 ```bash
 claude mcp add nasa nasa-mcp -e NASA_API_KEY=your-key
 ```
+
+If `nasa-mcp` is not in your `$PATH`, use the full path: `claude mcp add nasa "$(go env GOPATH)/bin/nasa-mcp" -e NASA_API_KEY=your-key`.
 
 ### VS Code (GitHub Copilot)
 
@@ -52,6 +58,8 @@ Add to `.vscode/settings.json`:
 }
 ```
 
+If `nasa-mcp` is not found, replace `"command": "nasa-mcp"` with the absolute path.
+
 ### Cursor
 
 Add to `.cursor/mcp.json`:
@@ -68,6 +76,8 @@ Add to `.cursor/mcp.json`:
   }
 }
 ```
+
+If `nasa-mcp` is not found, replace `"command": "nasa-mcp"` with the absolute path.
 
 ## How It Works
 

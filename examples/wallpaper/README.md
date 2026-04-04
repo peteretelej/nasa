@@ -58,7 +58,7 @@ A sample systemd unit file is included at `nasa-wallpapers.service`. Edit
 `ExecStart` and `Environment` to match your setup, then:
 
 ```bash
-cp nasa-wallpapers.service ~/.config/systemd/user/
+cp ./examples/wallpaper/nasa-wallpapers.service ~/.config/systemd/user/
 systemctl --user enable nasa-wallpapers
 systemctl --user start nasa-wallpapers
 ```

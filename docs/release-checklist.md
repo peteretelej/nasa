@@ -55,7 +55,13 @@ git tag -a "${VERSION}" -m "${VERSION} - stable release"
 git push origin "${VERSION}"
 ```
 
-Do not use a lightweight tag. The annotated tag ensures GitHub creates a proper release entry and pkg.go.dev indexes the version.
+Do not use a lightweight tag. The annotated tag is required for pkg.go.dev to index the version. Note that pushing a tag does not automatically create a GitHub Release; you must create the Release separately (see below).
+
+### Create the GitHub Release
+
+```bash
+gh release create "${VERSION}" --generate-notes
+```
 
 ## Post-Release Verification
 
@@ -79,6 +85,8 @@ Do not use a lightweight tag. The annotated tag ensures GitHub creates a proper 
 Verify that users can install the SDK and CLI at the tagged version:
 
 ```bash
+VERSION=v1.0.0  # replace with your release tag
+
 go list -m github.com/peteretelej/nasa@"${VERSION}"
 go install github.com/peteretelej/nasa/cmd/nasa@"${VERSION}"
 nasa --version
