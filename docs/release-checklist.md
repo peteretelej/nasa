@@ -25,29 +25,16 @@ go build ./...
 - [ ] Lint reports 0 issues.
 - [ ] Build succeeds for all packages.
 
-### 3. Integration Tests (Optional)
-
-If a `NASA_API_KEY` is available, run integration tests against live APIs:
-
-```bash
-export NASA_API_KEY="your-key"
-./scripts/test-integration.sh
-```
-
-- [ ] Integration tests pass, OR record that they were skipped (no credentials available).
-
-Integration tests are not required for a release but provide additional confidence.
-
-### 4. Documentation
+### 3. Documentation
 
 - [ ] `README.md` reflects current install commands, API coverage, and feature list.
 - [ ] `docs/getting-started.md` examples compile and match current SDK behavior.
-- [ ] `docs/authentication.md` key handling and multi-key rotation guidance is accurate.
+- [ ] `docs/authentication.md` key handling guidance is accurate.
 - [ ] `docs/rate-limiting.md` describes the current rate limiter behavior.
 - [ ] `docs/cli/installation.md` matches the CLI's actual flags and output.
 - [ ] `CONTRIBUTING.md` contains only durable guidance (no branch-specific or transient notes).
 
-### 5. Docs Deployment Workflow
+### 4. Docs Deployment Workflow
 
 - [ ] `.github/workflows/docs.yml` triggers on push to `main` for `docs/**` and `README.md`.
 - [ ] GitHub Pages is enabled in repo settings (Settings > Pages > Source > GitHub Actions).

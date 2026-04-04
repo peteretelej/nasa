@@ -1,6 +1,6 @@
 # Authentication
 
-NASA APIs use API keys for access control. The SDK supports three authentication modes.
+NASA APIs use API keys for access control. The SDK supports two authentication modes.
 
 ## DEMO_KEY (Default)
 
@@ -15,7 +15,7 @@ Without any configuration, the SDK uses NASA's `DEMO_KEY`. This is fine for test
 client := nasa.NewClient()
 ```
 
-## Single API Key
+## API Key
 
 Register for a free key at [api.nasa.gov](https://api.nasa.gov/) and configure it via environment variable or code.
 
@@ -51,38 +51,6 @@ func main() {
 ```
 
 A registered key allows 1,000 requests per hour.
-
-## Multi-Key Rotation
-
-For high-throughput applications, the SDK can rotate across multiple API keys. When one key hits its rate limit, the SDK automatically switches to the next available key:
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"log"
-	"os"
-	"strings"
-
-	"github.com/peteretelej/nasa"
-)
-
-func main() {
-	keys := strings.Split(os.Getenv("NASA_API_KEYS"), ",")
-
-	client := nasa.NewClient(
-		nasa.WithAPIKeys(keys),
-	)
-
-	apod, err := client.APOD.Today(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(apod.Title)
-}
-```
 
 ## Which APIs Need Keys?
 

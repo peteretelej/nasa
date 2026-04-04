@@ -8,7 +8,7 @@ The rate limiter uses a token bucket algorithm (from `golang.org/x/time/rate`) t
 
 1. **Default rate**: Requests are paced to stay within NASA's limits
 2. **Dynamic adjustment**: The limiter reads `X-RateLimit-Remaining` response headers and throttles automatically when the remaining quota is low
-3. **429 retry**: If a request receives HTTP 429 (Too Many Requests), the SDK retries with the next available API key (when using multi-key rotation)
+3. **429 retry**: If a request receives HTTP 429 (Too Many Requests), the SDK waits and retries automatically
 
 ## Custom Rate Limit
 
@@ -38,44 +38,9 @@ func main() {
 }
 ```
 
-## Multi-Key Rotation
-
-Multi-key rotation multiplies your effective throughput. When one key's rate limit is exhausted, the SDK immediately fails over to the next key:
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"log"
-	"os"
-	"strings"
-
-	"github.com/peteretelej/nasa"
-)
-
-func main() {
-	keys := strings.Split(os.Getenv("NASA_API_KEYS"), ",")
-
-	client := nasa.NewClient(
-		nasa.WithAPIKeys(keys),
-		nasa.WithRateLimit(10.0),
-	)
-
-	apod, err := client.APOD.Today(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(apod.Title)
-}
-```
-
-With 3 keys at 1,000 requests/hour each, you get an effective 3,000 requests/hour.
-
 ## Error Handling
 
-When rate limits are exhausted (and no additional keys are available), the SDK returns a `*nasa.RateLimitError`:
+When rate limits are exhausted, the SDK returns a `*nasa.RateLimitError`:
 
 ```go
 package main

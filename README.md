@@ -1,18 +1,42 @@
 # nasa
 
-The comprehensive Go SDK for NASA APIs.
+A Go client library for NASA's open APIs, covering APOD, NeoWs, DONKI, the Image Library, SSD/CNEOS, and EONET.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/peteretelej/nasa.svg)](https://pkg.go.dev/github.com/peteretelej/nasa)
 [![CI](https://github.com/peteretelej/nasa/actions/workflows/ci.yml/badge.svg)](https://github.com/peteretelej/nasa/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Go Report Card](https://goreportcard.com/badge/github.com/peteretelej/nasa)](https://goreportcard.com/report/github.com/peteretelej/nasa)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-Covers 6 NASA APIs with typed Go responses, built-in rate limiting with multi-key rotation, a CLI for terminal usage, and an MCP server for AI assistants.
+Query NASA's public data APIs from Go - astronomy photos, near-Earth objects, space weather events, satellite imagery, and more. Responses are returned as typed Go structs with rate limiting handled automatically. A CLI and an MCP server are also included for terminal and AI assistant usage.
+
+- **6 NASA APIs** - APOD, NeoWs, DONKI, NASA Image Library, SSD/CNEOS, EONET
+- **Built-in rate limiting** - automatic 429 retry with header-based dynamic adjustment
+- **Typed responses** - strongly typed Go structs, no raw JSON
+- **Context-aware** - supports cancellation and timeouts
+- **CLI** - access all APIs from the terminal
+- **MCP server** - expose NASA APIs as tools for AI assistants
 
 ## Install
 
 ```bash
 go get github.com/peteretelej/nasa
 ```
+
+## API Key
+
+Get a free API key at [api.nasa.gov](https://api.nasa.gov), then export it:
+
+```bash
+export NASA_API_KEY=your_key_here
+```
+
+Or specify it directly when creating the client:
+
+```go
+client := nasa.NewClient(nasa.WithAPIKey("your_key_here"))
+```
+
+The SDK works without a key using NASA's DEMO_KEY, but it is heavily rate-limited.
 
 ## Quick Start
 
@@ -23,13 +47,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/peteretelej/nasa"
 )
 
 func main() {
-	client := nasa.NewClient(nasa.WithAPIKey(os.Getenv("NASA_API_KEY")))
+	client := nasa.NewClient()
 
 	apod, err := client.APOD.Today(context.Background())
 	if err != nil {
@@ -38,16 +61,6 @@ func main() {
 	fmt.Printf("%s: %s\n", apod.Title, apod.URL)
 }
 ```
-
-## Features
-
-- **6 NASA APIs** - APOD, NeoWs, DONKI, NASA Image Library, SSD/CNEOS, EONET
-- **Built-in rate limiting** - automatic 429 retry with header-based dynamic adjustment
-- **Multi-key rotation** - distribute requests across multiple API keys
-- **Typed responses** - strongly typed Go structs, no raw JSON
-- **Context-aware** - supports cancellation and timeouts
-- **CLI** - access all APIs from the terminal
-- **MCP server** - expose NASA APIs as tools for AI assistants
 
 ## API Coverage
 
@@ -62,14 +75,10 @@ func main() {
 
 ## Rate Limiting
 
-The client automatically respects NASA API rate limits. With a registered key, the default is 1000 requests/hour. If a key is rate-limited, the client retries with the next available key.
+The client automatically respects NASA API rate limits. With a registered key, the default is 1000 requests/hour.
 
 ```go
-// Single key
-client := nasa.NewClient(nasa.WithAPIKey(os.Getenv("NASA_API_KEY")))
-
-// Multiple keys for automatic rotation
-client = nasa.NewClient(nasa.WithAPIKeys([]string{"key1", "key2", "key3"}))
+client := nasa.NewClient()
 ```
 
 ## CLI
@@ -118,4 +127,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT License - see [LICENSE](LICENSE).
+[MIT](LICENSE)
