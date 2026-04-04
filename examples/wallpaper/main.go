@@ -39,7 +39,7 @@ var cmdDefaults = map[string][]string{
 	"kde":     {"dcop", "kdesktop", "KBackgroundIface", "setWallpaper", "%s", "1"},
 	"gnome2":  {"gconftool-2", "--set", "/desktop/gnome/background/picture_filename", "--type=string", "%s"},
 	"xfce":    {"xfconf-query", "-c", "xfce4-desktop", "-p", "/backdrop/screen0/monitor0/image-path", "-s", "%s"},
-	"mate":    {"dconf", "write", "/org/mate/desktop/background/picture-filename", "%s"},
+	"mate":    {"dconf", "write", "/org/mate/desktop/background/picture-filename", "\"%s\""},
 	"lxde":    {"pcmanfm", "-w", "%s", "--wallpaper-mode=fit"},
 	"feh":     {"feh", "--bg-scale", "%s"},
 	"setroot": {"setroot", "%s"},
