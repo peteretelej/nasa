@@ -122,9 +122,31 @@ type EONETCategory struct {
 }
 
 // EONETSource represents a data source for EONET events.
+//
+// The /sources endpoint returns URLs in the "source" field, while
+// event-embedded sources use "url". The custom UnmarshalJSON handles both.
 type EONETSource struct {
-	ID  string `json:"id"`
-	URL string `json:"source"`
+	ID    string `json:"id"`
+	URL   string `json:"source"`
+	Title string `json:"title"`
+	Link  string `json:"link"`
+}
+
+// UnmarshalJSON handles dual-field deserialization: the /sources endpoint uses
+// "source" for URLs, while event-embedded sources use "url".
+func (s *EONETSource) UnmarshalJSON(data []byte) error {
+	type Alias EONETSource
+	aux := &struct {
+		URLField string `json:"url"`
+		*Alias
+	}{Alias: (*Alias)(s)}
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+	if s.URL == "" && aux.URLField != "" {
+		s.URL = aux.URLField
+	}
+	return nil
 }
 
 // --- Functional options ---

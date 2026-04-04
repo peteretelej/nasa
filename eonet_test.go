@@ -235,8 +235,39 @@ func TestEONETSources(t *testing.T) {
 	if sources[0].URL != "https://www.avo.alaska.edu/" {
 		t.Errorf("expected first source URL=%q, got %q", "https://www.avo.alaska.edu/", sources[0].URL)
 	}
+	if sources[0].Title != "Alaska Volcano Observatory" {
+		t.Errorf("expected first source Title=%q, got %q", "Alaska Volcano Observatory", sources[0].Title)
+	}
+	if sources[0].Link != "https://eonet.gsfc.nasa.gov/api/v3/events?source=AVO" {
+		t.Errorf("expected first source Link=%q, got %q", "https://eonet.gsfc.nasa.gov/api/v3/events?source=AVO", sources[0].Link)
+	}
 	if sources[2].ID != "AU_BOM" {
 		t.Errorf("expected third source ID=AU_BOM, got %s", sources[2].ID)
+	}
+}
+
+func TestEONETSourceEventEmbedded(t *testing.T) {
+	svc, _ := setupEONETTestServer(t, "testdata/eonet_events.json")
+
+	events, err := svc.Events(context.Background())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Event-embedded sources use "url" instead of "source" for the URL field.
+	// The custom UnmarshalJSON on EONETSource must populate URL from "url".
+	if len(events[0].Sources) == 0 {
+		t.Fatal("expected at least one source on first event")
+	}
+	src := events[0].Sources[0]
+	if src.ID != "IRWIN" {
+		t.Errorf("expected source ID=IRWIN, got %s", src.ID)
+	}
+	if src.URL == "" {
+		t.Error("expected event-embedded source URL to be populated from 'url' field, got empty string")
+	}
+	if src.URL != "https://irwin.doi.gov/observer/incidents/eabb9fb3-1d6f-4c28-bd48-f0046d869592" {
+		t.Errorf("unexpected event-embedded source URL: %s", src.URL)
 	}
 }
 
