@@ -88,16 +88,29 @@ func main() {
 	}
 }
 
+// apodURL returns the best available image URL from an APOD response,
+// preferring HDURL and falling back to URL.
+func apodURL(img *nasa.APODImage) (string, error) {
+	if img.HDURL != "" {
+		return img.HDURL, nil
+	}
+	if img.URL != "" {
+		return img.URL, nil
+	}
+	return "", errors.New("APOD has no image URL")
+}
+
 func todaysAPOD() error {
 	ctx := context.Background()
 	img, err := client.APOD.Today(ctx)
 	if err != nil {
 		return fmt.Errorf("fetching today's APOD: %w", err)
 	}
-	if img.HDURL == "" {
-		return errors.New("today's APOD has no HD image URL")
+	u, err := apodURL(img)
+	if err != nil {
+		return err
 	}
-	return downloadAndSet(img.HDURL)
+	return downloadAndSet(u)
 }
 
 func randomAPOD(intv time.Duration) error {
@@ -131,13 +144,59 @@ func buildCmd(template []string, filepath string) []string {
 	return result
 }
 
+// shellSplit splits a command string into tokens, handling single quotes,
+// double quotes, and backslash escapes. It is a pure-Go alternative to
+// shelling out or using strings.Fields, which breaks on quoted arguments
+// and paths containing spaces.
+func shellSplit(s string) []string {
+	var tokens []string
+	var cur []byte
+	inSingle := false
+	inDouble := false
+	for i := 0; i < len(s); i++ {
+		ch := s[i]
+		switch {
+		case inSingle:
+			if ch == '\'' {
+				inSingle = false
+			} else {
+				cur = append(cur, ch)
+			}
+		case inDouble:
+			if ch == '\\' && i+1 < len(s) {
+				i++
+				cur = append(cur, s[i])
+			} else if ch == '"' {
+				inDouble = false
+			} else {
+				cur = append(cur, ch)
+			}
+		case ch == '\\' && i+1 < len(s):
+			i++
+			cur = append(cur, s[i])
+		case ch == '\'':
+			inSingle = true
+		case ch == '"':
+			inDouble = true
+		case ch == ' ' || ch == '\t':
+			if len(cur) > 0 {
+				tokens = append(tokens, string(cur))
+				cur = cur[:0]
+			}
+		default:
+			cur = append(cur, ch)
+		}
+	}
+	if len(cur) > 0 {
+		tokens = append(tokens, string(cur))
+	}
+	return tokens
+}
+
 // getCmd returns the wallpaper-setting command with filepath substituted.
-// User-provided -cmd strings are split on whitespace (strings.Fields), which
-// does not handle quoted arguments or paths with spaces. Use -cmdDefault or
-// rely on auto-detection for robust argument handling.
 func getCmd(filepath string) []string {
 	if *cmdString != "" {
-		parts := strings.Fields(fmt.Sprintf(*cmdString, filepath))
+		parts := shellSplit(fmt.Sprintf(*cmdString, filepath))
 		return parts
 	}
 	if cmd, ok := cmdDefaults[*cmdDefault]; ok {
@@ -181,10 +240,11 @@ func updateRandom() error {
 		return errors.New("no images returned from NASA API")
 	}
 	apod := imgs[0]
-	if apod.HDURL == "" {
-		return errors.New("invalid response from NASA API")
+	u, err := apodURL(apod)
+	if err != nil {
+		return err
 	}
-	return downloadAndSet(apod.HDURL)
+	return downloadAndSet(u)
 }
 
 func downloadAndSet(url string) error {
