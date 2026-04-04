@@ -14,6 +14,15 @@ dist/
 /nasa-wallpapers
 /update-testdata
 
+# Example binaries
+/apod-gallery
+/close-approaches
+/daily-briefing
+/earth-events
+/image-search
+/neo-watch
+/space-weather
+
 # Test and coverage artifacts
 *.out
 coverage.*
