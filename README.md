@@ -1,124 +1,212 @@
-# nasa - Go library and apps based on the NASA API
+# nasa
 
-[![CircleCI](https://circleci.com/gh/peteretelej/nasa/tree/master.svg?style=svg)](https://circleci.com/gh/peteretelej/nasa/tree/master) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa?ref=badge_shield)
+A Go client library for NASA's open APIs, covering APOD, NeoWs, DONKI, the Image Library, SSD/CNEOS, and EONET.
 
-[![GoDoc](https://godoc.org/github.com/peteretelej/nasa?status.svg)](https://godoc.org/github.com/peteretelej/nasa)
+[![Go Reference](https://pkg.go.dev/badge/github.com/peteretelej/nasa.svg)](https://pkg.go.dev/github.com/peteretelej/nasa)
+[![CI](https://github.com/peteretelej/nasa/actions/workflows/ci.yml/badge.svg)](https://github.com/peteretelej/nasa/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/peteretelej/nasa)](https://goreportcard.com/report/github.com/peteretelej/nasa)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Docs](https://img.shields.io/badge/docs-peteretelej.github.io%2Fnasa-blue)](https://peteretelej.github.io/nasa)
+[![Demo](https://img.shields.io/badge/demo-nasa.etelej.com-orange)](https://nasa.etelej.com)
 
+Query NASA's public data APIs from Go - astronomy photos, near-Earth objects, space weather events, satellite imagery, and more. Responses are returned as typed Go structs with rate limiting handled automatically. A CLI and an MCP server are also included for terminal and AI assistant usage.
 
+- **6 NASA APIs** - APOD, NeoWs, DONKI, NASA Image Library, SSD/CNEOS, EONET
+- **Built-in rate limiting** - automatic 429 retry with header-based dynamic adjustment
+- **Typed responses** - strongly typed Go structs, no raw JSON
+- **Context-aware** - supports cancellation and timeouts
+- **CLI** - access all APIs from the terminal
+- **MCP server** - expose NASA APIs as tools for AI assistants
 
-Includes:
-- Go Library for accessing and using the NASA API (APOD, NEO)
-- Command line interface (CLI) for accessing NASA API's services
-- Apps based on the NASA API: e.g. Desktop Wallpapers, Web Server for APOD and Random APOD ..
+## Install
 
-
-## NASA API KEY
-
-Kindly grab a NASA API key from [here](https://api.nasa.gov/index.html#apply-for-an-api-key), and set it to the environment variable __NASAKEY__.
+```bash
+go get github.com/peteretelej/nasa
 ```
-export NASAKEY=YOUR-API_KEY
+
+## API Key
+
+Get a free API key at [api.nasa.gov](https://api.nasa.gov), then export it:
+
+```bash
+export NASA_API_KEY=your_key_here
 ```
-The API Key will increase the rate limits for your application/package to access the NASA API. 
-This package & its apps default to the demo key `NASAKEY=DEMO_KEY` if you haven't set one. 
-The DEMO_KEY has very low limits (30reqs/hr, 50req/day), only sufficient for demoing.
 
+Or specify it directly when creating the client:
 
-## nasa Library Usage
-``` go
+```go
+client := nasa.NewClient(nasa.WithAPIKey("your_key_here"))
+```
+
+The SDK works without a key using NASA's DEMO_KEY, but it is heavily rate-limited.
+
+## Quick Start
+
+```go
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/peteretelej/nasa"
 )
 
 func main() {
-	apod, err := nasa.ApodImage(time.Now())
-	handle(err)
-	fmt.Println(apod)
+	client := nasa.NewClient()
 
-	// apod has structure of nasa.Image, hence get details with:
-	// apod.Date, apod.Title, apod.Explanation, apod.URL, apod.HDURL etc
-	fmt.Printf("Today's APOD is %s, available at %s", apod.Title, apod.HDURL)
-
-	lastweek := time.Now().Add(-(7 * 24 * time.Hour))
-	apod, err = nasa.ApodImage(lastweek)
-	handle(err)
-	fmt.Printf("APOD for 1 week ago:\n%s\n", apod)
-}
-func handle(err error) {
+	apod, err := client.APOD.Today(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Printf("%s: %s\n", apod.Title, apod.URL)
 }
 ```
 
-## nasa CLI
-``` sh
-# installation
-go get -u github.com/peteretelej/nasa/cmd/nasa
+## API Coverage
 
-nasa apod 
-# returns the NASA Astronomy Picture of the day
+| API | Description | Service |
+|-----|-------------|---------|
+| APOD | Astronomy Picture of the Day | `client.APOD` |
+| NeoWs | Near-Earth Object Web Service | `client.NEO` |
+| DONKI | Space Weather Database and Notification System | `client.DONKI` |
+| NASA Image Library | Image and video search across NASA media | `client.Images` |
+| SSD/CNEOS | Close approaches, fireballs, small bodies | `client.SSD` |
+| EONET | Earth Observatory Natural Event Tracker | `client.EONET` |
 
-nasa apod -date 2016-01-17 
-# returns the NASA APOD for the date specified
+## Rate Limiting
 
-nasa neo
-# returns Near Earth Objects for today
+The client automatically respects NASA API rate limits. With a registered key, the default is 1000 requests/hour.
 
-nasa neo -start 2017-05-10 -end 2017-05-12
-# returns Near Earth Objects for the range of dates specified
+```go
+client := nasa.NewClient()
 ```
 
-## Webserver for APOD pictures and Random Pics
-Serve APOD on the web (demo: nasa.etelej.com)
-```
-nasa web
-# serves website at :8080
+## CLI
 
-nasa web -listen localhost:9000
-# serves website at localhost:9000
+```bash
+go install github.com/peteretelej/nasa/cmd/nasa@latest
 ```
 
-__Web server demo pages:__
-- [nasa.etelej.com](https://nasa.etelej.com): NASA Astronomy Picture of the Day (for today)
-- [nasa.etelej.com/random-apod](https://nasa.etelej.com/random-apod): Random images (HD images, updated every second, no autoreload)
-- [nasa.etelej.com/random-apod?sd=1](https://nasa.etelej.com/random-apod?sd=1): Gets Standard Definition images (lower quality,faster load, saves bandwidth).
-- [nasa.etelej.com/random-apod?auto=1](https://nasa.etelej.com/random-apod?auto=1): Automatically reload page (default reload interval: 5 minutes)
-- [nasa.etelej.com/random-apod?auto=1&interval=60](https://nasa.etelej.com/random-apod?auto=1&interval=60): Automatically reloads every 1800 seconds (1 hr)
-- [nasa.etelej.com/random-apod?sd=1&auto=1&interval=5](https://nasa.etelej.com/random-apod?sd=1&auto=1&interval=5): Automatically reloads SD images every 5 seconds
-- [nasa.etelej.com/random-apod?auto=1&legacy=1](https://nasa.etelej.com/random-apod?auto=1&legacy=1): Legacy browser support for reloading
-
-
-## NASA Desktop Wallpapers 
-Automatically change your desktop wallpaper to randomly selected NASA Astronomy Pictures of the Day.
-- Supports various Linux desktop variants (at the moment) incl Gnome, Gnome2, Lubuntu, KDE and others.
-- Also supports custom command to set the wallpaper.
-```
-go get -u github.com/peteretelej/nasa/cmd/nasa-wallpapers
-
-nasa-wallpapers
-# automatically changes wallpapers every 10 minutes
-# tries to change wallpaper with an existing command, use -cmdDefault to change the default command
-# e.g -cmdDefault feh
-
-nasa-wallpapers -cmdDefault gnome
-# uses the gnome command for changing wallpapers (ie gsettings)
-
-nasa-wallpapers -interval 30s -cmdDefault kde
-# automatically changes wallpaper every 30seconds
-# rem to get and set NASA API KEY to env NASAKEY to avoid ratelimits
-
-nasa-wallpapers -cmd "myCustomCommand %s"
-# automatically changes wallpaper every 10 minutes with myCustomCommand
+```bash
+nasa apod                          # today's Astronomy Picture of the Day
+nasa apod -date 2024-01-01        # APOD for a specific date
+nasa neo feed                      # near-Earth objects for today
+nasa donki cme                     # coronal mass ejections
+nasa images search "apollo 11"     # search NASA image library
+nasa ssd cad                       # close approach data
 ```
 
+## MCP Server
 
+```bash
+go install github.com/peteretelej/nasa/cmd/nasa-mcp@latest
+```
+
+Add to your MCP client config:
+
+```json
+{
+  "mcpServers": {
+    "nasa": {
+      "command": "nasa-mcp",
+      "env": { "NASA_API_KEY": "your-key" }
+    }
+  }
+}
+```
+
+The MCP server exposes 13 tools covering all 6 APIs. See the [documentation](https://peteretelej.github.io/nasa) for details.
+
+## Documentation
+
+Full documentation at [peteretelej.github.io/nasa](https://peteretelej.github.io/nasa).
+
+## Examples
+
+Runnable programs covering every API are in [`examples/`](examples/). Each is a single `main.go` with no external dependencies beyond the SDK.
+
+### Daily Briefing
+
+Combines all six APIs into one summary - APOD, near-Earth objects, space weather, and active Earth events.
+
+```bash
+go run ./examples/daily-briefing
+```
+
+```
+=== Today's APOD ===
+  Title: Hello World
+  URL:   https://apod.nasa.gov/apod/image/2604/art002e000192_1050.jpg
+
+=== Near-Earth Objects This Week ===
+  105 objects tracked, 1 potentially hazardous
+
+=== Solar Activity (7 days) ===
+  Coronal mass ejections: 43
+  Solar flares: 13
+
+=== Active Earth Events ===
+  [Wildfires] rx-12_ 13_ 14 Prescribed Fire, Burnett, Wisconsin
+  [Wildfires] Rx Houston 3041 Prescribed Fire, Houston, Texas
+  [Severe Storms] Tropical Cyclone Indusa
+  [Wildfires] RX PCS Beauchamp North Prescribed Fire, Scott, Arkansas
+  [Wildfires] Julie Pond Wildfire, Dorchester, Maryland
+```
+
+### APOD Gallery
+
+Fetches today's Astronomy Picture of the Day plus a recent gallery.
+
+```bash
+go run ./examples/apod-gallery
+```
+
+### NEO Watch
+
+Tracks near-Earth objects for the current week, with details on close approaches and potentially hazardous asteroids.
+
+```bash
+go run ./examples/neo-watch
+```
+
+### Space Weather
+
+Queries DONKI for recent coronal mass ejections, solar flares, geomagnetic storms, and other space weather events.
+
+```bash
+go run ./examples/space-weather
+```
+
+### Image Search
+
+Searches the NASA Image and Video Library for media, with metadata and download links.
+
+```bash
+go run ./examples/image-search
+```
+
+### Close Approaches
+
+Queries SSD/CNEOS for recent fireballs, upcoming close approaches, and small body lookups.
+
+```bash
+go run ./examples/close-approaches
+```
+
+### Earth Events
+
+Lists active natural events from EONET - wildfires, storms, volcanic activity, and more.
+
+```bash
+go run ./examples/earth-events
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpeteretelej%2Fnasa?ref=badge_large)
+
+[MIT](LICENSE)

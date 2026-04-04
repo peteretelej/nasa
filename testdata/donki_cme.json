@@ -1,0 +1,140 @@
+[
+  {
+    "activeRegionNum": null,
+    "activityID": "2024-01-10T00:12:00-CME-001",
+    "catalog": "M2M_CATALOG",
+    "cmeAnalyses": [
+      {
+        "enlilList": [],
+        "featureCode": "LE",
+        "halfAngle": 30,
+        "imageType": "running difference",
+        "isMostAccurate": true,
+        "latitude": 33,
+        "levelOfData": 0,
+        "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/CMEAnalysis/28579/-1",
+        "longitude": -68,
+        "measurementTechnique": "SWPC_CAT",
+        "minorHalfWidth": null,
+        "note": "Parameters based off of best fit.",
+        "speed": 402,
+        "speedMeasuredAtHeight": 8.3,
+        "submissionTime": "2024-01-11T21:45Z",
+        "tilt": null,
+        "time21_5": "2024-01-10T10:05Z",
+        "type": "S"
+      }
+    ],
+    "instruments": [
+      {
+        "displayName": "SOHO: LASCO/C2"
+      },
+      {
+        "displayName": "SOHO: LASCO/C3"
+      },
+      {
+        "displayName": "STEREO A: SECCHI/COR2"
+      }
+    ],
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/CME/28578/-1",
+    "linkedEvents": null,
+    "note": "Faint CME seen to the NE in SOHO LASCO C2, C3, and STEREO A COR2 imagery. This CME is associated with a filament eruption seen near/on the NE limb in SDO/AIA 304 starting around 2024-01-09T19:30Z.",
+    "sentNotifications": null,
+    "sourceLocation": "N15E80",
+    "startTime": "2024-01-10T00:12Z",
+    "submissionTime": "2024-01-11T21:44Z",
+    "versionId": 1
+  },
+  {
+    "activeRegionNum": null,
+    "activityID": "2024-01-10T05:24:00-CME-001",
+    "catalog": "M2M_CATALOG",
+    "cmeAnalyses": [
+      {
+        "enlilList": [],
+        "featureCode": "LE",
+        "halfAngle": 10,
+        "imageType": "running difference",
+        "isMostAccurate": true,
+        "latitude": 84,
+        "levelOfData": 0,
+        "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/CMEAnalysis/28568/-1",
+        "longitude": null,
+        "measurementTechnique": "Plane-of-sky",
+        "minorHalfWidth": null,
+        "note": "Plane-of-sky parameters using SOHO LASCO imagery. Attempts at finding a fit using both SOHO LASCO and STEREO A COR2 imagery were made, but due to faintness of event in STEREO A and a wide range of potential longitudes, a reasonable measurement was unable to be made. Attempted longitudes ranged between 80 to 165 degrees.",
+        "speed": 660,
+        "speedMeasuredAtHeight": 10,
+        "submissionTime": "2024-01-11T20:45Z",
+        "tilt": null,
+        "time21_5": "2024-01-10T11:19Z",
+        "type": "C"
+      }
+    ],
+    "instruments": [
+      {
+        "displayName": "SOHO: LASCO/C2"
+      },
+      {
+        "displayName": "SOHO: LASCO/C3"
+      },
+      {
+        "displayName": "STEREO A: SECCHI/COR2"
+      }
+    ],
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/CME/28567/-1",
+    "linkedEvents": null,
+    "note": "This jet-like CME is visible to the north in SOHO LASCO C2, C3, and STEREO A COR2 imagery. There is no clear source for the CME.",
+    "sentNotifications": null,
+    "sourceLocation": "",
+    "startTime": "2024-01-10T05:24Z",
+    "submissionTime": "2024-01-11T20:43Z",
+    "versionId": 1
+  },
+  {
+    "activeRegionNum": null,
+    "activityID": "2024-01-10T06:24:00-CME-001",
+    "catalog": "M2M_CATALOG",
+    "cmeAnalyses": [
+      {
+        "enlilList": [],
+        "featureCode": "LE",
+        "halfAngle": 19,
+        "imageType": "running difference",
+        "isMostAccurate": true,
+        "latitude": -27,
+        "levelOfData": 0,
+        "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/CMEAnalysis/28555/-1",
+        "longitude": 75,
+        "measurementTechnique": "SWPC_CAT",
+        "minorHalfWidth": null,
+        "note": "Measurement of very faint leading edge using source location seen in UV imagery and best fit between coronagraphs. Leading edge becomes too diffuse to track by about halfway through STEREO A COR2's field of view.",
+        "speed": 434,
+        "speedMeasuredAtHeight": 7,
+        "submissionTime": "2024-01-10T22:22Z",
+        "tilt": null,
+        "time21_5": "2024-01-10T14:19Z",
+        "type": "S"
+      }
+    ],
+    "instruments": [
+      {
+        "displayName": "SOHO: LASCO/C2"
+      },
+      {
+        "displayName": "SOHO: LASCO/C3"
+      },
+      {
+        "displayName": "STEREO A: SECCHI/COR2"
+      }
+    ],
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/CME/28554/-1",
+    "linkedEvents": null,
+    "note": "Extremely faint CME seen to the southwest in SOHO LASCO C2/C3 and STEREO A COR2. Source is a small filament eruption centered at about S15W75, with liftoff starting at about 2024-01-10T05:00Z as seen in SDO AIA 304 and GOES SUVI 304. Opening field lines and ejecta of some, but not all, material also seen in SDO AIA 171/193. It appears in UV imagery that some of the filamentary material fell back to the solar surface, while a portion did manage to be ejected.",
+    "sentNotifications": null,
+    "sourceLocation": "S15W75",
+    "startTime": "2024-01-10T06:24Z",
+    "submissionTime": "2024-01-10T22:20Z",
+    "versionId": 1
+  }
+]

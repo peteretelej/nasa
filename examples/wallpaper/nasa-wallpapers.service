@@ -1,0 +1,13 @@
+[Unit]
+After=network.target
+Description=Nasa Wallpapers
+
+[Service]
+# PATH TO nasa-wallpapers binary (e.g. go build -o /usr/local/bin/nasa-wallpapers ./examples/wallpaper/)
+ExecStart=/usr/local/bin/nasa-wallpapers
+EnvironmentFile=/etc/nasa-wallpapers/env
+# Create /etc/nasa-wallpapers/env with: NASA_API_KEY=your_key_here XDG_CURRENT_DESKTOP=Unity
+# Ensure permissions: chmod 600 /etc/nasa-wallpapers/env
+
+[Install]
+WantedBy=default.target

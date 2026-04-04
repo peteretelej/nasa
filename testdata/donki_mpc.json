@@ -1,0 +1,22 @@
+[
+  {
+    "eventTime": "2024-01-22T21:45Z",
+    "instruments": [
+      {
+        "displayName": "MODEL: SWMF"
+      }
+    ],
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/MPC/28708/-1",
+    "linkedEvents": null,
+    "mpcID": "2024-01-22T21:45:00-MPC-001",
+    "sentNotifications": [
+      {
+        "messageID": "20240123-AL-001",
+        "messageIssueTime": "2024-01-23T00:06Z",
+        "messageURL": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/Alert/28709/1"
+      }
+    ],
+    "submissionTime": "2024-01-23T20:01Z",
+    "versionId": 2
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "signature": {"source": "NASA/JPL SBDB Close Approach Data API", "version": "1.5"},
+  "count": "0",
+  "fields": ["des", "orbit_id", "jd", "cd", "dist", "dist_min", "dist_max", "v_rel", "v_inf", "t_sigma_f", "h"],
+  "data": []
+}

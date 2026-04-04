@@ -1,0 +1,22 @@
+[
+  {
+    "eventTime": "2024-01-29T12:52Z",
+    "hssID": "2024-01-29T12:52:00-HSS-001",
+    "instruments": [
+      {
+        "displayName": "DSCOVR: PLASMAG"
+      },
+      {
+        "displayName": "ACE: SWEPAM"
+      },
+      {
+        "displayName": "ACE: MAG"
+      }
+    ],
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/HSS/28887/-1",
+    "linkedEvents": null,
+    "sentNotifications": null,
+    "submissionTime": "2024-01-30T20:58Z",
+    "versionId": 3
+  }
+]

@@ -1,0 +1,320 @@
+// Command wallpaper periodically changes the desktop wallpaper to a random
+// NASA Astronomy Picture of the Day image.
+package main
+
+import (
+	"context"
+	"errors"
+	"flag"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"os/exec"
+	"os/signal"
+	"strings"
+	"sync"
+	"syscall"
+	"time"
+
+	"github.com/peteretelej/nasa"
+)
+
+// Flags
+var (
+	random   = flag.Bool("random", true, "use random pictures, if false will only display today's APOD")
+	interval = flag.Duration("interval", time.Minute*10, "interval to change wallpaper")
+
+	cmdString  = flag.String("cmd", "", "command string to change the wallpaper")
+	cmdDefault = flag.String("cmdDefault", "", "use a default command to set the wallpaper")
+)
+
+// Commands for changing wallpapers
+var cmds []string // actual command in use
+
+// cmdDefaults maps desktop environment names to structured command templates.
+// Each value is a []string where "%s" is replaced with the file path at runtime.
+// Using []string avoids strings.Split which breaks on quoted arguments or paths
+// containing spaces.
+var cmdDefaults = map[string][]string{
+	"gnome":   {"gsettings", "set", "org.gnome.desktop.background", "picture-uri", "file://%s"},
+	"kde":     {"dcop", "kdesktop", "KBackgroundIface", "setWallpaper", "%s", "1"},
+	"gnome2":  {"gconftool-2", "--set", "/desktop/gnome/background/picture_filename", "--type=string", "%s"},
+	"xfce":    {"xfconf-query", "-c", "xfce4-desktop", "-p", "/backdrop/screen0/monitor0/image-path", "-s", "%s"},
+	"mate":    {"dconf", "write", "/org/mate/desktop/background/picture-filename", "\"%s\""},
+	"lxde":    {"pcmanfm", "-w", "%s", "--wallpaper-mode=fit"},
+	"feh":     {"feh", "--bg-scale", "%s"},
+	"setroot": {"setroot", "%s"},
+}
+
+var (
+	client  *nasa.Client
+	tmpfile string
+	tmpOnce sync.Once
+)
+
+func ensureTmpFile() {
+	tmpOnce.Do(func() {
+		tmp, err := os.CreateTemp("", "nasa-wallpapers-pic-*")
+		if err != nil {
+			log.Fatalf("unable to get tempfile to work with: %v", err)
+		}
+		tmpfile = tmp.Name()
+		if err := tmp.Close(); err != nil {
+			log.Fatalf("unable to use tempfile %v", err)
+		}
+	})
+}
+
+func main() {
+	flag.Parse()
+
+	// Handle SIGINT/SIGTERM to ensure temp file cleanup.
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigCh
+		cleanUp()
+		os.Exit(0)
+	}()
+
+	// Warn if no API key is set.
+	if os.Getenv("NASA_API_KEY") == "" && os.Getenv("NASAKEY") == "" {
+		fmt.Fprintln(os.Stderr, "warning: no API key set (NASA_API_KEY or NASAKEY), using DEMO_KEY (limited to 30 req/hr)")
+	}
+
+	client = nasa.NewClient()
+
+	ensureTmpFile()
+	cmds = getCmd(tmpfile)
+	if len(cmds) == 0 {
+		log.Fatal("wallpapers change command not found, set custom one with -cmd")
+	}
+
+	if !*random {
+		if err := todaysAPOD(); err != nil {
+			log.Fatalf("nasa-wallpapers: %v\n", err)
+		}
+		cleanUp()
+		return
+	}
+
+	if err := randomAPOD(*interval); err != nil {
+		log.Fatalf("nasa-wallpapers: %v\n", err)
+	}
+}
+
+// apodURL returns the best available image URL from an APOD response,
+// preferring HDURL and falling back to URL.
+func apodURL(img *nasa.APODImage) (string, error) {
+	if img.HDURL != "" {
+		return img.HDURL, nil
+	}
+	if img.URL != "" {
+		return img.URL, nil
+	}
+	return "", errors.New("APOD has no image URL")
+}
+
+func todaysAPOD() error {
+	ctx := context.Background()
+	img, err := client.APOD.Today(ctx)
+	if err != nil {
+		return fmt.Errorf("fetching today's APOD: %w", err)
+	}
+	u, err := apodURL(img)
+	if err != nil {
+		return err
+	}
+	return downloadAndSet(u)
+}
+
+func randomAPOD(intv time.Duration) error {
+	defer cleanUp()
+	if intv < time.Second {
+		return errors.New("interval set is too low")
+	}
+
+	fmt.Printf("nasa-wallpapers: resetting wallpaper to a random NASA APOD picture every %s\n", intv)
+	for {
+		var err error
+		for i := 0; i < 3; i++ {
+			err = updateRandom()
+			if err == nil {
+				break
+			}
+		}
+		if err != nil {
+			log.Printf("nasa-wallpapers: unable to fetch wallpapers: %v", err)
+		}
+		time.Sleep(intv)
+	}
+}
+
+// buildCmd returns a copy of template with every "%s" replaced by filepath.
+func buildCmd(template []string, filepath string) []string {
+	result := make([]string, len(template))
+	for i, arg := range template {
+		result[i] = strings.Replace(arg, "%s", filepath, 1)
+	}
+	return result
+}
+
+// shellSplit splits a command string into tokens, handling single quotes,
+// double quotes, and backslash escapes. It is a pure-Go alternative to
+// shelling out or using strings.Fields, which breaks on quoted arguments
+// and paths containing spaces.
+func shellSplit(s string) []string {
+	var tokens []string
+	var cur []byte
+	inSingle := false
+	inDouble := false
+	for i := 0; i < len(s); i++ {
+		ch := s[i]
+		switch {
+		case inSingle:
+			if ch == '\'' {
+				inSingle = false
+			} else {
+				cur = append(cur, ch)
+			}
+		case inDouble:
+			if ch == '\\' && i+1 < len(s) {
+				i++
+				cur = append(cur, s[i])
+			} else if ch == '"' {
+				inDouble = false
+			} else {
+				cur = append(cur, ch)
+			}
+		case ch == '\\' && i+1 < len(s):
+			i++
+			cur = append(cur, s[i])
+		case ch == '\'':
+			inSingle = true
+		case ch == '"':
+			inDouble = true
+		case ch == ' ' || ch == '\t':
+			if len(cur) > 0 {
+				tokens = append(tokens, string(cur))
+				cur = cur[:0]
+			}
+		default:
+			cur = append(cur, ch)
+		}
+	}
+	if len(cur) > 0 {
+		tokens = append(tokens, string(cur))
+	}
+	return tokens
+}
+
+// getCmd returns the wallpaper-setting command with filepath substituted.
+func getCmd(filepath string) []string {
+	if *cmdString != "" {
+		parts := shellSplit(fmt.Sprintf(*cmdString, filepath))
+		return parts
+	}
+	if cmd, ok := cmdDefaults[*cmdDefault]; ok {
+		return buildCmd(cmd, filepath)
+	}
+	// Autodetect based on env variables.
+	xdgDesktop := os.Getenv("XDG_CURRENT_DESKTOP")
+	gdmDesktop := os.Getenv("GDM_DESKTOP")
+	switch xdgDesktop {
+	case "Unity":
+		return buildCmd(cmdDefaults["gnome"], filepath)
+	case "GNOME":
+		switch gdmDesktop {
+		case "gnome-shell", "gnome-classic", "gnome-fallback", "cinnamon", "gnome":
+			return buildCmd(cmdDefaults["gnome"], filepath)
+		}
+	case "KDE":
+		return buildCmd(cmdDefaults["kde"], filepath)
+	case "XFCE":
+		return buildCmd(cmdDefaults["xfce"], filepath)
+	case "LXDE":
+		return buildCmd(cmdDefaults["lxde"], filepath)
+	case "X-Cinnamon":
+		return buildCmd(cmdDefaults["gnome"], filepath)
+	case "":
+		switch gdmDesktop {
+		case "kde-plasma":
+			return buildCmd(cmdDefaults["kde"], filepath)
+		}
+	}
+	return nil
+}
+
+func updateRandom() error {
+	ctx := context.Background()
+	imgs, err := client.APOD.Random(ctx, 1)
+	if err != nil {
+		return err
+	}
+	if len(imgs) == 0 {
+		return errors.New("no images returned from NASA API")
+	}
+	apod := imgs[0]
+	u, err := apodURL(apod)
+	if err != nil {
+		return err
+	}
+	return downloadAndSet(u)
+}
+
+func downloadAndSet(url string) error {
+	ensureTmpFile()
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+	cl := &http.Client{Timeout: time.Second * 40}
+
+	resp, err := cl.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		_ = resp.Body.Close()
+		return fmt.Errorf("NASA API Response not OK: %d %s",
+			resp.StatusCode, http.StatusText(resp.StatusCode))
+	}
+	defer func() { _ = resp.Body.Close() }()
+	const maxDownloadSize = 50 << 20 // 50 MB
+	dat, err := io.ReadAll(io.LimitReader(resp.Body, maxDownloadSize+1))
+	if err != nil {
+		return err
+	}
+	if len(dat) > maxDownloadSize {
+		return errors.New("download too large (exceeds 50 MB limit)")
+	}
+	if len(dat) < 512 {
+		return errors.New("invalid response from APOD image url")
+	}
+	switch http.DetectContentType(dat[:512]) {
+	case "image/jpeg", "image/png", "image/gif":
+	default:
+		return errors.New("apod returned is not a valid image mimetype")
+	}
+	err = os.WriteFile(tmpfile, dat, 0644)
+	if err != nil {
+		return err
+	}
+
+	_, err = exec.Command(cmds[0], cmds[1:]...).Output()
+	return err
+}
+
+func cleanUp() {
+	if tmpfile == "" {
+		return
+	}
+	if _, err := os.Stat(tmpfile); err != nil {
+		return
+	}
+	if err := os.Remove(tmpfile); err != nil {
+		log.Printf("unable to clean up: %v", err)
+	}
+}

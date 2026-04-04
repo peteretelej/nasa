@@ -1,0 +1,314 @@
+// EONET service types and methods for the Earth Observatory Natural Event
+// Tracker API.
+
+package nasa
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/url"
+	"strconv"
+	"time"
+)
+
+// EONETService provides access to the Earth Observatory Natural Event Tracker
+// API (eonet.gsfc.nasa.gov/api/v3). API key is optional; EONET has its own
+// rate pool separate from api.nasa.gov.
+type EONETService struct {
+	client  *Client
+	baseURL string
+}
+
+// --- Response envelope types (internal) ---
+
+// eonetEventsResponse is the top-level wrapper for the /events endpoint.
+type eonetEventsResponse struct {
+	Title       string        `json:"title"`
+	Description string        `json:"description"`
+	Link        string        `json:"link"`
+	Events      []*EONETEvent `json:"events"`
+}
+
+// eonetCategoriesResponse is the top-level wrapper for the /categories endpoint.
+type eonetCategoriesResponse struct {
+	Categories []*EONETCategory `json:"categories"`
+}
+
+// eonetSourcesResponse is the top-level wrapper for the /sources endpoint.
+type eonetSourcesResponse struct {
+	Sources []*EONETSource `json:"sources"`
+}
+
+// --- Public response types ---
+
+// EONETEvent represents a natural event from the EONET API.
+// Closed is nil for events that are still open.
+type EONETEvent struct {
+	ID          string           `json:"id"`
+	Title       string           `json:"title"`
+	Description string           `json:"description"`
+	Link        string           `json:"link"`
+	Closed      *time.Time       `json:"closed"`
+	Categories  []*EONETCategory `json:"categories"`
+	Sources     []*EONETSource   `json:"sources"`
+	Geometry    []*EONETGeometry `json:"geometry"`
+}
+
+// EONETGeometry represents a GeoJSON-style geometry entry for an event.
+// Coordinates is stored as json.RawMessage because the EONET API returns
+// Point coordinates as [lon, lat] and Polygon coordinates as [[[lon, lat], ...]].
+// Use PointCoordinates or PolygonCoordinates to extract typed values.
+// MagnitudeValue is nil when no magnitude data is available.
+type EONETGeometry struct {
+	Date           time.Time       `json:"date"`
+	Type           string          `json:"type"`
+	Coordinates    json.RawMessage `json:"coordinates"`
+	MagnitudeValue *float64        `json:"magnitudeValue"`
+	MagnitudeUnit  string          `json:"magnitudeUnit"`
+}
+
+// PointCoordinates returns the [lon, lat] coordinates for a Point geometry.
+// Returns an error if the coordinates cannot be parsed as a flat [lon, lat]
+// pair or if the tuple does not contain exactly 2 elements.
+func (g *EONETGeometry) PointCoordinates() ([2]float64, error) {
+	var raw []json.RawMessage
+	if err := json.Unmarshal(g.Coordinates, &raw); err != nil {
+		return [2]float64{}, fmt.Errorf("nasa: invalid point coordinates: %w", err)
+	}
+	if len(raw) != 2 {
+		return [2]float64{}, fmt.Errorf("nasa: point coordinates must have exactly 2 elements, got %d", len(raw))
+	}
+	var coords [2]float64
+	if err := json.Unmarshal(g.Coordinates, &coords); err != nil {
+		return [2]float64{}, fmt.Errorf("nasa: invalid point coordinates: %w", err)
+	}
+	return coords, nil
+}
+
+// PolygonCoordinates returns the ring coordinates for a Polygon geometry.
+// A Polygon has one or more rings, each being a slice of [lon, lat] pairs.
+// Each ring must have at least 3 points and each point must have exactly 2
+// elements. Returns an error if the coordinates are malformed.
+func (g *EONETGeometry) PolygonCoordinates() ([][][2]float64, error) {
+	var raw [][][]json.RawMessage
+	if err := json.Unmarshal(g.Coordinates, &raw); err != nil {
+		return nil, fmt.Errorf("nasa: invalid polygon coordinates: %w", err)
+	}
+	for i, ring := range raw {
+		if len(ring) < 3 {
+			return nil, fmt.Errorf("nasa: polygon ring %d must have at least 3 points, got %d", i, len(ring))
+		}
+		for j, pt := range ring {
+			if len(pt) != 2 {
+				return nil, fmt.Errorf("nasa: polygon ring %d point %d must have exactly 2 elements, got %d", i, j, len(pt))
+			}
+		}
+	}
+	var coords [][][2]float64
+	if err := json.Unmarshal(g.Coordinates, &coords); err != nil {
+		return nil, fmt.Errorf("nasa: invalid polygon coordinates: %w", err)
+	}
+	return coords, nil
+}
+
+// EONETCategory represents an EONET event category.
+type EONETCategory struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description,omitempty"`
+	Link        string `json:"link"`
+	Layers      string `json:"layers,omitempty"`
+}
+
+// EONETSource represents a data source for EONET events.
+//
+// The /sources endpoint returns URLs in the "source" field, while
+// event-embedded sources use "url". The custom UnmarshalJSON handles both.
+type EONETSource struct {
+	ID    string `json:"id"`
+	URL   string `json:"source"`
+	Title string `json:"title"`
+	Link  string `json:"link"`
+}
+
+// UnmarshalJSON handles dual-field deserialization: the /sources endpoint uses
+// "source" for URLs, while event-embedded sources use "url".
+func (s *EONETSource) UnmarshalJSON(data []byte) error {
+	type Alias EONETSource
+	aux := &struct {
+		URLField string `json:"url"`
+		*Alias
+	}{Alias: (*Alias)(s)}
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+	if s.URL == "" && aux.URLField != "" {
+		s.URL = aux.URLField
+	}
+	return nil
+}
+
+// --- Functional options ---
+
+// EONETOption configures optional query parameters for EONET event queries.
+type EONETOption func(url.Values)
+
+// EONETWithStatus filters events by status: "open" or "closed".
+func EONETWithStatus(status string) EONETOption {
+	return func(v url.Values) { v.Set("status", status) }
+}
+
+// EONETWithLimit sets the maximum number of events to return.
+func EONETWithLimit(n int) EONETOption {
+	return func(v url.Values) { v.Set("limit", strconv.Itoa(n)) }
+}
+
+// EONETWithDays filters events to those within the last n days.
+func EONETWithDays(n int) EONETOption {
+	return func(v url.Values) { v.Set("days", strconv.Itoa(n)) }
+}
+
+// EONETWithSource filters events by data source identifier.
+func EONETWithSource(src string) EONETOption {
+	return func(v url.Values) { v.Set("source", src) }
+}
+
+// EONETWithStart filters events starting on or after the given time.
+func EONETWithStart(t time.Time) EONETOption {
+	return func(v url.Values) { v.Set("start", t.Format("2006-01-02")) }
+}
+
+// EONETWithEnd filters events ending on or before the given time.
+func EONETWithEnd(t time.Time) EONETOption {
+	return func(v url.Values) { v.Set("end", t.Format("2006-01-02")) }
+}
+
+// EONETWithCategory filters events by category identifier.
+func EONETWithCategory(cat string) EONETOption {
+	return func(v url.Values) { v.Set("category", cat) }
+}
+
+// --- Auth helper ---
+
+// addAuth adds the api_key parameter if a real (non-DEMO_KEY) key is configured.
+// EONET works without auth but has a separate rate pool; sending DEMO_KEY
+// provides no benefit.
+func (s *EONETService) addAuth(params url.Values) {
+	if key, ok := s.client.selectAPIKey(true); ok {
+		params.Set("api_key", key)
+	}
+}
+
+// --- API methods ---
+
+// Events retrieves natural events from the EONET API, with optional filtering.
+func (s *EONETService) Events(ctx context.Context, opts ...EONETOption) ([]*EONETEvent, error) {
+	params := url.Values{}
+	for _, o := range opts {
+		o(params)
+	}
+	s.addAuth(params)
+
+	resp, err := s.client.getExternal(ctx, s.baseURL, "events", params)
+	if err != nil {
+		return nil, err
+	}
+	defer closeResponseBody(resp.Body)
+
+	body, err := readResponseBody(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var envelope eonetEventsResponse
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return nil, err
+	}
+
+	if envelope.Events == nil {
+		envelope.Events = []*EONETEvent{}
+	}
+	return envelope.Events, nil
+}
+
+// Event retrieves a single natural event by ID from the EONET API.
+func (s *EONETService) Event(ctx context.Context, eventID string) (*EONETEvent, error) {
+	if eventID == "" {
+		return nil, fmt.Errorf("nasa: event ID must not be empty")
+	}
+
+	params := url.Values{}
+	s.addAuth(params)
+
+	resp, err := s.client.getExternal(ctx, s.baseURL, "events/"+url.PathEscape(eventID), params)
+	if err != nil {
+		return nil, err
+	}
+	defer closeResponseBody(resp.Body)
+
+	body, err := readResponseBody(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var event EONETEvent
+	if err := json.Unmarshal(body, &event); err != nil {
+		return nil, err
+	}
+	return &event, nil
+}
+
+// Categories retrieves all EONET event categories.
+func (s *EONETService) Categories(ctx context.Context) ([]*EONETCategory, error) {
+	params := url.Values{}
+	s.addAuth(params)
+
+	resp, err := s.client.getExternal(ctx, s.baseURL, "categories", params)
+	if err != nil {
+		return nil, err
+	}
+	defer closeResponseBody(resp.Body)
+
+	body, err := readResponseBody(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var envelope eonetCategoriesResponse
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return nil, err
+	}
+
+	if envelope.Categories == nil {
+		envelope.Categories = []*EONETCategory{}
+	}
+	return envelope.Categories, nil
+}
+
+// Sources retrieves all EONET data sources.
+func (s *EONETService) Sources(ctx context.Context) ([]*EONETSource, error) {
+	params := url.Values{}
+	s.addAuth(params)
+
+	resp, err := s.client.getExternal(ctx, s.baseURL, "sources", params)
+	if err != nil {
+		return nil, err
+	}
+	defer closeResponseBody(resp.Body)
+
+	body, err := readResponseBody(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var envelope eonetSourcesResponse
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return nil, err
+	}
+
+	if envelope.Sources == nil {
+		envelope.Sources = []*EONETSource{}
+	}
+	return envelope.Sources, nil
+}

@@ -1,0 +1,73 @@
+[
+  {
+    "activeRegionNum": 13549,
+    "beginTime": "2024-01-10T12:39Z",
+    "catalog": "M2M_CATALOG",
+    "classType": "M1.4",
+    "endTime": "2024-01-10T13:05Z",
+    "flrID": "2024-01-10T12:39:00-FLR-001",
+    "instruments": [
+      {
+        "displayName": "GOES-P: EXIS 1.0-8.0"
+      }
+    ],
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/FLR/28538/-1",
+    "linkedEvents": null,
+    "note": "At the time of the flare, this flare was associated with an unnumbered active region beyond the SE limb. This region was later numbered AR 13549 on 2024-01-12.",
+    "peakTime": "2024-01-10T12:55Z",
+    "sentNotifications": null,
+    "sourceLocation": "S20E90",
+    "submissionTime": "2024-01-16T15:45Z",
+    "versionId": 4
+  },
+  {
+    "activeRegionNum": 13536,
+    "beginTime": "2024-01-10T18:56Z",
+    "catalog": "M2M_CATALOG",
+    "classType": "C6.5",
+    "endTime": "2024-01-10T19:16Z",
+    "flrID": "2024-01-10T18:56:00-FLR-001",
+    "instruments": [
+      {
+        "displayName": "GOES-P: EXIS 1.0-8.0"
+      }
+    ],
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/FLR/28556/-1",
+    "linkedEvents": [
+      {
+        "activityID": "2024-01-10T19:36:00-CME-001"
+      }
+    ],
+    "note": "",
+    "peakTime": "2024-01-10T19:07Z",
+    "sentNotifications": null,
+    "sourceLocation": "N10W52",
+    "submissionTime": "2024-01-10T23:26Z",
+    "versionId": 1
+  },
+  {
+    "activeRegionNum": null,
+    "beginTime": "2024-01-10T20:28Z",
+    "catalog": "M2M_CATALOG",
+    "classType": "C5.6",
+    "endTime": "2024-01-10T21:00Z",
+    "flrID": "2024-01-10T20:28:00-FLR-001",
+    "instruments": [
+      {
+        "displayName": "GOES-P: EXIS 1.0-8.0"
+      }
+    ],
+    "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/FLR/28576/-1",
+    "linkedEvents": [
+      {
+        "activityID": "2024-01-10T21:09:00-CME-001"
+      }
+    ],
+    "note": "Source is beyond the eastern limb.",
+    "peakTime": "2024-01-10T20:41Z",
+    "sentNotifications": null,
+    "sourceLocation": "N12E90",
+    "submissionTime": "2024-01-11T21:22Z",
+    "versionId": 1
+  }
+]

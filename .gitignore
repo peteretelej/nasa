@@ -1,2 +1,31 @@
+# Environment and secrets
 .env
+
+# Legacy scripts
 docker-launch.sh
+
+# Build output
+dist/
+*.exe
+
+# Go binaries (one per cmd/ entry)
+/nasa
+/nasa-mcp
+/nasa-wallpapers
+/update-testdata
+
+# Example binaries
+/apod-gallery
+/close-approaches
+/daily-briefing
+/earth-events
+/image-search
+/neo-watch
+/space-weather
+/wallpaper
+/web-server
+
+# Test and coverage artifacts
+*.out
+coverage.*
+*.test

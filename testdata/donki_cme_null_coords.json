@@ -1,0 +1,16 @@
+[
+  {
+    "activityID": "2024-01-15T06:12:00-CME-001",
+    "catalog": "M2M_CATALOG",
+    "startTime": "2024-01-15T06:12Z",
+    "sourceLocation": null,
+    "activeRegionNum": 13536,
+    "link": "https://kauai.ccmc.gsfc.nasa.gov/DONKI/view/CME/29001",
+    "note": "CME with unknown source location.",
+    "instruments": [
+      {"displayName": "SOHO: LASCO/C2"}
+    ],
+    "cmeAnalyses": [],
+    "linkedEvents": null
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "categories": [
+    {
+      "id": "wildfires",
+      "title": "Wildfires"
+    }
+  ],
+  "closed": null,
+  "description": null,
+  "geometry": [
+    {
+      "coordinates": [
+        -92.6888328,
+        45.7153853
+      ],
+      "date": "2026-04-02T11:26:00Z",
+      "magnitudeUnit": "acres",
+      "magnitudeValue": 655.7,
+      "type": "Point"
+    }
+  ],
+  "id": "EONET_19203",
+  "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_19203",
+  "sources": [
+    {
+      "id": "IRWIN",
+      "url": "https://irwin.doi.gov/observer/incidents/eabb9fb3-1d6f-4c28-bd48-f0046d869592"
+    }
+  ],
+  "title": "rx-12_ 13_ 14 Prescribed Fire, Burnett, Wisconsin"
+}

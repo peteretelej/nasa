@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -42,7 +42,7 @@ var (
 
 func init() {
 	if os.Getenv("NASAKEY") == "" {
-		fmt.Println(nasa.APIKEYMissing)
+		fmt.Print(nasa.APIKEYMissing)
 	}
 }
 
@@ -57,6 +57,7 @@ func main() {
 		if err := todaysAPOD(); err != nil {
 			log.Fatalf("nasa-wallpapers: %v\n", err)
 		}
+		return
 	}
 
 	if err := randomAPOD(*interval); err != nil {
@@ -65,7 +66,6 @@ func main() {
 }
 
 func todaysAPOD() error {
-	defer cleanUp()
 	return errors.New("TODO")
 }
 
@@ -147,25 +147,24 @@ func updateRandom() error {
 	if err != nil {
 		return err
 	}
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("NASA API Response not OK: %d %s",
 			resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
-	defer func() { _ = resp.Body.Close() }()
-	dat, err := ioutil.ReadAll(resp.Body)
+	dat, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
-	_ = resp.Body.Close()
 	if len(dat) < 512 {
 		return errors.New("invalid response from APOD image url")
 	}
 	switch http.DetectContentType(dat[:512]) {
 	case "image/jpg", "image/jpeg", "image/png", "image/gif":
 	default:
-		return errors.New("Apod returned is not a valid image mimetype")
+		return errors.New("apod returned is not a valid image mimetype")
 	}
-	err = ioutil.WriteFile(tmpfile, dat, 0644)
+	err = os.WriteFile(tmpfile, dat, 0644)
 	if err != nil {
 		return err
 	}
@@ -177,7 +176,7 @@ func updateRandom() error {
 var tmpfile string
 
 func init() {
-	tmp, err := ioutil.TempFile("", "nasa-wallpapers-pic.jpg")
+	tmp, err := os.CreateTemp("", "nasa-wallpapers-pic.jpg")
 	if err != nil {
 		log.Fatalf("unable to get tempfile to work with: %v", err)
 	}

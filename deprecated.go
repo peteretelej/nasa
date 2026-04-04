@@ -1,3 +1,8 @@
+// Deprecated types and functions retained for backward compatibility.
+//
+// Everything in this file is scheduled for removal in a future major version.
+// New code should use [Client] and its sub-services instead.
+
 package nasa
 
 import (
@@ -11,47 +16,60 @@ import (
 	"time"
 )
 
-// NewServer a http web-server that serves APOD pictures
-//     / - today's APOD
-//     /random-apod - returns a random APOD
-//     TODO: /apod/YYYY-MM-DD - returns apod for specified date
+const deprecatedFallbackImageURL = "https://apod.nasa.gov/apod/image/1901/IC405_Abolfath_3952.jpg"
+
+// NewServer creates an HTTP web server that serves APOD pictures.
+//
+//	/ - today's APOD
+//	/random-apod - returns a random APOD
+//
+// Deprecated: Use [Client].APOD with your own HTTP server instead.
+// This function will be removed in a future major version.
 func NewServer(listenAddr string) (*http.Server, error) {
-	var err error
-	tmpl, err = template.New("tmpl").Parse(tmplHTML)
+	tmpl, err := template.New("tmpl").Parse(deprecatedTmplHTML)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse template: %v", err)
 	}
-	rh := &randomHandler{
+	rh := &deprecatedRandomHandler{
 		lastUpdate: time.Now().Add(-10 * time.Hour),
 		cachedApod: &Image{},
 		tmpl:       tmpl,
 	}
-	http.HandleFunc("/", handleIndex)
-	http.Handle("/random-apod/", rh)
+	ih := &deprecatedIndexHandler{tmpl: tmpl}
+
+	mux := http.NewServeMux()
+	mux.Handle("/", ih)
+	mux.Handle("/random-apod/", rh)
 
 	return &http.Server{
 		Addr:           listenAddr,
+		Handler:        mux,
 		ReadTimeout:    30 * time.Second,
 		IdleTimeout:    5 * time.Minute,
 		WriteTimeout:   60 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}, nil
-
 }
-func handleIndex(w http.ResponseWriter, r *http.Request) {
+
+type deprecatedIndexHandler struct {
+	tmpl *template.Template
+}
+
+func (h *deprecatedIndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
 	}
 	apod, err := APODToday()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
+		log.Printf("deprecated index APOD fetch error: %v", err)
+		apod = deprecatedFallbackImage()
 	}
-	TmplData{Apod: *apod}.Render(w)
+	td := TmplData{Apod: *apod}
+	td.renderWith(w, h.tmpl)
 }
 
-type randomHandler struct {
+type deprecatedRandomHandler struct {
 	tmpl *template.Template
 
 	mu         sync.RWMutex // protects the values below
@@ -59,27 +77,26 @@ type randomHandler struct {
 	cachedApod *Image
 }
 
-func (h *randomHandler) last() time.Time {
+func (h *deprecatedRandomHandler) last() time.Time {
 	h.mu.RLock()
 	last := h.lastUpdate
 	h.mu.RUnlock()
 	return last
 }
-func (h *randomHandler) apod() Image {
+func (h *deprecatedRandomHandler) apod() Image {
 	h.mu.RLock()
 	apod := *h.cachedApod
 	h.mu.RUnlock()
 	return apod
 }
-func (h *randomHandler) update(apod Image, t time.Time) {
+func (h *deprecatedRandomHandler) update(apod Image) {
 	h.mu.Lock()
 	h.cachedApod = &apod
 	h.lastUpdate = time.Now()
 	h.mu.Unlock()
-
 }
 
-func (h *randomHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *deprecatedRandomHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/random-apod/" {
 		http.NotFound(w, r)
 		return
@@ -87,13 +104,18 @@ func (h *randomHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	apod := h.apod()
 
 	// Update if cached apod is older than a second
-	if time.Now().Sub(h.last()) > time.Second {
+	if time.Since(h.last()) > time.Second {
 		if newApod, err := RandomAPOD(); err == nil {
 			if newApod.URL != "" {
 				apod = *newApod
 			}
+		} else {
+			log.Printf("deprecated random APOD fetch error: %v", err)
+			if apod.URL == "" && apod.HDURL == "" {
+				apod = *deprecatedFallbackImage()
+			}
 		}
-		h.update(apod, time.Now())
+		h.update(apod)
 	}
 
 	td := TmplData{
@@ -111,12 +133,39 @@ func (h *randomHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if td.AutoReloadInterval < 1 {
 		td.AutoReloadInterval = 5 * 60 // default reload every 5 minutes
 	}
-	td.Render(w)
+	td.renderWith(w, h.tmpl)
 }
 
-var tmpl *template.Template
+var (
+	deprecatedTmpl     *template.Template
+	deprecatedTmplOnce sync.Once
+)
 
-// TmplData defines the data used to render the html template (tmpl)
+// deprecatedEnsureTmpl lazily parses the template for callers of the public
+// Render method that may not have gone through NewServer.
+func deprecatedEnsureTmpl() *template.Template {
+	deprecatedTmplOnce.Do(func() {
+		deprecatedTmpl = template.Must(template.New("tmpl").Parse(deprecatedTmplHTML))
+	})
+	return deprecatedTmpl
+}
+
+func deprecatedFallbackImage() *Image {
+	return &Image{
+		Date:        time.Now().Format(dateFormat),
+		Title:       "NASA Astronomy Picture of the Day",
+		URL:         deprecatedFallbackImageURL,
+		HDURL:       deprecatedFallbackImageURL,
+		Explanation: "NASA APOD is temporarily unavailable. This placeholder keeps the legacy web view responsive until the next refresh succeeds.",
+		ApodDate:    time.Now(),
+	}
+}
+
+// TmplData defines the data used to render the HTML template for the
+// deprecated web server.
+//
+// Deprecated: Use [Client].APOD with your own HTTP server and templates
+// instead. This type will be removed in a future major version.
 type TmplData struct {
 	Page               string
 	Title              string
@@ -128,8 +177,17 @@ type TmplData struct {
 	AutoReloadInterval int
 }
 
-// Render returns an html to the responsewriter based on the template data
+// Render writes an HTML page to the ResponseWriter based on the template data.
+//
+// Deprecated: Use [Client].APOD with your own HTTP server and templates
+// instead. This method will be removed in a future major version.
 func (td TmplData) Render(wr http.ResponseWriter) {
+	td.renderWith(wr, deprecatedEnsureTmpl())
+}
+
+// renderWith is the internal render method that accepts an explicit template,
+// avoiding reliance on the package-level variable.
+func (td TmplData) renderWith(wr http.ResponseWriter, tmpl *template.Template) {
 	if strings.Contains(td.Apod.URL, "youtube") {
 		td.IsYoutube = true
 		if i := strings.Index(td.Apod.URL, "?"); i > 1 {
@@ -145,7 +203,7 @@ func (td TmplData) Render(wr http.ResponseWriter) {
 	}
 }
 
-const tmplHTML = `<!DOCTYPE html>
+const deprecatedTmplHTML = `<!DOCTYPE html>
 <html lang="en">
 <meta charset="UTF-8">
 <title>{{with .Title}}{{.}}{{else}}NASA Astronomy Picture of the Day{{end}}</title>
@@ -192,14 +250,14 @@ src="{{.Apod.URL}}?autoplay=1&controls=0&showinfo=0&autohide=1">
 </iframe>
 </div>
 {{else}}
-<img src="{{if .SD}}{{.Apod.URL}}{{else}}{{.Apod.HDURL}}{{end}}" id="bg" alt="{{.Apod.Title}}" />
+<img src="{{if .SD}}{{.Apod.URL}}{{else}}{{if .Apod.HDURL}}{{.Apod.HDURL}}{{else}}{{.Apod.URL}}{{end}}{{end}}" id="bg" alt="{{.Apod.Title}}" />
 {{end}}
 </div>
 <div id="apod">
 <div id="explanation">
 <h4>{{.Apod.Title}}</h4>
 <p>{{.Apod.Explanation}}</p>
-<p>NASA Astronomy Picture of the Day {{.Apod.Date}} <a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>Open Image in HD</i></a> </p>
+<p>NASA Astronomy Picture of the Day {{.Apod.Date}} {{if .Apod.HDURL}}<a href="{{.Apod.HDURL}}" style="display:inline-block; color:#efefef"><i>Open Image in HD</i></a>{{end}} </p>
 </div>
 <h4>{{.Apod.Title}}</h4>
 <p style="text-align:right">

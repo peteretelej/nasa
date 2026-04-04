@@ -1,0 +1,8 @@
+# Test fixtures: collapse in PRs, exclude from language stats.
+testdata/** linguist-generated
+
+# Dependency lock file: collapse in PRs.
+go.sum linguist-generated
+
+# Documentation site: exclude from language stats.
+docs/** linguist-documentation
