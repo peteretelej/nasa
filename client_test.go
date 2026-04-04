@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -281,11 +282,16 @@ func TestGet429AllKeysLimited(t *testing.T) {
 }
 
 func TestGet429RetryReEntersRateLimiter(t *testing.T) {
-	var requestKeys []string
+	var (
+		mu          sync.Mutex
+		requestKeys []string
+	)
 	var requestCount atomic.Int32
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
 		requestKeys = append(requestKeys, r.URL.Query().Get("api_key"))
+		mu.Unlock()
 
 		if requestCount.Add(1) == 1 {
 			w.Header().Set("Retry-After", "1")
@@ -323,6 +329,8 @@ func TestGet429RetryReEntersRateLimiter(t *testing.T) {
 	if requestCount.Load() != 2 {
 		t.Fatalf("expected 2 requests, got %d", requestCount.Load())
 	}
+	mu.Lock()
+	defer mu.Unlock()
 	if requestKeys[0] != "key1" || requestKeys[1] != "key2" {
 		t.Fatalf("unexpected key order: %v", requestKeys)
 	}

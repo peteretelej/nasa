@@ -74,10 +74,15 @@ func (kr *keyRotator) next() (string, bool) {
 }
 
 // markLimited puts a key into cooldown for the specified duration.
+// If the key already has a later expiry (e.g. from a longer 429 backoff),
+// the existing expiry is preserved.
 func (kr *keyRotator) markLimited(key string, cooldown time.Duration) {
 	kr.mu.Lock()
 	defer kr.mu.Unlock()
-	kr.limited[key] = time.Now().Add(cooldown)
+	expiry := time.Now().Add(cooldown)
+	if existing, ok := kr.limited[key]; !ok || expiry.After(existing) {
+		kr.limited[key] = expiry
+	}
 }
 
 // shortestCooldown returns the shortest remaining cooldown across all limited

@@ -5,6 +5,7 @@ package nasa
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"sync"
 	"time"
 )
@@ -16,6 +17,10 @@ Check out https://github.com/peteretelej/nasa/blob/master/README.md for more inf
 
 // APODEndpoint is the NASA APOD API endpoint URL.
 var APODEndpoint = "https://api.nasa.gov/planetary/apod"
+
+// defaultAPODEndpoint is the default value of APODEndpoint, used to detect
+// user overrides.
+const defaultAPODEndpoint = "https://api.nasa.gov/planetary/apod"
 
 // Image is the legacy APOD response type. New code should use [APODImage]
 // via the [Client].APOD service instead.
@@ -63,9 +68,28 @@ var (
 // getDefaultClient returns a lazily-initialized shared Client.
 // All convenience wrappers share this client (and its rate limiter),
 // so rate limiting actually works across calls.
+//
+// Endpoint variable values (APODEndpoint, NeoEndpoint) are captured at
+// first-call time due to sync.Once; later changes have no effect.
 func getDefaultClient() *Client {
 	defaultClientOnce.Do(func() {
-		defaultClient = NewClient()
+		var opts []Option
+
+		// If the user changed either endpoint variable from its default,
+		// extract the scheme+host as a custom base URL.
+		for _, ep := range []struct{ current, dflt string }{
+			{APODEndpoint, defaultAPODEndpoint},
+			{NeoEndpoint, defaultNeoEndpoint},
+		} {
+			if ep.current != ep.dflt {
+				if u, err := url.Parse(ep.current); err == nil && u.Scheme != "" && u.Host != "" {
+					opts = append(opts, WithBaseURL(u.Scheme+"://"+u.Host))
+					break // first override wins
+				}
+			}
+		}
+
+		defaultClient = NewClient(opts...)
 	})
 	return defaultClient
 }

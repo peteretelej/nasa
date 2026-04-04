@@ -261,7 +261,10 @@ func (s *EONETService) Event(ctx context.Context, eventID string) (*EONETEvent, 
 
 // Categories retrieves all EONET event categories.
 func (s *EONETService) Categories(ctx context.Context) ([]*EONETCategory, error) {
-	resp, err := s.client.getExternal(ctx, s.baseURL, "categories", nil)
+	params := url.Values{}
+	s.addAuth(params)
+
+	resp, err := s.client.getExternal(ctx, s.baseURL, "categories", params)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +288,10 @@ func (s *EONETService) Categories(ctx context.Context) ([]*EONETCategory, error)
 
 // Sources retrieves all EONET data sources.
 func (s *EONETService) Sources(ctx context.Context) ([]*EONETSource, error) {
-	resp, err := s.client.getExternal(ctx, s.baseURL, "sources", nil)
+	params := url.Values{}
+	s.addAuth(params)
+
+	resp, err := s.client.getExternal(ctx, s.baseURL, "sources", params)
 	if err != nil {
 		return nil, err
 	}

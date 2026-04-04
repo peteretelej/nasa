@@ -95,14 +95,27 @@ func ParseHeliographicCoord(s string) (HeliographicCoord, error) {
 		return HeliographicCoord{}, fmt.Errorf("nasa: malformed heliographic coordinate: %q", s)
 	}
 
-	lat, _ := strconv.ParseFloat(matches[2], 64)
-	lon, _ := strconv.ParseFloat(matches[4], 64)
+	lat, err := strconv.ParseFloat(matches[2], 64)
+	if err != nil {
+		return HeliographicCoord{}, fmt.Errorf("nasa: invalid latitude in heliographic coordinate %q: %w", s, err)
+	}
+	lon, err := strconv.ParseFloat(matches[4], 64)
+	if err != nil {
+		return HeliographicCoord{}, fmt.Errorf("nasa: invalid longitude in heliographic coordinate %q: %w", s, err)
+	}
 
 	if matches[1] == "S" {
 		lat = -lat
 	}
 	if matches[3] == "W" {
 		lon = -lon
+	}
+
+	if lat > 90 || lat < -90 {
+		return HeliographicCoord{}, fmt.Errorf("nasa: latitude %v out of range [-90, 90]", lat)
+	}
+	if lon > 180 || lon < -180 {
+		return HeliographicCoord{}, fmt.Errorf("nasa: longitude %v out of range [-180, 180]", lon)
 	}
 
 	return HeliographicCoord{Latitude: lat, Longitude: lon}, nil

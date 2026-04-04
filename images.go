@@ -216,6 +216,10 @@ func (s *ImageService) Search(ctx context.Context, query string, opts ...ImageSe
 // Asset retrieves the asset manifest for the given NASA ID, listing all
 // available size/format variants.
 func (s *ImageService) Asset(ctx context.Context, nasaID string) (*AssetManifest, error) {
+	if nasaID == "" {
+		return nil, fmt.Errorf("nasa: nasaID must not be empty")
+	}
+
 	path := "asset/" + url.PathEscape(nasaID)
 
 	resp, err := s.client.getExternal(ctx, s.baseURL, path, nil)
@@ -252,6 +256,10 @@ func (s *ImageService) Asset(ctx context.Context, nasaID string) (*AssetManifest
 // Metadata retrieves EXIF/XMP metadata for the given NASA ID. The returned
 // map has variable structure depending on the asset.
 func (s *ImageService) Metadata(ctx context.Context, nasaID string) (map[string]any, error) {
+	if nasaID == "" {
+		return nil, fmt.Errorf("nasa: nasaID must not be empty")
+	}
+
 	path := "metadata/" + url.PathEscape(nasaID)
 
 	resp, err := s.client.getExternal(ctx, s.baseURL, path, nil)
@@ -276,6 +284,10 @@ func (s *ImageService) Metadata(ctx context.Context, nasaID string) (map[string]
 // Captions retrieves the SRT subtitle text for the given NASA ID (video assets).
 // The response is plain text, not JSON.
 func (s *ImageService) Captions(ctx context.Context, nasaID string) (string, error) {
+	if nasaID == "" {
+		return "", fmt.Errorf("nasa: nasaID must not be empty")
+	}
+
 	path := "captions/" + url.PathEscape(nasaID)
 
 	resp, err := s.client.getExternal(ctx, s.baseURL, path, nil)

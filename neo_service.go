@@ -55,7 +55,7 @@ func (me *MillisecondEpoch) UnmarshalJSON(data []byte) error {
 	}
 	sec := ms / 1000
 	nsec := (ms % 1000) * 1e6
-	*me = MillisecondEpoch(time.Unix(sec, nsec))
+	*me = MillisecondEpoch(time.Unix(sec, nsec).UTC())
 	return nil
 }
 
@@ -156,9 +156,11 @@ func (ca *CloseApproach) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if aux.CloseApproachDateFull != "" {
-		if t, err := time.Parse("2006-Jan-02 15:04", aux.CloseApproachDateFull); err == nil {
-			ca.CloseApproachDateFull = t
+		t, err := time.Parse("2006-Jan-02 15:04", aux.CloseApproachDateFull)
+		if err != nil {
+			return fmt.Errorf("parsing CloseApproachDateFull %q: %w", aux.CloseApproachDateFull, err)
 		}
+		ca.CloseApproachDateFull = t
 	}
 
 	// Pass 2: extract raw string values for velocity and distance.

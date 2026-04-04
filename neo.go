@@ -12,6 +12,10 @@ import (
 // NeoEndpoint is the NASA NeoWs Feed API endpoint URL.
 var NeoEndpoint = "https://api.nasa.gov/neo/rest/v1/feed"
 
+// defaultNeoEndpoint is the default value of NeoEndpoint, used to detect
+// user overrides.
+const defaultNeoEndpoint = "https://api.nasa.gov/neo/rest/v1/feed"
+
 type diameter struct {
 	Min float64 `json:"estimated_diameter_min"`
 	Max float64 `json:"estimated_diameter_max"`
