@@ -74,9 +74,7 @@ Flags:
 	body := fs.String("body", "", "close-approach body (e.g. Earth, Mars)")
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	var opts []nasa.CADOption
 	if *dateMin != "" {
@@ -150,9 +148,7 @@ Flags:
 	dateMax := fs.String("date-max", "", "maximum date (YYYY-MM-DD)")
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	var opts []nasa.FireballOption
 	if *dateMin != "" {
@@ -228,9 +224,7 @@ Flags:
 
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	client := nasa.NewClient()
 	ctx := context.Background()
@@ -280,9 +274,7 @@ Flags:
 
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	client := nasa.NewClient()
 	ctx := context.Background()
@@ -336,9 +328,7 @@ Flags:
 
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	client := nasa.NewClient()
 	ctx := context.Background()
@@ -378,7 +368,7 @@ Flags:
 func ssdSBDBCmd(args []string) {
 	fs := flag.NewFlagSet("ssd sbdb", flag.ExitOnError)
 	fs.Usage = func() {
-		fmt.Fprintf(os.Stderr, `Usage: nasa ssd sbdb <designation> [flags]
+		fmt.Fprintf(os.Stderr, `Usage: nasa ssd sbdb [flags] <designation>
 
 Look up a small body in the JPL Small-Body Database.
 
@@ -389,12 +379,13 @@ Flags:
 
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	if fs.NArg() == 0 {
-		fatal("ssd sbdb: designation is required\n\nUsage: nasa ssd sbdb <designation> [flags]")
+		fatal("ssd sbdb: designation is required\n\nUsage: nasa ssd sbdb [flags] <designation>")
+	}
+	if fs.NArg() > 1 {
+		fatal("ssd sbdb: unexpected extra arguments")
 	}
 	designation := fs.Arg(0)
 

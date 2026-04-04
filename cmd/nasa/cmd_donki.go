@@ -87,9 +87,7 @@ func parseDonkiFlags(name string, args []string) (start, end time.Time, jsonOut 
 	endStr := fs.String("end", "", "End date YYYY-MM-DD (default: today)")
 	jsonFlag := fs.Bool("json", false, "Output as JSON")
 	apiKeyFlag := fs.String("api-key", "", "API key (default: NASA_API_KEY env)")
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	start, end = donkiDateDefaults(name, *startStr, *endStr)
 	return start, end, *jsonFlag, *apiKeyFlag
@@ -126,6 +124,16 @@ func formatDONKITime(t nasa.DONKITime) string {
 		return ""
 	}
 	return t.Format("2006-01-02 15:04")
+}
+
+// instrumentNames extracts display names from a slice of Instrument and joins
+// them with commas, deduplicating the pattern used across DONKI subcommands.
+func instrumentNames(instruments []nasa.Instrument) string {
+	names := make([]string, len(instruments))
+	for i, inst := range instruments {
+		names[i] = inst.DisplayName
+	}
+	return strings.Join(names, ", ")
 }
 
 // donkiCMECmd handles "nasa donki cme".
@@ -174,9 +182,7 @@ func donkiCMEAnalysisCmd(args []string) {
 	speedFlag := fs.Float64("speed", 0, "Minimum speed (km/s)")
 	halfAngleFlag := fs.Float64("half-angle", 0, "Minimum half-angle (degrees)")
 	catalogFlag := fs.String("catalog", "", "Catalog filter (ALL, M2M_CATALOG, SWPC_ANNEX_CME_CATALOG, SEPVAL_CME_CATALOG)")
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	start, end := donkiDateDefaults("cme-analysis", *startStr, *endStr)
 
@@ -277,9 +283,7 @@ func donkiIPSCmd(args []string) {
 	apiKeyFlag := fs.String("api-key", "", "API key (default: NASA_API_KEY env)")
 	locationFlag := fs.String("location", "", "Location filter (Earth, Mars, MESSENGER, STEREO A, STEREO B)")
 	catalogFlag := fs.String("catalog", "", "Catalog filter (ALL, M2M_CATALOG, WINSLOW_MESSENGER_ICME_CATALOG)")
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	start, end := donkiDateDefaults("ips", *startStr, *endStr)
 
@@ -382,14 +386,10 @@ func donkiSEPCmd(args []string) {
 
 	tw := newTable("SEP ID", "EVENT TIME", "INSTRUMENTS")
 	for _, e := range events {
-		names := make([]string, len(e.Instruments))
-		for i, inst := range e.Instruments {
-			names[i] = inst.DisplayName
-		}
 		tablePrintf(tw, "%s\t%s\t%s\n",
 			e.SepID,
 			formatDONKITime(e.EventTime),
-			strings.Join(names, ", "),
+			instrumentNames(e.Instruments),
 		)
 	}
 	flushTable(tw)
@@ -419,14 +419,10 @@ func donkiMPCCmd(args []string) {
 
 	tw := newTable("MPC ID", "EVENT TIME", "INSTRUMENTS")
 	for _, e := range events {
-		names := make([]string, len(e.Instruments))
-		for i, inst := range e.Instruments {
-			names[i] = inst.DisplayName
-		}
 		tablePrintf(tw, "%s\t%s\t%s\n",
 			e.MpcID,
 			formatDONKITime(e.EventTime),
-			strings.Join(names, ", "),
+			instrumentNames(e.Instruments),
 		)
 	}
 	flushTable(tw)
@@ -456,14 +452,10 @@ func donkiRBECmd(args []string) {
 
 	tw := newTable("RBE ID", "EVENT TIME", "INSTRUMENTS")
 	for _, e := range events {
-		names := make([]string, len(e.Instruments))
-		for i, inst := range e.Instruments {
-			names[i] = inst.DisplayName
-		}
 		tablePrintf(tw, "%s\t%s\t%s\n",
 			e.RbeID,
 			formatDONKITime(e.EventTime),
-			strings.Join(names, ", "),
+			instrumentNames(e.Instruments),
 		)
 	}
 	flushTable(tw)
@@ -493,14 +485,10 @@ func donkiHSSCmd(args []string) {
 
 	tw := newTable("HSS ID", "EVENT TIME", "INSTRUMENTS")
 	for _, e := range events {
-		names := make([]string, len(e.Instruments))
-		for i, inst := range e.Instruments {
-			names[i] = inst.DisplayName
-		}
 		tablePrintf(tw, "%s\t%s\t%s\n",
 			e.HssID,
 			formatDONKITime(e.EventTime),
-			strings.Join(names, ", "),
+			instrumentNames(e.Instruments),
 		)
 	}
 	flushTable(tw)
@@ -553,9 +541,7 @@ func donkiNotificationsCmd(args []string) {
 	jsonFlag := fs.Bool("json", false, "Output as JSON")
 	apiKeyFlag := fs.String("api-key", "", "API key (default: NASA_API_KEY env)")
 	typeFlag := fs.String("type", "", "Notification type filter (FLR, SEP, CME, IPS, MPC, GST, RBE, report)")
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	start, end := donkiDateDefaults("notifications", *startStr, *endStr)
 

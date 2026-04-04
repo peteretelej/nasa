@@ -165,7 +165,7 @@ func loadAPIKey() string {
 		}
 		if k, v, ok := strings.Cut(line, "="); ok {
 			if strings.TrimSpace(k) == "NASA_API_KEY" {
-				return strings.TrimSpace(v)
+				return strings.TrimSpace(strings.Trim(v, "\"'"))
 			}
 		}
 	}

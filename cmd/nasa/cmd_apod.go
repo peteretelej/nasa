@@ -66,6 +66,10 @@ Flags:
 			printJSON(apodSliceToMaps(apods))
 			return
 		}
+		if len(apods) == 0 {
+			fmt.Println("No results")
+			return
+		}
 		if len(apods) == 1 {
 			printSingleAPOD(apods[0])
 			return

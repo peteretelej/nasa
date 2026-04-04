@@ -297,7 +297,7 @@ func neoToMap(neo *nasa.NearEarthObject) map[string]any {
 			cas[i] = map[string]any{
 				"close_approach_date":       ca.CloseApproachDate,
 				"close_approach_date_full":  formatCloseApproachDate(ca.CloseApproachDateFull),
-				"epoch_date_close_approach": ca.EpochDateCloseApproach.Time().UnixMilli(),
+				"epoch_date_close_approach": formatEpochMillis(ca.EpochDateCloseApproach),
 				"relative_velocity":         ca.RelativeVelocity,
 				"miss_distance":             ca.MissDistance,
 				"orbiting_body":             ca.OrbitingBody,
@@ -320,4 +320,13 @@ func formatCloseApproachDate(t time.Time) string {
 		return ""
 	}
 	return t.Format("2006-Jan-02 15:04")
+}
+
+// formatEpochMillis returns the millisecond epoch value for a MillisecondEpoch,
+// or nil for zero timestamps to avoid serializing year-1 values.
+func formatEpochMillis(me nasa.MillisecondEpoch) any {
+	if me.Time().IsZero() {
+		return nil
+	}
+	return me.Time().UnixMilli()
 }

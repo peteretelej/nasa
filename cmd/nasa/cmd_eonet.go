@@ -73,8 +73,9 @@ Flags:
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 	apiKeyFlag := fs.String("api-key", "", "API key override")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
+	_ = fs.Parse(args)
+	if fs.NArg() > 0 {
+		fatal("eonet events: unexpected arguments")
 	}
 
 	var opts []nasa.EONETOption
@@ -170,12 +171,13 @@ Flags:
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 	apiKeyFlag := fs.String("api-key", "", "API key override")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	if fs.NArg() == 0 {
 		fatal("eonet event: event ID is required\n\nUsage: nasa eonet event <event-id> [flags]")
+	}
+	if fs.NArg() > 1 {
+		fatal("eonet event: unexpected arguments")
 	}
 	eventID := fs.Arg(0)
 
@@ -261,8 +263,9 @@ Flags:
 
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
+	_ = fs.Parse(args)
+	if fs.NArg() > 0 {
+		fatal("eonet categories: unexpected arguments")
 	}
 
 	client := nasa.NewClient()
@@ -312,8 +315,9 @@ Flags:
 
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
+	_ = fs.Parse(args)
+	if fs.NArg() > 0 {
+		fatal("eonet sources: unexpected arguments")
 	}
 
 	client := nasa.NewClient()

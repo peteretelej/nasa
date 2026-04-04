@@ -147,11 +147,11 @@ func updateRandom() error {
 	if err != nil {
 		return err
 	}
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("NASA API Response not OK: %d %s",
 			resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
-	defer func() { _ = resp.Body.Close() }()
 	dat, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err

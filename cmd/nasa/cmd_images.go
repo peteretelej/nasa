@@ -70,9 +70,7 @@ Flags:
 	page := fs.Int("page", 0, "results page number")
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	query := strings.Join(fs.Args(), " ")
 	if query == "" {
@@ -148,9 +146,7 @@ Flags:
 
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	if fs.NArg() == 0 {
 		fatal("images asset: NASA ID is required\n\nUsage: nasa images asset <nasa-id> [flags]")
@@ -194,9 +190,7 @@ Flags:
 
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	if fs.NArg() == 0 {
 		fatal("images metadata: NASA ID is required\n\nUsage: nasa images metadata <nasa-id> [flags]")
@@ -245,9 +239,7 @@ Flags:
 
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
+	_ = fs.Parse(args)
 
 	if fs.NArg() == 0 {
 		fatal("images captions: NASA ID is required\n\nUsage: nasa images captions <nasa-id> [flags]")
