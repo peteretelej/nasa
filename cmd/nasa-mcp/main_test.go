@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"math"
 	"net/http"
 	"net/http/httptest"
@@ -68,11 +69,11 @@ func toolResultFromResp(t *testing.T, resp *JSONRPCResponse) ToolResult {
 func toolText(t *testing.T, resp *JSONRPCResponse) string {
 	t.Helper()
 	tr := toolResultFromResp(t, resp)
-	if tr.IsError {
-		t.Fatalf("expected non-error result, got isError with: %s", tr.Content[0].Text)
-	}
 	if len(tr.Content) == 0 {
 		t.Fatal("expected non-empty content")
+	}
+	if tr.IsError {
+		t.Fatalf("expected non-error result, got isError with: %s", tr.Content[0].Text)
 	}
 	return tr.Content[0].Text
 }
@@ -87,6 +88,9 @@ func assertToolError(t *testing.T, resp *JSONRPCResponse, substr string) {
 		t.Fatalf("expected tool-level error, got RPC error: %+v", resp.Error)
 	}
 	tr := toolResultFromResp(t, resp)
+	if len(tr.Content) == 0 {
+		t.Fatal("expected non-empty content in tool result")
+	}
 	if !tr.IsError {
 		t.Fatalf("expected isError true, got false; text: %s", tr.Content[0].Text)
 	}
@@ -181,7 +185,7 @@ func serveFixture(w http.ResponseWriter, path string) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := w.Write(data); err != nil {
-		http.Error(w, "fixture write error: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("fixture write error: %v", err)
 	}
 }
 
