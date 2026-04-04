@@ -91,25 +91,33 @@ func parseDonkiFlags(name string, args []string) (start, end time.Time, jsonOut 
 		os.Exit(1)
 	}
 
-	end = time.Now().Truncate(24 * time.Hour)
+	start, end = donkiDateDefaults(name, *startStr, *endStr)
+	return start, end, *jsonFlag, *apiKeyFlag
+}
+
+// donkiDateDefaults resolves DONKI start/end dates from string flags. If a
+// flag is empty, the default is 30 days ago (start) or today (end). This
+// helper eliminates date-parsing duplication across DONKI subcommands.
+func donkiDateDefaults(name, startStr, endStr string) (start, end time.Time) {
+	now := time.Now()
+	end = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	start = end.AddDate(0, 0, -30)
 
-	if *startStr != "" {
+	if startStr != "" {
 		var err error
-		start, err = time.Parse("2006-01-02", *startStr)
+		start, err = time.Parse("2006-01-02", startStr)
 		if err != nil {
 			fatal("donki %s: invalid --start date, expected YYYY-MM-DD", name)
 		}
 	}
-	if *endStr != "" {
+	if endStr != "" {
 		var err error
-		end, err = time.Parse("2006-01-02", *endStr)
+		end, err = time.Parse("2006-01-02", endStr)
 		if err != nil {
 			fatal("donki %s: invalid --end date, expected YYYY-MM-DD", name)
 		}
 	}
-
-	return start, end, *jsonFlag, *apiKeyFlag
+	return start, end
 }
 
 // formatDONKITime formats a DONKITime to a readable "YYYY-MM-DD HH:MM" string.
@@ -170,23 +178,7 @@ func donkiCMEAnalysisCmd(args []string) {
 		os.Exit(1)
 	}
 
-	end := time.Now().Truncate(24 * time.Hour)
-	start := end.AddDate(0, 0, -30)
-
-	if *startStr != "" {
-		var err error
-		start, err = time.Parse("2006-01-02", *startStr)
-		if err != nil {
-			fatal("donki cme-analysis: invalid --start date, expected YYYY-MM-DD")
-		}
-	}
-	if *endStr != "" {
-		var err error
-		end, err = time.Parse("2006-01-02", *endStr)
-		if err != nil {
-			fatal("donki cme-analysis: invalid --end date, expected YYYY-MM-DD")
-		}
-	}
+	start, end := donkiDateDefaults("cme-analysis", *startStr, *endStr)
 
 	var opts []nasa.CMEAnalysisOption
 	if *mostAccurate {
@@ -289,23 +281,7 @@ func donkiIPSCmd(args []string) {
 		os.Exit(1)
 	}
 
-	end := time.Now().Truncate(24 * time.Hour)
-	start := end.AddDate(0, 0, -30)
-
-	if *startStr != "" {
-		var err error
-		start, err = time.Parse("2006-01-02", *startStr)
-		if err != nil {
-			fatal("donki ips: invalid --start date, expected YYYY-MM-DD")
-		}
-	}
-	if *endStr != "" {
-		var err error
-		end, err = time.Parse("2006-01-02", *endStr)
-		if err != nil {
-			fatal("donki ips: invalid --end date, expected YYYY-MM-DD")
-		}
-	}
+	start, end := donkiDateDefaults("ips", *startStr, *endStr)
 
 	var opts []nasa.IPSOption
 	if *locationFlag != "" {
@@ -581,23 +557,7 @@ func donkiNotificationsCmd(args []string) {
 		os.Exit(1)
 	}
 
-	end := time.Now().Truncate(24 * time.Hour)
-	start := end.AddDate(0, 0, -30)
-
-	if *startStr != "" {
-		var err error
-		start, err = time.Parse("2006-01-02", *startStr)
-		if err != nil {
-			fatal("donki notifications: invalid --start date, expected YYYY-MM-DD")
-		}
-	}
-	if *endStr != "" {
-		var err error
-		end, err = time.Parse("2006-01-02", *endStr)
-		if err != nil {
-			fatal("donki notifications: invalid --end date, expected YYYY-MM-DD")
-		}
-	}
+	start, end := donkiDateDefaults("notifications", *startStr, *endStr)
 
 	key := getAPIKey(*apiKeyFlag)
 	client := nasa.NewClient(nasa.WithAPIKey(key))

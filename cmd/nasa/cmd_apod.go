@@ -48,6 +48,9 @@ Flags:
 	if *countFlag != 1 && !hasRandom {
 		fatal("apod: --count can only be used with --random")
 	}
+	if (*startFlag != "") != (*endFlag != "") {
+		fatal("apod: both --start and --end are required for date ranges")
+	}
 
 	key := getAPIKey(*apiKeyFlag)
 	client := nasa.NewClient(nasa.WithAPIKey(key))

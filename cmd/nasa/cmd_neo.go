@@ -69,8 +69,8 @@ Flags:
 		os.Exit(1)
 	}
 
-	now := time.Now().Truncate(24 * time.Hour)
-	start := now
+	now := time.Now()
+	start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	if *startFlag != "" {
 		var err error
 		start, err = time.Parse("2006-01-02", *startFlag)
@@ -78,7 +78,7 @@ Flags:
 			fatal("neo feed: invalid --start date, expected YYYY-MM-DD")
 		}
 	}
-	end := start.Add(7 * 24 * time.Hour)
+	end := start.AddDate(0, 0, 6)
 	if *endFlag != "" {
 		var err error
 		end, err = time.Parse("2006-01-02", *endFlag)

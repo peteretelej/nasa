@@ -105,3 +105,18 @@ func TestCLI_ServiceHelp(t *testing.T) {
 		}
 	}
 }
+
+// TestCLI_ImagesSearchFlagParsing confirms that images search parses flags
+// after the query (M5 false positive: flag parsing order is already correct).
+// The command may fail due to missing API key or network, but it must NOT
+// fail due to flag parsing errors.
+func TestCLI_ImagesSearchFlagParsing(t *testing.T) {
+	_, stderr, _ := runCLI(t, "images", "search", "mars", "--page", "2")
+	// If flag parsing were broken, the error would mention "flag" or "not defined".
+	if strings.Contains(stderr, "flag provided but not defined") {
+		t.Error("flag parsing is broken: --page flag not recognized after positional args")
+	}
+	if strings.Contains(stderr, "invalid value") {
+		t.Error("flag parsing is broken: --page value not parsed correctly")
+	}
+}

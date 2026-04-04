@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -814,5 +815,120 @@ func TestFullLifecycle(t *testing.T) {
 	}
 	if !strings.Contains(text, "Explanation:") {
 		t.Error("nasa_apod: expected Explanation: in output")
+	}
+}
+
+// --- getIntArg validation tests (M3) ---
+
+func TestGetIntArg(t *testing.T) {
+	tests := []struct {
+		name   string
+		args   map[string]any
+		key    string
+		wantV  int
+		wantOK bool
+	}{
+		{"valid_int", map[string]any{"n": float64(42)}, "n", 42, true},
+		{"zero", map[string]any{"n": float64(0)}, "n", 0, true},
+		{"negative", map[string]any{"n": float64(-5)}, "n", -5, true},
+		{"missing_key", map[string]any{}, "n", 0, false},
+		{"not_a_number", map[string]any{"n": "hello"}, "n", 0, false},
+		{"fractional", map[string]any{"n": float64(3.14)}, "n", 0, false},
+		{"nan", map[string]any{"n": math.NaN()}, "n", 0, false},
+		{"pos_inf", map[string]any{"n": math.Inf(1)}, "n", 0, false},
+		{"neg_inf", map[string]any{"n": math.Inf(-1)}, "n", 0, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v, ok := getIntArg(tt.args, tt.key)
+			if ok != tt.wantOK {
+				t.Errorf("getIntArg ok = %v, want %v", ok, tt.wantOK)
+			}
+			if v != tt.wantV {
+				t.Errorf("getIntArg value = %d, want %d", v, tt.wantV)
+			}
+		})
+	}
+}
+
+// --- parseDONKIDates error tests (M4) ---
+
+func TestParseDONKIDates(t *testing.T) {
+	t.Run("valid_dates", func(t *testing.T) {
+		start, end, err := parseDONKIDates(map[string]any{
+			"start_date": "2024-01-01",
+			"end_date":   "2024-01-31",
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if start.Format("2006-01-02") != "2024-01-01" {
+			t.Errorf("start = %v, want 2024-01-01", start)
+		}
+		if end.Format("2006-01-02") != "2024-01-31" {
+			t.Errorf("end = %v, want 2024-01-31", end)
+		}
+	})
+
+	t.Run("empty_dates", func(t *testing.T) {
+		start, end, err := parseDONKIDates(map[string]any{})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !start.IsZero() {
+			t.Errorf("expected zero start, got %v", start)
+		}
+		if !end.IsZero() {
+			t.Errorf("expected zero end, got %v", end)
+		}
+	})
+
+	t.Run("invalid_start_date", func(t *testing.T) {
+		_, _, err := parseDONKIDates(map[string]any{
+			"start_date": "not-a-date",
+		})
+		if err == nil {
+			t.Fatal("expected error for invalid start_date")
+		}
+		if !strings.Contains(err.Error(), "invalid start_date") {
+			t.Errorf("error = %q, expected to contain 'invalid start_date'", err.Error())
+		}
+	})
+
+	t.Run("invalid_end_date", func(t *testing.T) {
+		_, _, err := parseDONKIDates(map[string]any{
+			"end_date": "bad",
+		})
+		if err == nil {
+			t.Fatal("expected error for invalid end_date")
+		}
+		if !strings.Contains(err.Error(), "invalid end_date") {
+			t.Errorf("error = %q, expected to contain 'invalid end_date'", err.Error())
+		}
+	})
+}
+
+// --- DONKI handler date error propagation tests (M4) ---
+
+func TestDONKIHandlersRejectBadDates(t *testing.T) {
+	client := setupTestClient(t)
+	badArgs := map[string]any{"start_date": "not-a-date"}
+
+	handlers := []struct {
+		name string
+		tool string
+	}{
+		{"cme", "nasa_donki_cme"},
+		{"gst", "nasa_donki_gst"},
+		{"flr", "nasa_donki_flr"},
+		{"sep", "nasa_donki_sep"},
+		{"notifications", "nasa_donki_notifications"},
+	}
+
+	for _, h := range handlers {
+		t.Run(h.name, func(t *testing.T) {
+			resp := callTool(client, h.tool, badArgs)
+			assertToolError(t, resp, "invalid start_date")
+		})
 	}
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -57,8 +58,9 @@ func getStringArg(args map[string]any, key string) string {
 }
 
 // getIntArg extracts an integer from the args map. JSON numbers arrive as
-// float64, so this performs the conversion. Returns (0, false) if the key is
-// missing or not a number.
+// float64, so this validates the value is finite, has no fractional part,
+// and fits within int range before converting. Returns (0, false) if the
+// key is missing, not a number, or the value is invalid.
 func getIntArg(args map[string]any, key string) (int, bool) {
 	v, ok := args[key]
 	if !ok {
@@ -66,6 +68,15 @@ func getIntArg(args map[string]any, key string) (int, bool) {
 	}
 	f, ok := v.(float64)
 	if !ok {
+		return 0, false
+	}
+	if math.IsInf(f, 0) || math.IsNaN(f) {
+		return 0, false
+	}
+	if f != math.Trunc(f) {
+		return 0, false
+	}
+	if f < math.MinInt || f > math.MaxInt {
 		return 0, false
 	}
 	return int(f), true
@@ -276,7 +287,10 @@ func handleNEOGet(ctx context.Context, args map[string]any, client *nasa.Client)
 // handleDONKICME handles the nasa_donki_cme tool. Returns coronal mass
 // ejection events for an optional date range.
 func handleDONKICME(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
-	start, end := parseDONKIDates(args)
+	start, end, err := parseDONKIDates(args)
+	if err != nil {
+		return errorResult("%v", err)
+	}
 
 	events, err := client.DONKI.CME(ctx, start, end)
 	if err != nil {
@@ -307,7 +321,10 @@ func handleDONKICME(ctx context.Context, args map[string]any, client *nasa.Clien
 // handleDONKIGST handles the nasa_donki_gst tool. Returns geomagnetic storm
 // events with Kp index data.
 func handleDONKIGST(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
-	start, end := parseDONKIDates(args)
+	start, end, err := parseDONKIDates(args)
+	if err != nil {
+		return errorResult("%v", err)
+	}
 
 	events, err := client.DONKI.GST(ctx, start, end)
 	if err != nil {
@@ -341,7 +358,10 @@ func handleDONKIGST(ctx context.Context, args map[string]any, client *nasa.Clien
 // handleDONKIFLR handles the nasa_donki_flr tool. Returns solar flare events
 // with class, timing, and source location.
 func handleDONKIFLR(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
-	start, end := parseDONKIDates(args)
+	start, end, err := parseDONKIDates(args)
+	if err != nil {
+		return errorResult("%v", err)
+	}
 
 	events, err := client.DONKI.FLR(ctx, start, end)
 	if err != nil {
@@ -376,7 +396,10 @@ func handleDONKIFLR(ctx context.Context, args map[string]any, client *nasa.Clien
 // handleDONKISEP handles the nasa_donki_sep tool. Returns solar energetic
 // particle events with instrument and linked event data.
 func handleDONKISEP(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
-	start, end := parseDONKIDates(args)
+	start, end, err := parseDONKIDates(args)
+	if err != nil {
+		return errorResult("%v", err)
+	}
 
 	events, err := client.DONKI.SEP(ctx, start, end)
 	if err != nil {
@@ -417,7 +440,10 @@ func handleDONKISEP(ctx context.Context, args map[string]any, client *nasa.Clien
 // handleDONKINotifications handles the nasa_donki_notifications tool. Returns
 // space weather notifications, optionally filtered by type.
 func handleDONKINotifications(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
-	start, end := parseDONKIDates(args)
+	start, end, err := parseDONKIDates(args)
+	if err != nil {
+		return errorResult("%v", err)
+	}
 	notifType := getStringArg(args, "type")
 
 	notifications, err := client.DONKI.Notifications(ctx, start, end, notifType)
@@ -661,20 +687,22 @@ func handleEONETEvents(ctx context.Context, args map[string]any, client *nasa.Cl
 // --- DONKI date helper ---
 
 // parseDONKIDates extracts optional start_date and end_date from args. Returns
-// zero-value times when dates are missing or unparseable, which the DONKI SDK
-// methods interpret as "use API defaults" (typically last 30 days).
-func parseDONKIDates(args map[string]any) (start, end time.Time) {
+// an error when a non-empty date string fails to parse. Zero-value times for
+// missing dates are interpreted by the DONKI SDK as "use API defaults".
+func parseDONKIDates(args map[string]any) (start, end time.Time, err error) {
 	if s := getStringArg(args, "start_date"); s != "" {
-		if t, err := parseDate(s); err == nil {
-			start = t
+		start, err = parseDate(s)
+		if err != nil {
+			return time.Time{}, time.Time{}, fmt.Errorf("invalid start_date %q: expected YYYY-MM-DD", s)
 		}
 	}
 	if s := getStringArg(args, "end_date"); s != "" {
-		if t, err := parseDate(s); err == nil {
-			end = t
+		end, err = parseDate(s)
+		if err != nil {
+			return time.Time{}, time.Time{}, fmt.Errorf("invalid end_date %q: expected YYYY-MM-DD", s)
 		}
 	}
-	return start, end
+	return start, end, nil
 }
 
 // --- Tool definitions ---

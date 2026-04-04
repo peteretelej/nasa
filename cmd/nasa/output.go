@@ -101,13 +101,19 @@ func getAPIKey(flagVal string) string {
 	return "DEMO_KEY"
 }
 
-// truncate shortens s to maxLen chars, appending "..." if truncated.
+// truncate shortens s to maxLen runes, appending "..." if truncated.
+// Returns empty string for maxLen <= 0. Uses rune-based slicing to
+// avoid splitting multi-byte UTF-8 characters.
 func truncate(s string, maxLen int) string {
-	if len(s) <= maxLen {
+	if maxLen <= 0 {
+		return ""
+	}
+	runes := []rune(s)
+	if len(runes) <= maxLen {
 		return s
 	}
 	if maxLen <= 3 {
-		return s[:maxLen]
+		return string(runes[:maxLen])
 	}
-	return s[:maxLen-3] + "..."
+	return string(runes[:maxLen-3]) + "..."
 }
