@@ -42,7 +42,7 @@ func TestRateLimit_MultiKeyFailover_ServiceLevel(t *testing.T) {
 		WithAPIKeys([]string{"key1", "key2"}),
 		WithRateLimit(1000),
 	)
-	// Force deterministic key order for testing.
+	// White-box test: intentional direct access for key rotation testing.
 	c.rateLimiter.keys.keys = []string{"key1", "key2"}
 	c.rateLimiter.keys.current = 0
 

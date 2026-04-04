@@ -305,6 +305,7 @@ func TestGet429RetryReEntersRateLimiter(t *testing.T) {
 		WithAPIKeys([]string{"key1", "key2"}),
 		WithRateLimit(1000),
 	)
+	// White-box test: intentional direct access for key rotation testing.
 	c.rateLimiter.keys.keys = []string{"key1", "key2"}
 	c.rateLimiter.keys.current = 0
 	c.rateLimiter.limiter = rate.NewLimiter(rate.Every(250*time.Millisecond), 1)

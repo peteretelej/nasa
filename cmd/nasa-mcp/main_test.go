@@ -429,6 +429,9 @@ func TestAllToolsRegistered(t *testing.T) {
 	}
 }
 
+// TestParseError validates the JSON-RPC parse error code and message construction
+// directly. Parse errors are handled in main()'s stdin loop, not in handleMessage,
+// so this test exercises the error path without requiring a full server round-trip.
 func TestParseError(t *testing.T) {
 	badJSON := []byte(`{not valid json}`)
 	var req JSONRPCRequest
