@@ -37,108 +37,90 @@ func main() {
 	fmt.Println("\n=== Phase A: static fixtures ===")
 
 	// APOD
-	apodSingle := mustFetch(apiKey, "apod_single.json",
-		"https://api.nasa.gov/planetary/apod?date=2024-01-15&thumbs=true&api_key="+apiKey, testdataDir)
-	writeFixture(testdataDir, "apod_single.json", apodSingle)
+	writeFixture(testdataDir, "apod_single.json", apiKey, mustFetch("apod_single.json",
+		"https://api.nasa.gov/planetary/apod?date=2024-01-15&thumbs=true&api_key="+apiKey))
 
-	apodVideo := fetchVideoAPOD(apiKey)
-	writeFixture(testdataDir, "apod_single_video.json", apodVideo)
+	writeFixture(testdataDir, "apod_single_video.json", apiKey, fetchVideoAPOD(apiKey))
 
-	apodRange := mustFetch(apiKey, "apod_range.json",
-		"https://api.nasa.gov/planetary/apod?start_date=2024-01-10&end_date=2024-01-12&thumbs=true&api_key="+apiKey, testdataDir)
-	writeFixture(testdataDir, "apod_range.json", apodRange)
+	writeFixture(testdataDir, "apod_range.json", apiKey, mustFetch("apod_range.json",
+		"https://api.nasa.gov/planetary/apod?start_date=2024-01-10&end_date=2024-01-12&thumbs=true&api_key="+apiKey))
 
 	// NEO
-	neoFeed := mustFetch(apiKey, "neo_feed.json",
-		"https://api.nasa.gov/neo/rest/v1/feed?start_date=2024-01-15&end_date=2024-01-15&api_key="+apiKey, testdataDir)
-	writeFixture(testdataDir, "neo_feed.json", neoFeed)
+	neoFeed := mustFetch("neo_feed.json",
+		"https://api.nasa.gov/neo/rest/v1/feed?start_date=2024-01-15&end_date=2024-01-15&api_key="+apiKey)
+	writeFixture(testdataDir, "neo_feed.json", apiKey, neoFeed)
 
-	neoBrowse := mustFetch(apiKey, "neo_browse.json",
-		"https://api.nasa.gov/neo/rest/v1/neo/browse?page=0&size=2&api_key="+apiKey, testdataDir)
-	writeFixture(testdataDir, "neo_browse.json", neoBrowse)
+	writeFixture(testdataDir, "neo_browse.json", apiKey, mustFetch("neo_browse.json",
+		"https://api.nasa.gov/neo/rest/v1/neo/browse?page=0&size=2&api_key="+apiKey))
 
 	// EONET (no API key needed)
-	eonetEvents := mustFetch(apiKey, "eonet_events.json",
-		"https://eonet.gsfc.nasa.gov/api/v3/events?limit=5", testdataDir)
-	writeFixture(testdataDir, "eonet_events.json", eonetEvents)
+	eonetEvents := mustFetch("eonet_events.json",
+		"https://eonet.gsfc.nasa.gov/api/v3/events?limit=5")
+	writeFixture(testdataDir, "eonet_events.json", apiKey, eonetEvents)
 
-	eonetCategories := mustFetch(apiKey, "eonet_categories.json",
-		"https://eonet.gsfc.nasa.gov/api/v3/categories", testdataDir)
-	writeFixture(testdataDir, "eonet_categories.json", eonetCategories)
+	writeFixture(testdataDir, "eonet_categories.json", apiKey, mustFetch("eonet_categories.json",
+		"https://eonet.gsfc.nasa.gov/api/v3/categories"))
 
-	eonetSources := mustFetch(apiKey, "eonet_sources.json",
-		"https://eonet.gsfc.nasa.gov/api/v3/sources", testdataDir)
-	writeFixture(testdataDir, "eonet_sources.json", eonetSources)
+	writeFixture(testdataDir, "eonet_sources.json", apiKey, mustFetch("eonet_sources.json",
+		"https://eonet.gsfc.nasa.gov/api/v3/sources"))
 
 	// DONKI
-	donkiCME := mustFetchTruncateArray(apiKey, "donki_cme.json",
-		"https://api.nasa.gov/DONKI/CME?startDate=2024-01-10&endDate=2024-01-15&api_key="+apiKey, 3, testdataDir)
-	writeFixture(testdataDir, "donki_cme.json", donkiCME)
+	writeFixture(testdataDir, "donki_cme.json", apiKey, mustFetchTruncateArray("donki_cme.json",
+		"https://api.nasa.gov/DONKI/CME?startDate=2024-01-10&endDate=2024-01-15&api_key="+apiKey, 3))
 
-	donkiCMEAnalysis := mustFetchTruncateArray(apiKey, "donki_cme_analysis.json",
-		"https://api.nasa.gov/DONKI/CMEAnalysis?startDate=2024-01-10&endDate=2024-01-15&api_key="+apiKey, 3, testdataDir)
-	writeFixture(testdataDir, "donki_cme_analysis.json", donkiCMEAnalysis)
+	writeFixture(testdataDir, "donki_cme_analysis.json", apiKey, mustFetchTruncateArray("donki_cme_analysis.json",
+		"https://api.nasa.gov/DONKI/CMEAnalysis?startDate=2024-01-10&endDate=2024-01-15&api_key="+apiKey, 3))
 
-	donkiGST := mustFetchTruncateArray(apiKey, "donki_gst.json",
-		"https://api.nasa.gov/DONKI/GST?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3, testdataDir)
-	writeFixture(testdataDir, "donki_gst.json", donkiGST)
+	writeFixture(testdataDir, "donki_gst.json", apiKey, mustFetchTruncateArray("donki_gst.json",
+		"https://api.nasa.gov/DONKI/GST?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3))
 
-	donkiIPS := mustFetchTruncateArray(apiKey, "donki_ips.json",
-		"https://api.nasa.gov/DONKI/IPS?startDate=2024-01-10&endDate=2024-01-20&api_key="+apiKey, 3, testdataDir)
-	writeFixture(testdataDir, "donki_ips.json", donkiIPS)
+	writeFixture(testdataDir, "donki_ips.json", apiKey, mustFetchTruncateArray("donki_ips.json",
+		"https://api.nasa.gov/DONKI/IPS?startDate=2024-01-10&endDate=2024-01-20&api_key="+apiKey, 3))
 
-	donkiFLR := mustFetchTruncateArray(apiKey, "donki_flr.json",
-		"https://api.nasa.gov/DONKI/FLR?startDate=2024-01-10&endDate=2024-01-15&api_key="+apiKey, 3, testdataDir)
-	writeFixture(testdataDir, "donki_flr.json", donkiFLR)
+	writeFixture(testdataDir, "donki_flr.json", apiKey, mustFetchTruncateArray("donki_flr.json",
+		"https://api.nasa.gov/DONKI/FLR?startDate=2024-01-10&endDate=2024-01-15&api_key="+apiKey, 3))
 
-	donkiSEP := mustFetchTruncateArray(apiKey, "donki_sep.json",
-		"https://api.nasa.gov/DONKI/SEP?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3, testdataDir)
-	writeFixture(testdataDir, "donki_sep.json", donkiSEP)
+	writeFixture(testdataDir, "donki_sep.json", apiKey, mustFetchTruncateArray("donki_sep.json",
+		"https://api.nasa.gov/DONKI/SEP?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3))
 
-	donkiMPC := mustFetchTruncateArray(apiKey, "donki_mpc.json",
-		"https://api.nasa.gov/DONKI/MPC?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3, testdataDir)
-	writeFixture(testdataDir, "donki_mpc.json", donkiMPC)
+	writeFixture(testdataDir, "donki_mpc.json", apiKey, mustFetchTruncateArray("donki_mpc.json",
+		"https://api.nasa.gov/DONKI/MPC?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3))
 
-	donkiRBE := mustFetchTruncateArray(apiKey, "donki_rbe.json",
-		"https://api.nasa.gov/DONKI/RBE?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3, testdataDir)
-	writeFixture(testdataDir, "donki_rbe.json", donkiRBE)
+	writeFixture(testdataDir, "donki_rbe.json", apiKey, mustFetchTruncateArray("donki_rbe.json",
+		"https://api.nasa.gov/DONKI/RBE?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3))
 
-	donkiHSS := mustFetchTruncateArray(apiKey, "donki_hss.json",
-		"https://api.nasa.gov/DONKI/HSS?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3, testdataDir)
-	writeFixture(testdataDir, "donki_hss.json", donkiHSS)
+	writeFixture(testdataDir, "donki_hss.json", apiKey, mustFetchTruncateArray("donki_hss.json",
+		"https://api.nasa.gov/DONKI/HSS?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3))
 
-	donkiWSA := mustFetchTruncateArray(apiKey, "donki_wsa_enlil.json",
-		"https://api.nasa.gov/DONKI/WSAEnlilSimulations?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3, testdataDir)
-	writeFixture(testdataDir, "donki_wsa_enlil.json", donkiWSA)
+	writeFixture(testdataDir, "donki_wsa_enlil.json", apiKey, mustFetchTruncateArray("donki_wsa_enlil.json",
+		"https://api.nasa.gov/DONKI/WSAEnlilSimulations?startDate=2024-01-01&endDate=2024-01-31&api_key="+apiKey, 3))
 
-	donkiNotif := mustFetchTruncateArray(apiKey, "donki_notifications.json",
-		"https://api.nasa.gov/DONKI/notifications?startDate=2024-01-10&endDate=2024-01-15&api_key="+apiKey, 3, testdataDir)
-	writeFixture(testdataDir, "donki_notifications.json", donkiNotif)
+	writeFixture(testdataDir, "donki_notifications.json", apiKey, mustFetchTruncateArray("donki_notifications.json",
+		"https://api.nasa.gov/DONKI/notifications?startDate=2024-01-10&endDate=2024-01-15&api_key="+apiKey, 3))
 
 	// Images
-	imagesSearch := mustFetch(apiKey, "images_search.json",
-		"https://images-api.nasa.gov/search?q=apollo+11&page_size=2", testdataDir)
-	writeFixture(testdataDir, "images_search.json", imagesSearch)
+	imagesSearch := mustFetch("images_search.json",
+		"https://images-api.nasa.gov/search?q=apollo+11&page_size=2")
+	writeFixture(testdataDir, "images_search.json", apiKey, imagesSearch)
 
 	// SSD/CNEOS
-	ssdCAD := mustFetch(apiKey, "ssd_cad.json",
-		"https://ssd-api.jpl.nasa.gov/cad.api?limit=3", testdataDir)
+	ssdCAD := mustFetch("ssd_cad.json",
+		"https://ssd-api.jpl.nasa.gov/cad.api?limit=3")
 	ssdCAD = truncateColumnarData(ssdCAD, 3)
-	writeFixture(testdataDir, "ssd_cad.json", ssdCAD)
+	writeFixture(testdataDir, "ssd_cad.json", apiKey, ssdCAD)
 
-	ssdFireball := mustFetch(apiKey, "ssd_fireball.json",
-		"https://ssd-api.jpl.nasa.gov/fireball.api?req-loc=true&limit=3", testdataDir)
+	ssdFireball := mustFetch("ssd_fireball.json",
+		"https://ssd-api.jpl.nasa.gov/fireball.api?req-loc=true&limit=3")
 	ssdFireball = truncateColumnarData(ssdFireball, 3)
-	writeFixture(testdataDir, "ssd_fireball.json", ssdFireball)
+	writeFixture(testdataDir, "ssd_fireball.json", apiKey, ssdFireball)
 
-	ssdSentry := mustFetch(apiKey, "ssd_sentry.json",
-		"https://ssd-api.jpl.nasa.gov/sentry.api", testdataDir)
+	ssdSentry := mustFetch("ssd_sentry.json",
+		"https://ssd-api.jpl.nasa.gov/sentry.api")
 	ssdSentry = truncateSentryData(ssdSentry, 3)
-	writeFixture(testdataDir, "ssd_sentry.json", ssdSentry)
+	writeFixture(testdataDir, "ssd_sentry.json", apiKey, ssdSentry)
 
-	ssdSBDB := mustFetch(apiKey, "ssd_sbdb.json",
-		"https://ssd-api.jpl.nasa.gov/sbdb.api?des=99942", testdataDir)
-	writeFixture(testdataDir, "ssd_sbdb.json", ssdSBDB)
+	writeFixture(testdataDir, "ssd_sbdb.json", apiKey, mustFetch("ssd_sbdb.json",
+		"https://ssd-api.jpl.nasa.gov/sbdb.api?des=99942"))
 
 	// Phase B: dynamic fixtures needing IDs from Phase A.
 	fmt.Println("\n=== Phase B: dynamic fixtures ===")
@@ -146,45 +128,20 @@ func main() {
 	// NEO single: extract first asteroid ID from feed
 	neoID := extractNEOID(neoFeed)
 	fmt.Printf("  Extracted NEO ID: %s\n", neoID)
-	neoSingle := mustFetch(apiKey, "neo_single.json",
-		"https://api.nasa.gov/neo/rest/v1/neo/"+neoID+"?api_key="+apiKey, testdataDir)
-	writeFixture(testdataDir, "neo_single.json", neoSingle)
+	writeFixture(testdataDir, "neo_single.json", apiKey, mustFetch("neo_single.json",
+		"https://api.nasa.gov/neo/rest/v1/neo/"+neoID+"?api_key="+apiKey))
 
 	// EONET single event: extract first event ID from events
 	eonetID := extractEONETEventID(eonetEvents)
 	fmt.Printf("  Extracted EONET event ID: %s\n", eonetID)
-	eonetSingle := mustFetch(apiKey, "eonet_event_single.json",
-		"https://eonet.gsfc.nasa.gov/api/v3/events/"+eonetID, testdataDir)
-	writeFixture(testdataDir, "eonet_event_single.json", eonetSingle)
+	writeFixture(testdataDir, "eonet_event_single.json", apiKey, mustFetch("eonet_event_single.json",
+		"https://eonet.gsfc.nasa.gov/api/v3/events/"+eonetID))
 
 	// Images asset: extract first NASA ID from search
 	nasaID := extractNASAImageID(imagesSearch)
 	fmt.Printf("  Extracted NASA Image ID: %s\n", nasaID)
-	imagesAsset := mustFetch(apiKey, "images_asset.json",
-		"https://images-api.nasa.gov/asset/"+nasaID, testdataDir)
-	writeFixture(testdataDir, "images_asset.json", imagesAsset)
-
-	// Suppress unused variable warnings for fixtures that are only written.
-	_ = apodSingle
-	_ = apodRange
-	_ = neoBrowse
-	_ = eonetCategories
-	_ = eonetSources
-	_ = donkiCME
-	_ = donkiCMEAnalysis
-	_ = donkiGST
-	_ = donkiIPS
-	_ = donkiFLR
-	_ = donkiSEP
-	_ = donkiMPC
-	_ = donkiRBE
-	_ = donkiHSS
-	_ = donkiWSA
-	_ = donkiNotif
-	_ = ssdCAD
-	_ = ssdFireball
-	_ = ssdSentry
-	_ = ssdSBDB
+	writeFixture(testdataDir, "images_asset.json", apiKey, mustFetch("images_asset.json",
+		"https://images-api.nasa.gov/asset/"+nasaID))
 
 	fmt.Println("\nDone! All 27 primary fixtures updated.")
 }
@@ -216,7 +173,7 @@ func loadAPIKey() string {
 }
 
 // mustFetch fetches a URL and returns the raw JSON bytes. It exits on error.
-func mustFetch(_ string, name, url, _ string) []byte {
+func mustFetch(name, url string) []byte {
 	rateLimitSleep()
 	fmt.Printf("  Fetching %s ...", name)
 
@@ -244,8 +201,8 @@ func mustFetch(_ string, name, url, _ string) []byte {
 
 // mustFetchTruncateArray fetches a URL expecting a JSON array, truncates to
 // maxItems elements if the array is longer, and returns the JSON bytes.
-func mustFetchTruncateArray(apiKey, name, url string, maxItems int, testdataDir string) []byte {
-	raw := mustFetch(apiKey, name, url, testdataDir)
+func mustFetchTruncateArray(name, url string, maxItems int) []byte {
+	raw := mustFetch(name, url)
 
 	var arr []json.RawMessage
 	if err := json.Unmarshal(raw, &arr); err != nil {
@@ -334,7 +291,10 @@ func fetchVideoAPOD(apiKey string) []byte {
 
 	for _, apod := range apods {
 		if mt, ok := apod["media_type"].(string); ok && mt == "video" {
-			out, _ := json.Marshal(apod)
+			out, err := json.Marshal(apod)
+			if err != nil {
+				log.Fatalf("video APOD: marshal error: %v", err)
+			}
 			fmt.Printf("  Found video APOD: %s\n", apod["date"])
 			return out
 		}
@@ -366,7 +326,10 @@ func truncateColumnarData(raw []byte, maxRows int) []byte {
 	if len(data) > maxRows {
 		fmt.Printf("    Truncating columnar data from %d to %d rows\n", len(data), maxRows)
 		data = data[:maxRows]
-		truncated, _ := json.Marshal(data)
+		truncated, err := json.Marshal(data)
+		if err != nil {
+			log.Fatalf("truncateColumnarData: marshal truncated data: %v", err)
+		}
 		obj["data"] = truncated
 
 		// Update count field if present
@@ -376,7 +339,10 @@ func truncateColumnarData(raw []byte, maxRows int) []byte {
 		}
 	}
 
-	out, _ := json.Marshal(obj)
+	out, err := json.Marshal(obj)
+	if err != nil {
+		log.Fatalf("truncateColumnarData: marshal output: %v", err)
+	}
 	return out
 }
 
@@ -401,7 +367,10 @@ func truncateSentryData(raw []byte, maxItems int) []byte {
 	if len(data) > maxItems {
 		fmt.Printf("    Truncating sentry data from %d to %d items\n", len(data), maxItems)
 		data = data[:maxItems]
-		truncated, _ := json.Marshal(data)
+		truncated, err := json.Marshal(data)
+		if err != nil {
+			log.Fatalf("truncateSentryData: marshal truncated data: %v", err)
+		}
 		obj["data"] = truncated
 
 		// Update count field
@@ -410,7 +379,10 @@ func truncateSentryData(raw []byte, maxItems int) []byte {
 		}
 	}
 
-	out, _ := json.Marshal(obj)
+	out, err := json.Marshal(obj)
+	if err != nil {
+		log.Fatalf("truncateSentryData: marshal output: %v", err)
+	}
 	return out
 }
 
@@ -479,7 +451,7 @@ func extractNASAImageID(raw []byte) string {
 // writeFixture pretty-prints JSON with 2-space indent and writes to testdata/.
 // It scrubs any embedded API key from the output to avoid leaking secrets into
 // committed fixture files.
-func writeFixture(dir, name string, raw []byte) {
+func writeFixture(dir, name, apiKey string, raw []byte) {
 	var parsed interface{}
 	if err := json.Unmarshal(raw, &parsed); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %s contains invalid JSON: %v\n", name, err)
@@ -492,7 +464,6 @@ func writeFixture(dir, name string, raw []byte) {
 	}
 
 	// Scrub the real API key from any embedded URLs (e.g. NEO self/next links).
-	apiKey := loadAPIKey()
 	if apiKey != "" && apiKey != "DEMO_KEY" {
 		pretty = []byte(strings.ReplaceAll(string(pretty), apiKey, "DEMO_KEY"))
 	}
