@@ -193,7 +193,7 @@ func assertExplicitBodyLimitError(t *testing.T, err error) {
 	if err == nil {
 		t.Fatal("expected explicit size-limit error for oversized successful response body")
 	}
-	if err.Error() != "nasa: response body exceeds 1048576 bytes" {
+	if err.Error() != "nasa: response body exceeds 10485760 bytes" {
 		t.Fatalf("error = %q, want explicit size-limit error", err.Error())
 	}
 }

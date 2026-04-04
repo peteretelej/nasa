@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const maxResponseBodyBytes = 1 << 20
+const maxResponseBodyBytes = 10 << 20
 
 func readResponseBody(r io.Reader) ([]byte, error) {
 	body, err := io.ReadAll(io.LimitReader(r, maxResponseBodyBytes+1))
@@ -82,12 +82,12 @@ func (e *APIError) Error() string { return e.Err.Error() }
 func (e *APIError) Unwrap() error { return e.Err }
 
 // newError reads the HTTP response and returns an appropriate typed error.
-// The response body is read up to 1MB to prevent unbounded memory usage.
+// The response body is read up to 10MB to prevent unbounded memory usage.
 // The response body is closed by this function.
 func newError(resp *http.Response) error {
 	defer closeResponseBody(resp.Body)
 
-	// Read body up to 1MB.
+	// Read body up to 10MB.
 	body, _ := readResponseBody(resp.Body)
 
 	msg := ""

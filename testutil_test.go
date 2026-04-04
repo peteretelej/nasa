@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var oversizedResponseText = strings.Repeat("x", (1<<20)+1024)
+var oversizedResponseText = strings.Repeat("x", (10<<20)+1024)
 
 // setupMockServer creates an httptest.Server with the given handler and returns
 // a Client configured to use it. The server is automatically closed when the

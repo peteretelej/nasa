@@ -65,9 +65,9 @@ func main() {
 	}
 
 	// --- NHATS (Human-Accessible NEOs) ---
-	fmt.Println("\n=== NHATS: Human-Accessible Near-Earth Objects ===")
+	fmt.Println("\n=== NHATS: Human-Accessible Near-Earth Objects (delta-v <= 6 km/s) ===")
 
-	nhats, err := client.SSD.NHATS(ctx)
+	nhats, err := client.SSD.NHATS(ctx, nasa.NHATSWithDV(6))
 	if err != nil {
 		log.Fatal(err)
 	}
