@@ -37,7 +37,7 @@ type JSONRPCRequest struct {
 // Exactly one of Result or Error is set per the JSON-RPC spec.
 type JSONRPCResponse struct {
 	JSONRPC string    `json:"jsonrpc"`
-	ID      any       `json:"id,omitempty"`
+	ID      any       `json:"id"`
 	Result  any       `json:"result,omitempty"`
 	Error   *RPCError `json:"error,omitempty"`
 }
@@ -86,11 +86,14 @@ type ToolDef struct {
 // "tools/call" for tool execution. Returns nil for notifications (messages
 // with no ID that expect no response).
 func handleMessage(req JSONRPCRequest, client *nasa.Client) *JSONRPCResponse {
+	// Per JSON-RPC 2.0, notifications have no ID and expect no response.
+	if req.ID == nil {
+		return nil
+	}
+
 	switch req.Method {
 	case "initialize":
 		return handleInitialize(req)
-	case "notifications/initialized":
-		return nil
 	case "tools/list":
 		return handleToolsList(req)
 	case "tools/call":

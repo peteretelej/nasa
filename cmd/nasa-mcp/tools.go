@@ -117,6 +117,12 @@ func formatAPOD(img *nasa.APODImage) string {
 // handleAPOD handles the nasa_apod tool. It supports three modes: random
 // (when count is provided), specific date, or today's APOD (the default).
 func handleAPOD(ctx context.Context, args map[string]any, client *nasa.Client) *ToolResult {
+	hasDate := getStringArg(args, "date") != ""
+	_, hasCount := getIntArg(args, "count")
+	if hasDate && hasCount {
+		return errorResult("date and count are mutually exclusive")
+	}
+
 	if count, ok := getIntArg(args, "count"); ok {
 		imgs, err := client.APOD.Random(ctx, count)
 		if err != nil {
