@@ -89,7 +89,7 @@ func (h *deprecatedRandomHandler) apod() Image {
 	h.mu.RUnlock()
 	return apod
 }
-func (h *deprecatedRandomHandler) update(apod Image, t time.Time) {
+func (h *deprecatedRandomHandler) update(apod Image) {
 	h.mu.Lock()
 	h.cachedApod = &apod
 	h.lastUpdate = time.Now()
@@ -115,7 +115,7 @@ func (h *deprecatedRandomHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				apod = *deprecatedFallbackImage()
 			}
 		}
-		h.update(apod, time.Now())
+		h.update(apod)
 	}
 
 	td := TmplData{

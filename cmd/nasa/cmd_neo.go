@@ -61,7 +61,7 @@ Flags:
 	}
 
 	startFlag := fs.String("start", "", "start date (YYYY-MM-DD, default: today)")
-	endFlag := fs.String("end", "", "end date (YYYY-MM-DD, default: start+7d)")
+	endFlag := fs.String("end", "", "end date (YYYY-MM-DD, default: start+6 days for 7-day window)")
 	jsonFlag := fs.Bool("json", false, "output as JSON")
 	apiKeyFlag := fs.String("api-key", "", "API key override")
 
@@ -296,7 +296,7 @@ func neoToMap(neo *nasa.NearEarthObject) map[string]any {
 		for i, ca := range neo.CloseApproachData {
 			cas[i] = map[string]any{
 				"close_approach_date":       ca.CloseApproachDate,
-				"close_approach_date_full":  ca.CloseApproachDateFull.Format("2006-Jan-02 15:04"),
+				"close_approach_date_full":  formatCloseApproachDate(ca.CloseApproachDateFull),
 				"epoch_date_close_approach": ca.EpochDateCloseApproach.Time().UnixMilli(),
 				"relative_velocity":         ca.RelativeVelocity,
 				"miss_distance":             ca.MissDistance,
@@ -311,4 +311,13 @@ func neoToMap(neo *nasa.NearEarthObject) map[string]any {
 	}
 
 	return m
+}
+
+// formatCloseApproachDate formats a close approach time, returning an empty
+// string for the zero value instead of "0001-Jan-01 00:00".
+func formatCloseApproachDate(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format("2006-Jan-02 15:04")
 }

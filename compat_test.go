@@ -3,6 +3,7 @@ package nasa
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -290,7 +291,10 @@ type testTransport struct {
 
 func (tt *testTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	u := *req.URL
-	redirected, _ := http.NewRequest(req.Method, tt.target.URL+u.Path+"?"+u.RawQuery, req.Body)
+	redirected, err := http.NewRequest(req.Method, tt.target.URL+u.Path+"?"+u.RawQuery, req.Body)
+	if err != nil {
+		return nil, fmt.Errorf("testTransport: creating redirected request: %w", err)
+	}
 	redirected.Header = req.Header
 	return tt.transport.RoundTrip(redirected)
 }
