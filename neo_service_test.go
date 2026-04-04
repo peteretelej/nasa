@@ -3,6 +3,7 @@ package nasa
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -28,7 +29,8 @@ func TestNEOService_Feed(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(fixture); err != nil {
-			t.Fatalf("writing neo service fixture: %v", err)
+			t.Errorf("writing neo service fixture: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
@@ -137,7 +139,8 @@ func TestNEOService_Get(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(fixture); err != nil {
-			t.Fatalf("writing neo get fixture: %v", err)
+			t.Errorf("writing neo get fixture: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
@@ -218,7 +221,8 @@ func TestNEOService_Browse(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(fixture); err != nil {
-			t.Fatalf("writing neo browse fixture: %v", err)
+			t.Errorf("writing neo browse fixture: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
@@ -336,7 +340,8 @@ func TestNEOService_Feed_APIError(t *testing.T) {
 		w.Header().Set("Retry-After", "60")
 		w.WriteHeader(http.StatusTooManyRequests)
 		if _, err := w.Write([]byte(`{"error":{"message":"rate limit exceeded"}}`)); err != nil {
-			t.Fatalf("writing neo api error response: %v", err)
+			t.Errorf("writing neo api error response: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)
@@ -351,33 +356,9 @@ func TestNEOService_Feed_APIError(t *testing.T) {
 	}
 
 	var rlErr *RateLimitError
-	if !isRateLimitError(err, &rlErr) {
+	if !errors.As(err, &rlErr) {
 		t.Errorf("expected *RateLimitError, got %T: %v", err, err)
 	}
-}
-
-// isRateLimitError checks if err is a *RateLimitError using errors.As.
-func isRateLimitError(err error, target **RateLimitError) bool {
-	return errorAs(err, target)
-}
-
-// errorAs is a thin wrapper to avoid importing errors in tests.
-func errorAs(err error, target interface{}) bool {
-	switch t := target.(type) {
-	case **RateLimitError:
-		for {
-			if rl, ok := err.(*RateLimitError); ok {
-				*t = rl
-				return true
-			}
-			u, ok := err.(interface{ Unwrap() error })
-			if !ok {
-				return false
-			}
-			err = u.Unwrap()
-		}
-	}
-	return false
 }
 
 func TestFixHTTPLinks(t *testing.T) {

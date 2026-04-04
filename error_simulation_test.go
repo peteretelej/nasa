@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -115,13 +116,21 @@ func TestServiceError_MalformedJSON(t *testing.T) {
 // TestServiceError_ConnectionRefused verifies behavior when the base URL points
 // to a closed port (no server); expects a network-level error.
 func TestServiceError_ConnectionRefused(t *testing.T) {
+	// Bind an ephemeral port, then close it to guarantee the port is unbound.
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("binding ephemeral port: %v", err)
+	}
+	addr := ln.Addr().String()
+	ln.Close()
+
 	c := NewClient(
-		WithBaseURL("http://127.0.0.1:1"),
+		WithBaseURL("http://"+addr),
 		WithAPIKey("test"),
 		WithRateLimit(1000),
 	)
 
-	_, err := c.APOD.Today(context.Background())
+	_, err = c.APOD.Today(context.Background())
 	if err == nil {
 		t.Fatal("expected network error, got nil")
 	}

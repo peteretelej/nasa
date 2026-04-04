@@ -68,7 +68,8 @@ func TestImages_MalformedResponse(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write([]byte(`{"bad": true}`)); err != nil {
-			t.Fatalf("writing malformed response: %v", err)
+			t.Errorf("writing malformed response: %v", err)
+			return
 		}
 	}))
 	t.Cleanup(ts.Close)

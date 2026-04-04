@@ -138,6 +138,17 @@ func TestRateLimit_RetryAfterHeader_Respected(t *testing.T) {
 		t.Fatalf("expected *RateLimitError, got %T: %v", err, err)
 	}
 
+	// Immediate retry: key should still be in cooldown. The client should
+	// return a rate limit error without waiting for the full cooldown.
+	_, err = c.APOD.Today(context.Background())
+	if err == nil {
+		t.Fatal("expected error on immediate retry during cooldown, got nil")
+	}
+	var rlErr2 *RateLimitError
+	if !errors.As(err, &rlErr2) {
+		t.Fatalf("immediate retry: expected *RateLimitError, got %T: %v", err, err)
+	}
+
 	// Wait for the Retry-After cooldown to expire.
 	time.Sleep(1100 * time.Millisecond)
 	elapsed := time.Since(start)

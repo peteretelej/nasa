@@ -277,6 +277,137 @@ func TestApodImageToImage(t *testing.T) {
 	}
 }
 
+// testTransport redirects all HTTP requests to a local test server, preserving
+// path and query. Unlike redirectRoundTripper (which calls DefaultTransport and
+// would recurse), this stores the real transport explicitly.
+type testTransport struct {
+	target    *httptest.Server
+	transport http.RoundTripper
+}
+
+func (tt *testTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	u := *req.URL
+	redirected, _ := http.NewRequest(req.Method, tt.target.URL+u.Path+"?"+u.RawQuery, req.Body)
+	redirected.Header = req.Header
+	return tt.transport.RoundTrip(redirected)
+}
+
+// interceptTransport temporarily replaces http.DefaultTransport with one that
+// redirects all requests to the given test server. Returns a cleanup function
+// that restores the original transport. Must not be used with t.Parallel().
+func interceptTransport(t *testing.T, ts *httptest.Server) {
+	t.Helper()
+	orig := http.DefaultTransport
+	http.DefaultTransport = &testTransport{target: ts, transport: orig}
+	t.Cleanup(func() { http.DefaultTransport = orig })
+}
+
+// TestAPODGet_WrapperDirect tests the APODGet convenience wrapper directly,
+// verifying date parsing and client creation.
+func TestAPODGet_WrapperDirect(t *testing.T) {
+	data := loadFixture(t, "apod_single.json")
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if _, err := w.Write(data); err != nil {
+			t.Errorf("writing fixture: %v", err)
+		}
+	}))
+	t.Cleanup(ts.Close)
+	interceptTransport(t, ts)
+
+	img, err := APODGet("TEST_KEY", "2024-01-15")
+	if err != nil {
+		t.Fatalf("APODGet error: %v", err)
+	}
+	if img == nil {
+		t.Fatal("expected non-nil APODImage")
+	}
+	if img.Title != "Star Cluster IC 348 from Webb" {
+		t.Errorf("Title = %q, want %q", img.Title, "Star Cluster IC 348 from Webb")
+	}
+}
+
+// TestAPODGet_WrapperDirect_BadDate verifies APODGet rejects invalid date strings.
+func TestAPODGet_WrapperDirect_BadDate(t *testing.T) {
+	_, err := APODGet("TEST_KEY", "not-a-date")
+	if err == nil {
+		t.Fatal("expected error for invalid date")
+	}
+	if !strings.Contains(err.Error(), "invalid date") {
+		t.Errorf("error = %q, want mention of invalid date", err.Error())
+	}
+}
+
+// TestAPODTodayWithKey_WrapperDirect tests the APODTodayWithKey convenience
+// wrapper directly.
+func TestAPODTodayWithKey_WrapperDirect(t *testing.T) {
+	data := loadFixture(t, "apod_single.json")
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if _, err := w.Write(data); err != nil {
+			t.Errorf("writing fixture: %v", err)
+		}
+	}))
+	t.Cleanup(ts.Close)
+	interceptTransport(t, ts)
+
+	img, err := APODTodayWithKey("TEST_KEY")
+	if err != nil {
+		t.Fatalf("APODTodayWithKey error: %v", err)
+	}
+	if img == nil {
+		t.Fatal("expected non-nil APODImage")
+	}
+	if img.Title != "Star Cluster IC 348 from Webb" {
+		t.Errorf("Title = %q, want %q", img.Title, "Star Cluster IC 348 from Webb")
+	}
+}
+
+// TestNEOFeedWithKey_WrapperDirect tests the NEOFeedWithKey convenience wrapper
+// directly.
+func TestNEOFeedWithKey_WrapperDirect(t *testing.T) {
+	data := loadFixture(t, "neo_feed.json")
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if _, err := w.Write(data); err != nil {
+			t.Errorf("writing fixture: %v", err)
+		}
+	}))
+	t.Cleanup(ts.Close)
+	interceptTransport(t, ts)
+
+	feed, err := NEOFeedWithKey("TEST_KEY", "2024-01-15", "2024-01-15")
+	if err != nil {
+		t.Fatalf("NEOFeedWithKey error: %v", err)
+	}
+	if feed == nil {
+		t.Fatal("expected non-nil NEOFeed")
+	}
+	if feed.ElementCount != 19 {
+		t.Errorf("ElementCount = %d, want 19", feed.ElementCount)
+	}
+}
+
+// TestNEOFeedWithKey_WrapperDirect_BadDates verifies NEOFeedWithKey rejects
+// invalid date strings.
+func TestNEOFeedWithKey_WrapperDirect_BadDates(t *testing.T) {
+	_, err := NEOFeedWithKey("TEST_KEY", "bad-start", "2024-01-15")
+	if err == nil {
+		t.Fatal("expected error for invalid start date")
+	}
+	if !strings.Contains(err.Error(), "invalid start date") {
+		t.Errorf("error = %q, want mention of invalid start date", err.Error())
+	}
+
+	_, err = NEOFeedWithKey("TEST_KEY", "2024-01-15", "bad-end")
+	if err == nil {
+		t.Fatal("expected error for invalid end date")
+	}
+	if !strings.Contains(err.Error(), "invalid end date") {
+		t.Errorf("error = %q, want mention of invalid end date", err.Error())
+	}
+}
+
 // Compile-time type assertions for legacy function signatures.
 
 func assertType[T any](T) {}

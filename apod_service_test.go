@@ -35,7 +35,8 @@ func apodFixtureHandler(t *testing.T, fixturePath string) http.HandlerFunc {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing fixture response: %v", err)
+			t.Errorf("writing fixture response: %v", err)
+			return
 		}
 	}
 }
@@ -79,10 +80,16 @@ func TestAPODService_Get(t *testing.T) {
 	var capturedQuery string
 	c := setupAPODTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		capturedQuery = r.URL.RawQuery
-		data, _ := os.ReadFile("testdata/apod_single.json")
+		data, err := os.ReadFile("testdata/apod_single.json")
+		if err != nil {
+			t.Errorf("reading fixture: %v", err)
+			http.Error(w, "fixture read error", http.StatusInternalServerError)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing get response: %v", err)
+			t.Errorf("writing get response: %v", err)
+			return
 		}
 	})
 
@@ -157,10 +164,16 @@ func TestAPODService_Random(t *testing.T) {
 	var capturedQuery string
 	c := setupAPODTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		capturedQuery = r.URL.RawQuery
-		data, _ := os.ReadFile("testdata/apod_range.json")
+		data, err := os.ReadFile("testdata/apod_range.json")
+		if err != nil {
+			t.Errorf("reading fixture: %v", err)
+			http.Error(w, "fixture read error", http.StatusInternalServerError)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing random response: %v", err)
+			t.Errorf("writing random response: %v", err)
+			return
 		}
 	})
 
@@ -228,7 +241,8 @@ func TestAPODService_Get_APIError(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusTooManyRequests)
 		if _, err := w.Write([]byte(`{"error":{"message":"rate limit exceeded"}}`)); err != nil {
-			t.Fatalf("writing api error response: %v", err)
+			t.Errorf("writing api error response: %v", err)
+			return
 		}
 	})
 
@@ -253,7 +267,8 @@ func TestAPODService_Get_NotFound(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		if _, err := w.Write(data); err != nil {
-			t.Fatalf("writing not found response: %v", err)
+			t.Errorf("writing not found response: %v", err)
+			return
 		}
 	})
 

@@ -19,7 +19,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	binPath := filepath.Join(tmpDir, "nasa")
 	cmd := exec.Command("go", "build", "-o", binPath, "./")
@@ -29,7 +28,9 @@ func TestMain(m *testing.M) {
 	}
 
 	nasaBin = binPath
-	os.Exit(m.Run())
+	code := m.Run()
+	_ = os.RemoveAll(tmpDir)
+	os.Exit(code)
 }
 
 // runCLI executes the nasa binary with args and returns stdout, stderr, and exit code.
