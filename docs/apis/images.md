@@ -1,12 +1,12 @@
-# Images - NASA Image and Video Library
+# Images - NASA Image, Video, and Audio Library
 
-The `ImageService` provides access to NASA's Image and Video Library. No API key is required.
+The `ImageService` provides access to NASA's Image, Video, and Audio Library. No API key is required.
 
 ## Methods
 
 | Method | Signature | Description |
 |--------|-----------|-------------|
-| `Search` | `Search(ctx context.Context, query string, opts ...ImageSearchOption) (*ImageCollection, error)` | Search images and videos |
+| `Search` | `Search(ctx context.Context, query string, opts ...ImageSearchOption) (*ImageCollection, error)` | Search images, videos, and audio |
 | `Asset` | `Asset(ctx context.Context, nasaID string) (*AssetManifest, error)` | Get asset manifest for a NASA ID |
 | `Metadata` | `Metadata(ctx context.Context, nasaID string) (map[string]any, error)` | Get metadata for a NASA ID |
 | `Captions` | `Captions(ctx context.Context, nasaID string) (string, error)` | Get captions for a video |

@@ -43,7 +43,7 @@ func TestDeprecatedHandleIndex(t *testing.T) {
 	setDefaultClientForTest(t, c)
 
 	var err error
-	deprecatedTmpl, err = template.New("tmpl").Parse(deprecatedTmplHTML)
+	tmpl, err := template.New("tmpl").Parse(deprecatedTmplHTML)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,13 +59,13 @@ func TestDeprecatedHandleIndex(t *testing.T) {
 			t.Fatal(err)
 		}
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(deprecatedHandleIndex)
+		handler := &deprecatedIndexHandler{tmpl: tmpl}
 		handler.ServeHTTP(rr, req)
 		if rr.Code != v.code {
-			t.Errorf("deprecatedHandleIndex %s returned wrong status got %d, want %d", v.path, rr.Code, v.code)
+			t.Errorf("deprecatedIndexHandler %s returned wrong status got %d, want %d", v.path, rr.Code, v.code)
 		}
 		if v.contains != "" && !strings.Contains(rr.Body.String(), v.contains) {
-			t.Errorf("deprecatedHandleIndex %s missing expected text %q", v.path, v.contains)
+			t.Errorf("deprecatedIndexHandler %s missing expected text %q", v.path, v.contains)
 		}
 	}
 }
@@ -78,7 +78,7 @@ func TestDeprecatedHandleIndex_Fallback(t *testing.T) {
 	setDefaultClientForTest(t, c)
 
 	var err error
-	deprecatedTmpl, err = template.New("tmpl").Parse(deprecatedTmplHTML)
+	tmpl, err := template.New("tmpl").Parse(deprecatedTmplHTML)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,7 +88,8 @@ func TestDeprecatedHandleIndex_Fallback(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	http.HandlerFunc(deprecatedHandleIndex).ServeHTTP(rr, req)
+	handler := &deprecatedIndexHandler{tmpl: tmpl}
+	handler.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
 		t.Errorf("fallback: got status %d, want %d", rr.Code, http.StatusOK)
@@ -103,8 +104,7 @@ func TestDeprecatedRandomHandler(t *testing.T) {
 	c := setupMockServer(t, apodMockHandler(t, "apod_single.json", "apod_range.json"))
 	setDefaultClientForTest(t, c)
 
-	var err error
-	deprecatedTmpl, err = template.New("tmpl").Parse(deprecatedTmplHTML)
+	tmpl, err := template.New("tmpl").Parse(deprecatedTmplHTML)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -124,7 +124,7 @@ func TestDeprecatedRandomHandler(t *testing.T) {
 		handler := &deprecatedRandomHandler{
 			lastUpdate: time.Now().Add(-10 * time.Hour),
 			cachedApod: &Image{},
-			tmpl:       deprecatedTmpl,
+			tmpl:       tmpl,
 		}
 		handler.ServeHTTP(rr, req)
 		if rr.Code != v.code {
@@ -143,8 +143,7 @@ func TestDeprecatedRandomHandler_Fallback(t *testing.T) {
 	})
 	setDefaultClientForTest(t, c)
 
-	var err error
-	deprecatedTmpl, err = template.New("tmpl").Parse(deprecatedTmplHTML)
+	tmpl, err := template.New("tmpl").Parse(deprecatedTmplHTML)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +156,7 @@ func TestDeprecatedRandomHandler_Fallback(t *testing.T) {
 	handler := &deprecatedRandomHandler{
 		lastUpdate: time.Now().Add(-10 * time.Hour),
 		cachedApod: &Image{}, // empty, so fallback will be used
-		tmpl:       deprecatedTmpl,
+		tmpl:       tmpl,
 	}
 	handler.ServeHTTP(rr, req)
 

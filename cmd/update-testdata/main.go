@@ -19,13 +19,16 @@ import (
 	"time"
 )
 
+// httpClient is a shared client with a reasonable timeout for all NASA API calls.
+var httpClient = &http.Client{Timeout: 30 * time.Second}
+
 func main() {
 	apiKey := loadAPIKey()
 	if apiKey == "" {
 		fmt.Fprintln(os.Stderr, "error: NASA_API_KEY not set (checked env and .env file)")
 		os.Exit(1)
 	}
-	fmt.Printf("Using API key: %s...%s\n", apiKey[:4], apiKey[len(apiKey)-4:])
+	fmt.Println("API key configured from environment.")
 
 	testdataDir := "testdata"
 
@@ -216,7 +219,7 @@ func mustFetch(_ string, name, url, _ string) []byte {
 	rateLimitSleep()
 	fmt.Printf("  Fetching %s ...", name)
 
-	resp, err := http.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "\nerror fetching %s: %v\n", name, err)
 		os.Exit(1)
@@ -273,7 +276,7 @@ func fetchVideoAPOD(apiKey string) []byte {
 		fmt.Printf("  Trying video APOD date %s ...", date)
 
 		url := fmt.Sprintf("https://api.nasa.gov/planetary/apod?date=%s&thumbs=true&api_key=%s", date, apiKey)
-		resp, err := http.Get(url)
+		resp, err := httpClient.Get(url)
 		if err != nil {
 			fmt.Printf(" error: %v\n", err)
 			continue
@@ -303,7 +306,7 @@ func fetchVideoAPOD(apiKey string) []byte {
 	fmt.Println("  Trying random APOD batch for video...")
 	rateLimitSleep()
 	url := fmt.Sprintf("https://api.nasa.gov/planetary/apod?count=20&thumbs=true&api_key=%s", apiKey)
-	resp, err := http.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error fetching random APODs: %v\n", err)
 		os.Exit(1)

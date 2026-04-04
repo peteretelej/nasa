@@ -8,12 +8,12 @@ Complete every item before creating the tag.
 
 ### 1. CI Status
 
-- [ ] The latest commit on `main` has a passing CI run (lint, build, test).
+- [ ] The latest commit on `master` has a passing CI run (lint, build, test).
 - [ ] Review the [Actions tab](https://github.com/peteretelej/nasa/actions/workflows/ci.yml) for the most recent result.
 
 ### 2. Local Verification
 
-Run all three checks locally on a clean checkout of `main`:
+Run all three checks locally on a clean checkout of `master`:
 
 ```bash
 go test -race -count=1 ./...
@@ -36,7 +36,7 @@ go build ./...
 
 ### 4. Docs Deployment Workflow
 
-- [ ] `.github/workflows/docs.yml` triggers on push to `main` for `docs/**` and `README.md`.
+- [ ] `.github/workflows/docs.yml` triggers on push to `master` for `docs/**` and `README.md`.
 - [ ] GitHub Pages is enabled in repo settings (Settings > Pages > Source > GitHub Actions).
 
 ## Creating the Release
@@ -45,11 +45,11 @@ Only proceed after every pre-release item above is checked.
 
 ### Tag the Release
 
-Create an annotated tag on `main` and push it:
+Create an annotated tag on `master` and push it:
 
 ```bash
-git checkout main
-git pull origin main
+git checkout master
+git pull origin master
 git tag -a v1.0.0 -m "v1.0.0 - first stable release"
 git push origin v1.0.0
 ```
@@ -70,7 +70,7 @@ Do not use a lightweight tag. The annotated tag ensures GitHub creates a proper 
 
 ### 3. Documentation Site
 
-- [ ] Confirm the docs workflow ran after the most recent push to `main`.
+- [ ] Confirm the docs workflow ran after the most recent push to `master`.
 - [ ] Visit [peteretelej.github.io/nasa](https://peteretelej.github.io/nasa) and verify the site is live and current.
 
 ### 4. Install Verification

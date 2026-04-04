@@ -26,21 +26,24 @@ const deprecatedFallbackImageURL = "https://apod.nasa.gov/apod/image/1901/IC405_
 // Deprecated: Use [Client].APOD with your own HTTP server instead.
 // This function will be removed in a future major version.
 func NewServer(listenAddr string) (*http.Server, error) {
-	var err error
-	deprecatedTmpl, err = template.New("tmpl").Parse(deprecatedTmplHTML)
+	tmpl, err := template.New("tmpl").Parse(deprecatedTmplHTML)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse template: %v", err)
 	}
 	rh := &deprecatedRandomHandler{
 		lastUpdate: time.Now().Add(-10 * time.Hour),
 		cachedApod: &Image{},
-		tmpl:       deprecatedTmpl,
+		tmpl:       tmpl,
 	}
-	http.HandleFunc("/", deprecatedHandleIndex)
-	http.Handle("/random-apod/", rh)
+	ih := &deprecatedIndexHandler{tmpl: tmpl}
+
+	mux := http.NewServeMux()
+	mux.Handle("/", ih)
+	mux.Handle("/random-apod/", rh)
 
 	return &http.Server{
 		Addr:           listenAddr,
+		Handler:        mux,
 		ReadTimeout:    30 * time.Second,
 		IdleTimeout:    5 * time.Minute,
 		WriteTimeout:   60 * time.Second,
@@ -48,7 +51,11 @@ func NewServer(listenAddr string) (*http.Server, error) {
 	}, nil
 }
 
-func deprecatedHandleIndex(w http.ResponseWriter, r *http.Request) {
+type deprecatedIndexHandler struct {
+	tmpl *template.Template
+}
+
+func (h *deprecatedIndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -58,7 +65,8 @@ func deprecatedHandleIndex(w http.ResponseWriter, r *http.Request) {
 		log.Printf("deprecated index APOD fetch error: %v", err)
 		apod = deprecatedFallbackImage()
 	}
-	TmplData{Apod: *apod}.Render(w)
+	td := TmplData{Apod: *apod}
+	td.renderWith(w, h.tmpl)
 }
 
 type deprecatedRandomHandler struct {
@@ -125,10 +133,22 @@ func (h *deprecatedRandomHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	if td.AutoReloadInterval < 1 {
 		td.AutoReloadInterval = 5 * 60 // default reload every 5 minutes
 	}
-	td.Render(w)
+	td.renderWith(w, h.tmpl)
 }
 
-var deprecatedTmpl *template.Template
+var (
+	deprecatedTmpl     *template.Template
+	deprecatedTmplOnce sync.Once
+)
+
+// deprecatedEnsureTmpl lazily parses the template for callers of the public
+// Render method that may not have gone through NewServer.
+func deprecatedEnsureTmpl() *template.Template {
+	deprecatedTmplOnce.Do(func() {
+		deprecatedTmpl = template.Must(template.New("tmpl").Parse(deprecatedTmplHTML))
+	})
+	return deprecatedTmpl
+}
 
 func deprecatedFallbackImage() *Image {
 	return &Image{
@@ -162,6 +182,12 @@ type TmplData struct {
 // Deprecated: Use [Client].APOD with your own HTTP server and templates
 // instead. This method will be removed in a future major version.
 func (td TmplData) Render(wr http.ResponseWriter) {
+	td.renderWith(wr, deprecatedEnsureTmpl())
+}
+
+// renderWith is the internal render method that accepts an explicit template,
+// avoiding reliance on the package-level variable.
+func (td TmplData) renderWith(wr http.ResponseWriter, tmpl *template.Template) {
 	if strings.Contains(td.Apod.URL, "youtube") {
 		td.IsYoutube = true
 		if i := strings.Index(td.Apod.URL, "?"); i > 1 {
@@ -172,7 +198,7 @@ func (td TmplData) Render(wr http.ResponseWriter) {
 		http.Error(wr, "NASA API currently unavailable, it's experiencing downtime :(", http.StatusServiceUnavailable)
 		return
 	}
-	if err := deprecatedTmpl.Execute(wr, td); err != nil {
+	if err := tmpl.Execute(wr, td); err != nil {
 		log.Print(err)
 	}
 }

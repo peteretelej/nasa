@@ -1,6 +1,6 @@
 {
   "collection": {
-    "href": "http://images-api.nasa.gov/search?q=apollo+11\u0026page_size=2",
+    "href": "https://images-api.nasa.gov/search?q=apollo+11\u0026page_size=2",
     "items": [
       {
         "data": [
@@ -110,7 +110,7 @@
     ],
     "links": [
       {
-        "href": "http://images-api.nasa.gov/search?q=apollo+11\u0026page_size=2\u0026page=2",
+        "href": "https://images-api.nasa.gov/search?q=apollo+11\u0026page_size=2\u0026page=2",
         "prompt": "Next",
         "rel": "next"
       }
