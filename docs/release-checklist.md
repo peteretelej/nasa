@@ -78,7 +78,7 @@ Do not use a lightweight tag. The annotated tag ensures GitHub creates a proper 
 Verify that users can install the SDK and CLI at the tagged version:
 
 ```bash
-go get github.com/peteretelej/nasa@v1.0.0
+go list -m github.com/peteretelej/nasa@v1.0.0
 go install github.com/peteretelej/nasa/cmd/nasa@v1.0.0
 nasa --version
 ```

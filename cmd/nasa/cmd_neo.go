@@ -68,6 +68,9 @@ Flags:
 	if err := fs.Parse(args); err != nil {
 		os.Exit(1)
 	}
+	if fs.NArg() != 0 {
+		fatal("neo feed: unexpected positional arguments")
+	}
 
 	now := time.Now()
 	start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
@@ -149,8 +152,8 @@ Flags:
 		os.Exit(1)
 	}
 
-	if fs.NArg() == 0 {
-		fatal("neo get: asteroid ID is required\n\nUsage: nasa neo get <asteroid-id> [flags]")
+	if fs.NArg() != 1 {
+		fatal("neo get: expected exactly one asteroid ID\n\nUsage: nasa neo get <asteroid-id> [flags]")
 	}
 	asteroidID := fs.Arg(0)
 
@@ -191,6 +194,9 @@ Flags:
 
 	if err := fs.Parse(args); err != nil {
 		os.Exit(1)
+	}
+	if fs.NArg() != 0 {
+		fatal("neo browse: unexpected positional arguments")
 	}
 
 	key := getAPIKey(*apiKeyFlag)

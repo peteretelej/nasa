@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -221,19 +222,19 @@ func mustFetch(_ string, name, url, _ string) []byte {
 
 	resp, err := httpClient.Get(url)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "\nerror fetching %s: %v\n", name, err)
+		fmt.Fprintf(os.Stderr, "\nerror fetching %s\n", name)
 		os.Exit(1)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "\nerror reading %s: %v\n", name, err)
+		fmt.Fprintf(os.Stderr, "\nerror reading %s\n", name)
 		os.Exit(1)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Fprintf(os.Stderr, "\nerror: %s returned HTTP %d: %s\n", name, resp.StatusCode, string(body[:min(200, len(body))]))
+		fmt.Fprintf(os.Stderr, "\nerror: %s returned HTTP %d\n", name, resp.StatusCode)
 		os.Exit(1)
 	}
 
@@ -248,9 +249,7 @@ func mustFetchTruncateArray(apiKey, name, url string, maxItems int, testdataDir 
 
 	var arr []json.RawMessage
 	if err := json.Unmarshal(raw, &arr); err != nil {
-		// Not an array (could be empty or error). Return as-is.
-		fmt.Printf("    warning: %s is not a JSON array, keeping as-is\n", name)
-		return raw
+		log.Fatalf("fixture %s: expected JSON array but got unexpected shape", name)
 	}
 
 	if len(arr) > maxItems {
@@ -278,11 +277,16 @@ func fetchVideoAPOD(apiKey string) []byte {
 		url := fmt.Sprintf("https://api.nasa.gov/planetary/apod?date=%s&thumbs=true&api_key=%s", date, apiKey)
 		resp, err := httpClient.Get(url)
 		if err != nil {
-			fmt.Printf(" error: %v\n", err)
+			fmt.Printf(" fetch error\n")
 			continue
 		}
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		_ = resp.Body.Close()
+
+		if err != nil {
+			fmt.Printf(" read error\n")
+			continue
+		}
 
 		if resp.StatusCode != http.StatusOK {
 			fmt.Printf(" HTTP %d\n", resp.StatusCode)
@@ -308,11 +312,19 @@ func fetchVideoAPOD(apiKey string) []byte {
 	url := fmt.Sprintf("https://api.nasa.gov/planetary/apod?count=20&thumbs=true&api_key=%s", apiKey)
 	resp, err := httpClient.Get(url)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error fetching random APODs: %v\n", err)
+		fmt.Fprintf(os.Stderr, "error fetching random APODs\n")
 		os.Exit(1)
 	}
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	_ = resp.Body.Close()
+
+	if err != nil {
+		log.Fatalf("reading response for random APODs: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Fatalf("random APODs: HTTP %d", resp.StatusCode)
+	}
 
 	var apods []map[string]interface{}
 	if err := json.Unmarshal(body, &apods); err != nil {
@@ -338,17 +350,17 @@ func fetchVideoAPOD(apiKey string) []byte {
 func truncateColumnarData(raw []byte, maxRows int) []byte {
 	var obj map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &obj); err != nil {
-		return raw
+		log.Fatalf("truncateColumnarData: unexpected JSON shape - expected object")
 	}
 
 	dataRaw, ok := obj["data"]
 	if !ok {
-		return raw
+		log.Fatalf("truncateColumnarData: unexpected JSON shape - missing data key")
 	}
 
 	var data []json.RawMessage
 	if err := json.Unmarshal(dataRaw, &data); err != nil {
-		return raw
+		log.Fatalf("truncateColumnarData: unexpected JSON shape - data is not an array")
 	}
 
 	if len(data) > maxRows {
@@ -373,17 +385,17 @@ func truncateColumnarData(raw []byte, maxRows int) []byte {
 func truncateSentryData(raw []byte, maxItems int) []byte {
 	var obj map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &obj); err != nil {
-		return raw
+		log.Fatalf("truncateSentryData: unexpected JSON shape - expected object")
 	}
 
 	dataRaw, ok := obj["data"]
 	if !ok {
-		return raw
+		log.Fatalf("truncateSentryData: unexpected JSON shape - missing data key")
 	}
 
 	var data []json.RawMessage
 	if err := json.Unmarshal(dataRaw, &data); err != nil {
-		return raw
+		log.Fatalf("truncateSentryData: unexpected JSON shape - data is not an array")
 	}
 
 	if len(data) > maxItems {
